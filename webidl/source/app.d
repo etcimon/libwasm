@@ -116,12 +116,12 @@ IR readDefinitions(string path) {
   if (isDir(path)) {
     auto entries = dirEntries(path, SpanMode.depth);
     foreach(entry; entries) {
-      if (entry.name.extension() != ".idl")
+      if (entry.name.extension() != ".webidl")
         continue;
       auto input = readText(entry.name);
       auto document = WebIDL(input);
       if (!document.successful) {
-        writeln("Failed to parse input. Are you sure it is valid WebIDL? Details:\n", document.failMsg);
+        writeln("Failed to parse input ", entry.name, ". Are you sure it is valid WebIDL? Details:\n", document.failMsg);
         continue;
       }
       semantics.analyse(entry.name.baseName.stripExtension,document);
@@ -141,7 +141,7 @@ void generateDFiles(IR ir, string dFolder) {
   foreach(m; ir.semantics.modules) {
     auto name = m.name;
     string dFile = dFolder ~ "/" ~ name.setExtension("d");
-    writeln("Writing ", dFile);
+    //writeln("Writing ", dFile);
     std.file.write(dFile, "module spasm.bindings." ~ name ~ ";\n\n"~
                    "import spasm.types;\n");
     auto imports = ir.getImports(m);
@@ -152,7 +152,7 @@ void generateDFiles(IR ir, string dFolder) {
     std.file.append(dFile, ir.generateDImports(m));
   }
   auto packageFile = dFolder ~ "/package.d";
-  writeln("Writing ", packageFile);
+  //writeln("Writing ", packageFile);
   std.file.write(
                  packageFile,
                  chain(

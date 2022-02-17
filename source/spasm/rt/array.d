@@ -17,15 +17,8 @@ nothrow:
  * to reduce template bloat all PointerArray!T* are backed by a
  * DynamicArray!(void*)
  */
-struct PointerArray(T, Allocator = SpasmGCAllocator) if (is(T : U*, U)) {
-  static if (!is(Allocator == SpasmGCAllocator)) {
-    private DynamicArray!(void*, Allocator) array = void;
-    this(ref Allocator allocator) {
-      array = DynamicArray!(void*, Allocator)(allocator);
-    }
-  } else {
-    private DynamicArray!(void*, Allocator) array;
-  }
+struct PointerArray(T, Allocator) if (is(T : U*, U)) {
+	private DynamicArray!(void*, Allocator) array;
 
   alias array this;
 
@@ -112,14 +105,9 @@ struct PointerArray(T, Allocator = SpasmGCAllocator) if (is(T : U*, U)) {
  *     Allocator = the allocator to use. Defaults to `Mallocator`.
  */
 
-struct DynamicArray(T, Allocator = SpasmGCAllocator)
+struct DynamicArray(T, Allocator)
 {
-  static if (!is(Allocator == SpasmGCAllocator)) {
-    Allocator* allocator;
-    @trusted this(ref Allocator allocator) {
-      this.allocator = &allocator;
-    }
-  }
+    Allocator allocator;
 
 	this(this) @disable;
 
@@ -624,15 +612,11 @@ mixin template AllocatorState(Allocator)
     Allocator allocator;
 }
 
-struct StringAppender(Allocator = SpasmGCAllocator) {
-  static if (!is(Allocator == SpasmGCAllocator)) {
-    DynamicArray!(char, Allocator) arr = void;
-    this(ref Allocator allocator) {
-      arr = DynamicArray!(char, Allocator)(allocator);
-    }
-  } else {
-    DynamicArray!(char, Allocator) arr;
-  }
+struct StringAppender(Allocator) {
+	DynamicArray!(char, Allocator) arr = void;
+	this(ref Allocator allocator) {
+		arr = DynamicArray!(char, Allocator)(allocator);
+	}
   alias arr this;
   void put(string s) {
     foreach(c; s)

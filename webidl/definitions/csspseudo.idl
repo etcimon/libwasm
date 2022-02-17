@@ -1,9 +1,0 @@
-[Exposed=Window]
-interface CSSPseudoElement : EventTarget {
-  readonly attribute CSSOMString type;
-  readonly attribute Element element;
-};
-
-partial interface Element {
-  CSSPseudoElement? pseudo(CSSOMString type);
-};

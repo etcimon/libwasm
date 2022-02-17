@@ -1946,7 +1946,8 @@ void generateDImports(Appender)(ParseTree tree, ref Appender a, Context context)
     } else
       tree.children.each!(c => c.generateDImports(a, context));
     break;
-  case "WebIDL.IncludesStatement":
+  case "WebIDL.IncludesStatement":  
+      writeln("No D Imports for include statement");
     break;
   case "WebIDL.ReturnType":
     context.returnType = true;
@@ -2064,16 +2065,18 @@ void toIr(Appender)(ParseTree tree, ref Appender a, Context context) {
     context.isIncludes = true;
     context.includes = tree;
     context.typeName = tree.children[1].matches[0];
+    //writeln("Adding includes node ", context.typeName, " : ", tree.children[1].matches[0]);
     ParseTree mixinRest = context.getType(context.typeName);
     auto partials = context.getMatchingPartials(context.typeName);
     auto app = appender!(Node[]);
-    mixinRest.children[1].toIr(app, context);
+    mixinRest.children[2].toIr(app, context);
     partials.each!((c){
         if (c.children[0].children[0].children[0].name == "WebIDL.MixinRest")
           toIr(c.children[0].children[0].children[0].children[1], app, context);
         else
           toIr(c.children[0], app, context);
       });
+    //writeln(app.data);
     a.put(new StructIncludesNode(tree.children[0].matches[0], tree.children[1].matches[0], app.data));
     break;
   case "WebIDL.Iterable":
@@ -2179,6 +2182,15 @@ void toIr(Appender)(ParseTree tree, ref Appender a, Context context) {
     case "deleter":
       a.put(new FunctionNode( "remove", args, ParseTree.init, FunctionType.Function | FunctionType.Deleter, "", "", "deleter"));
       break;
+    case "legacycaller":
+      assert(args.length == 1);
+      a.put(new FunctionNode( "getter", args, result, FunctionType.OpIndex | FunctionType.Getter, "", "", ""));
+      args = args.dup();
+      args[0].templated = true;
+      a.put(new FunctionNode( "getter", args, result, FunctionType.OpDispatch | FunctionType.Getter, "", "" ,""));
+      
+      // todo: Find out what this is. getter for now
+      break;
     default: assert(0);
     }
     break;
@@ -2269,6 +2281,7 @@ auto collectFunctions(IR ir, string[] filter) {
       foreach(child; structNode.children)
         recurse(child, structNode.name);
     } else if (auto includesNode = cast(StructIncludesNode)node) {
+      //writeln("collecting includes node ", includesNode.name);
       foreach(child; includesNode.children)
         recurse(child, includesNode.name);
     } else if (auto moduleNode = cast(ModuleNode)node) {
@@ -2770,6 +2783,7 @@ auto getImports(IR ir, Module module_) {
       (cast(StructNode)node).children.each!(node => recurse(node));
     } else if (cast(StructIncludesNode)node) {
       auto name = (cast(StructIncludesNode)node).name;
+      //writeln("getImports StructIncludesNode/sink ", name, " includes ", (cast(StructIncludesNode)node).baseType );
       sink(name, semantics, app);
       (cast(StructIncludesNode)node).children.each!(node => recurse(node));
     } else if (cast(ModuleNode)node)
@@ -2810,8 +2824,10 @@ auto collectMethods(IR ir) {
         if (auto constructor = cast(ExposedConstructorNode)child) {
           s.functions ~= constructor.name;
         } else if (auto includes = cast(StructIncludesNode)child) {
+          //writeln("Collect methods on ", includes.baseType, " : ", includes.name, ", children: ", includes.children.length);
           foreach(includesChild; includes.children) {
             if (auto func = cast(FunctionNode)includesChild) {
+              //writeln(func.name);
               s.functions ~= func.name;
             }
           }
@@ -3015,7 +3031,7 @@ class Semantics {
     assert(tree.name == "WebIDL");
     auto m = new Module(module_, this);
     foreach(chunk; tree.children[0].children.chunks(2)) {
-      assert(chunk.length == 2);
+      assert(chunk.length == 2, "Expected 2 chunks for " ~ chunk[0].name);
       analyse(m, chunk[1], chunk[0]);
     }
     modules[module_] = m;
@@ -3036,7 +3052,11 @@ class Semantics {
   private void analyse(Module module_, ParseTree tree, ParseTree attributes) {
     switch (tree.name) {
     case "WebIDL.IncludesStatement":
+      //writeln("Analysing include statement");
       module_.mixins ~= new Type(tree, ParseTree.init, module_);
+      break;
+      
+    case "WebIDL.Declaration":
       break;
     case "WebIDL.Dictionary":
     case "WebIDL.InterfaceRest":
@@ -3073,6 +3093,7 @@ string generateDType(ParseTree tree, Context context) {
 }
 void generateDType(Appender)(ParseTree tree, ref Appender a, Context context) {
   switch (tree.name) {
+  case "WebIDL.Declaration":
   case "WebIDL.InterfaceRest":
   case "WebIDL.IncludesStatement":
   case "WebIDL.Iterable":

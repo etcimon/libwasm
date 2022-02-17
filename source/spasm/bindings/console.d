@@ -25,7 +25,7 @@ struct console {
     console_error(_handle_data);
     dropHandle!(T0)(_handle_data);
   }
-  void info(T0)(scope auto ref T0 data) {
+  void info(T0)(scope T0 data) {
     Handle _handle_data = getOrCreateHandle(data);
     console_info(_handle_data);
     dropHandle!(T0)(_handle_data);

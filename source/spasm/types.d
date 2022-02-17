@@ -49,10 +49,7 @@ version (unittest) {
   }
 }
 
-@trusted extern(C) export @assumeUsed ubyte* allocString(uint bytes) {
-  import spasm.rt.memory;
-  return allocator.make!(ubyte[])(bytes).ptr;
-}
+@trusted extern(C) export @assumeUsed ubyte* allocString(uint bytes);
 
 @safe:
 
@@ -487,6 +484,14 @@ struct DataView {
   }
 }
 struct ArrayBuffer {
+  nothrow:
+	JsHandle handle;
+	alias handle this;
+  this(Handle h) {
+    this.handle = JsHandle(h);
+  }
+}
+struct InputStream {
   nothrow:
 	JsHandle handle;
 	alias handle this;
