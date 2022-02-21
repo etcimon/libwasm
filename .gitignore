@@ -7,3 +7,4 @@ __test__*__
 *.a
 Dockerfile.build
 package-lock.json
+dub.selections.json

@@ -7,7 +7,6 @@
 
 module spasm.rt.array;
 import spasm.rt.memory;
-import spasm.rt.gc : SpasmGCAllocator;
 
 @safe:
 nothrow:
@@ -172,13 +171,13 @@ struct DynamicArray(T, Allocator)
 	{
 		if (arr.length == 0)
 		{
-			arr = allocator.make!(typeof(arr))(4);
+			void[] a = allocator.allocate(c * T.sizeof);
+			arr = cast(typeof(arr))a;
 		}
 		else if (l >= arr.length)
 		{
 			immutable size_t c = arr.length > 512 ? arr.length + 1024 : arr.length << 1;
 			void[] a = cast(void[]) arr;
-      import stdx.allocator.common : reallocate;
 			allocator.reallocate(a, c * T.sizeof);
 			arr = cast(typeof(arr)) a;
 		}
@@ -288,7 +287,8 @@ struct DynamicArray(T, Allocator)
 			size_t c = 4;
 			if (c < n)
 				c = n;
-			arr = allocator.make!(typeof(arr))(c);
+			void[] a = allocator.allocate(c * T.sizeof) ;
+			arr = cast(typeof(arr))a;
 		}
 		else
 		{
@@ -296,8 +296,7 @@ struct DynamicArray(T, Allocator)
 			if (c < n)
 				c = n;
 			void[] a = cast(void[]) arr;
-      import stdx.allocator.common : reallocate;
-      allocator.reallocate(a, c * T.sizeof);
+      		allocator.reallocate(a, c * T.sizeof);
 			arr = cast(typeof(arr)) a;
 		}
 	}

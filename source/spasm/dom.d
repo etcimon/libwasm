@@ -404,8 +404,9 @@ void setParamFromParent(string name, T, Ts...)(ref T t, auto ref Ts ts) {
       }
     } else static if (isPointer!SourceType)
       __traits(getMember, t, name) = *__traits(getMember, ts[index], name);
-    else
+    else {
       __traits(getMember, t, name) = __traits(getMember, ts[index], name);
+    }
   }
 }
 
@@ -464,13 +465,18 @@ auto setPointers(T, Ts...)(auto ref T t, auto ref Ts ts) {
           static if (i != "node")
             setChildFromParent!(__traits(identifier, sym))(t, ts);
         } else {
-          static if (isPublic)
+          static if (isPublic) {
             setParamFromParent!(i)(t, ts);
-          static if (!is(sym) && isAggregateType!T) {
+            static if (hasMember!(T, "construct"))
+              t.construct();
+          }
+          static if (isPublic && !is(sym) && isAggregateType!T) {
+            
             static if (is(typeof(sym) : DynamicArray!(Item), Item)) {
               // items in appenders need to be set via render functions
             } else {
               static if (!isCallable!(typeof(sym))) {//} && !isPointer!(typeof(sym))) {
+                
                 import spasm.spa;
                 alias Params = getUDAs!(sym, Parameters);
                 static if (Params.length > 0) {

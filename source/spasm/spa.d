@@ -60,7 +60,6 @@ mixin template Spa(Application) {
 }
 
 mixin template Spa(Application, Theme) {
-  import spasm.rt.gc;
   __gshared Application application;
   pragma(mangle, "_start")
   extern(C)
@@ -68,9 +67,11 @@ mixin template Spa(Application, Theme) {
   @trusted void _start(uint heap_base) {
     import spasm.rt.memory;
     alloc_init(heap_base);
-    addRoot(&application);
     auto root = getRoot();
     addApplicationCss!(Application, Theme)();
+    static if (__traits(hasMember, Application, "_start")) {
+      application._start();
+    }
     application.setPointers();
     spasm.dom.render(root, application);
   }

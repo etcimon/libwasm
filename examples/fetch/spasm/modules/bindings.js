@@ -6,6 +6,8 @@ const setupMemory = () => {
     let buffer = spasm.memory.buffer;
     if (memory.heapi32s && !memory.heapi32s.length === 0)
         return;
+    memory.heapi64s = new Int64Array(buffer)
+    memory.heapi64u = new Uint64Array(buffer)
     memory.heapi32s = new Int32Array(buffer)
     memory.heapi32u = new Uint32Array(buffer)
     memory.heapi16s = new Int16Array(buffer)

@@ -2,66 +2,17 @@ module spasm.rt.memory;
 
 import spasm.rt.allocator : WasmAllocator;
 import stdx.allocator.building_blocks.null_allocator;
-private __gshared SpasmGCAllocator gcAllocator;
 
 version (LDC)
 import ldc.attributes;
 import spasm.intrinsics;
-import spasm.rt.gc;
 
-enum wasmPageSize = 64 * 1024;
 
 @safe nothrow void alloc_init(uint heap_base) {
-  version (WebAssembly) WasmAllocator.init(heap_base);
+  WasmAllocator.init(heap_base);
 }
 
-version (unittest) {
-  struct Allocator {
-    nothrow:
-    void[] allocate(size_t n) {
-      auto mem = new byte[n];
-      return mem;
-    }
-    bool deallocate(void[] b) {
-      return true;
-    }
-  }
-  __gshared Allocator unittestAllocator;
-  __gshared Allocator* allocator = &unittestAllocator;
-} else {
-  __gshared auto allocator = &gcAllocator;
-}
-
-@trusted template make(T) {
-  import spasm.types;
-  static if (is(T == Item[], Item)) {
-    Item[] make(A)(A allocator, size_t size) nothrow {
-      void[] raw = allocator.allocate(Item.sizeof * size);
-      auto t = cast(Item*) raw.ptr;
-      return t[0 .. size];
-    }
-  } else static if (is(T == Item[size], Item, size_t size)) {
-    Item[] make(A)(A allocator)
-    {
-      void[] raw = allocator.allocate(Item.sizeof * size);
-      auto t = cast(Item*) raw.ptr;
-      return t[0..size];
-    }
-  } else {
-    T* make(A, Args...)(A allocatorOld, auto ref Args args) nothrow {
-      import spasm.rt.allocator : PoolAllocatorList;
-      static __gshared allocator = PoolAllocatorList!(T)();
-      void[] raw = allocator.allocate(T.sizeof);
-      auto t = cast(T*) raw.ptr;
-      *t = T.init;
-      static if (Args.length) {
-        import core.lifetime: forward;
-        *t = T(forward!args);
-      }
-      return t;
-    }
-  }
-}
+alias allocator = WasmAllocator;
 
 extern (C) void * memcpy(void * destination, const void * source, size_t num) {
   foreach(i; 0..num) {
@@ -78,7 +29,7 @@ extern (C) void * memset(void* ptr, int value, size_t num) {
   return ptr;
 }
 
-extern(C) {
+extern(C):
   int memcmp(void*a,void*b,size_t cnt) {
     foreach(i;0..cnt) {
       if ((cast(byte*)a)[i] < (cast(byte*)b)[i])
@@ -224,10 +175,5 @@ size_t _d_arraycast_len(size_t len, size_t elemsz, size_t newelemsz) {
  }
 
  void _d_arraybounds(string file, int line) {
+   // bounds check?
  }
- extern (C) export void* _d_allocmemory(size_t sz)
- {
-   import spasm.rt.memory : WasmAllocator;
-   return WasmAllocator.instance.allocate(sz).ptr;
-}
-}
