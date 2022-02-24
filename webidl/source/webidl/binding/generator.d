@@ -51,6 +51,7 @@ struct DBindingFunction {
   bool generic;
 }
 
+bool[string] isGeneric;
 struct DImportFunction {
   string parentTypeName;
   string name;
@@ -729,7 +730,7 @@ void dump(Appender)(ref Context context, JsExportFunction item, ref Appender a) 
 }
 
 void dump(Appender)(ref Semantics semantics, DImportFunction item, ref Appender a) {
-  // if(item.generic) return;
+  if(mangleName(item.parentTypeName,item.name,item.manglePostfix) in isGeneric) return;
   auto context = Context(semantics);
   
   a.put("extern (C) ");
@@ -947,7 +948,32 @@ void dump(Appender)(ref Semantics semantics, DBindingFunction item, ref Appender
   }
   a.putLn("{");
   a.indent();
+  // short path for primary Any types
+  if (!(item.type & FunctionType.Static) && anys.length == 1 && item.args.length == 1 && !returns) {
+    import std.format : format;
+    a.putLn("import std.traits : isNumeric, isFloatingPoint, isSomeString;");
+    a.putLn("if (isSomeString!T0) {");
+    a.indent();
+    a.putLn(format(`Object_Call_string__void(this.%s, "%s", cast(string) %s);`, item.handle, item.name, anys[0].value.name.friendlyName));
+    a.putLn("return;");
+    a.undent();
+    a.putLn("} else if (isNumeric!T0 && !isFloatingPoint!T0) {");
+    a.indent();
+    a.putLn(format(`Object_Call_long__void(this.%s, "%s", cast(long) %s);`, item.handle, item.name, anys[0].value.name.friendlyName));
+    a.putLn("return;");
+    a.undent();
+    a.putLn("} else if (isFloatingPoint!T0) {");
+    a.indent();
+    a.putLn(format(`Object_Call_double__void(this.%s, "%s", cast(double) %s);`, item.handle, item.name, anys[0].value.name.friendlyName));
+    a.putLn("return;");
+    a.undent();
+    a.putLn("}");
+  }
+
   foreach(any; anys) {
+    a.put("// ");
+    any.value.type.generateDType(a, Context(semantics).withLocals(locals));
+    a.putLn("");
     a.putLn(["Handle _handle_", any.value.name, " = getOrCreateHandle(", any.value.name.friendlyName, ");"]);
   }
   bool needDropHandle = anys.length != 0;
@@ -1035,17 +1061,46 @@ struct DBindingFunction {
               app ~= "Object_Call_float__void";
               dumpCallArgs(app, item.name);
               break;
+            case "EventHandler":
+              app ~= "Object_Call_EventHandler__void";
+              dumpCallArgs(app, item.name);
+              break;
+            case "Any":
             case "Handle":
               app ~= "Object_Call_Handle__void";
               dumpCallArgs(app, item.name);
               break;
-            default: break;
+            default:
+              if (!semantics.isNullable(item.args[0].type) && !semantics.isPrimitive(item.args[0].type) && !semantics.isUnion(item.args[0].type) && !semantics.isCallback(item.args[0].type))
+              {
+                // may have a handle?
+                app ~= "Object_Call_Handle__void";
+                dumpCallArgs(app, item.name);
+              } else if (semantics.isNullable(item.args[0].type) && !semantics.isUnion(item.args[0].type)) {
+                auto baseType = item.args[0].type.stripNullable;
+                auto argSubType = generateDType(baseType, context);
+                switch(argSubType) {
+                  case "EventHandler":
+                    app ~= "Object_Call_OptionalEventHandler__void";
+                    dumpCallArgs(app, item.name);
+                    break;
+                  default: break;
+
+                }
+              }
+            break;
           }
           break;
         case 2:
           if (item.args[0].type.generateDType(context) == "string"
           && item.args[1].type.generateDType(context) == "string") {
               app ~= "Object_Call_string_string__void";
+              dumpCallArgs(app, item.name);
+              break;
+          }
+          if (item.args[0].type.generateDType(context) == "string"
+          && item.args[1].type.generateDType(context) == "uint") {
+              app ~= "Object_Call_string_uint__void";
               dumpCallArgs(app, item.name);
               break;
           }
@@ -1068,7 +1123,7 @@ struct DBindingFunction {
 
       bool optional = !context.skipOptional && (semantics.isNullable(tree) || tree.children[$-1].name == "WebIDL.Null" && tree.children[$-1].matches[0] == "?");
 
-      if (!semantics.isNullable(tree) && !semantics.isPrimitive(tree) && !context.sumType && !(context.returnType && tree.children[0].name == "WebIDL.SequenceType"))
+      if (semantics.isAny(tree) || (!semantics.isNullable(tree) && !semantics.isPrimitive(tree) && !context.sumType && !(context.returnType && tree.children[0].name == "WebIDL.SequenceType")))
       {
         // generics that return Handle
           //auto subType = semantics.getAliasedType(tree.getTypeName());
@@ -1098,11 +1153,20 @@ struct DBindingFunction {
                   app ~= "Object_Call_bool__Handle";
                   dumpCallArgs(app, item.name);
                   break;
+                case "Any":
                 case "Handle":
                   app ~= "Object_Call_Handle__Handle";
                   dumpCallArgs(app, item.name);
                   break;
                 default: 
+                
+                  if (!semantics.isNullable(item.args[0].type) && !semantics.isPrimitive(item.args[0].type) && !semantics.isUnion(item.args[0].type) && !semantics.isCallback(item.args[0].type))
+                  {
+                    // may have a handle?
+                    app ~= "Object_Call_Handle__Handle";
+                    dumpCallArgs(app, item.name);
+
+                  }
                 break;
               }
               break;
@@ -1110,6 +1174,12 @@ struct DBindingFunction {
               if (item.args[0].type.generateDType(context) == "string"
               && item.args[1].type.generateDType(context) == "string") {
                   app ~= "Object_Call_string_string__Handle";
+                  dumpCallArgs(app, item.name);
+                  break;
+              }
+              if (item.args[0].type.generateDType(context) == "string"
+              && item.args[1].type.generateDType(context) == "uint") {
+                  app ~= "Object_Call_string_uint__Handle";
                   dumpCallArgs(app, item.name);
                   break;
               }
@@ -1273,17 +1343,49 @@ struct DBindingFunction {
                     break;
                   }
                   break;
-                  default: break;
+                case "uint":
+                  switch (retSubType) {
+                    case "string":
+                      app ~= "Object_Call_uint__string";
+                      dumpCallArgs(app, item.name);
+                      break;
+                    default: break;
+                  }
+                  break;
+                default: break;
               }
               break;
+            case 2:
+                switch (item.args[0].type.generateDType(context)) {
+                  case "uint":
+                    switch (item.args[1].type.generateDType(context)) {
+                      case "uint":
+                        switch (retSubType) {
+                          case "string":
+                            app ~= "Object_Call_uint_uint__string";
+                            dumpCallArgs(app, item.name);
+                            break;
+                          default: break;
+                        }
+                        break;
+                      default: break;
+                    }
+                    break;
+                  default: break;
+                }
+                break;
             default:
               break;          
           }
-      } /// else if (semantics.isCallback(tree)) {
-      
-      // TODO: EventHandler
-
-      /// }
+      }
+    }
+    if (app.data.length == 0 && returns && semantics.isCallback(item.result)) {
+      // returns EventHandler
+      auto retSubType = generateDType(item.result, context);
+      if (item.args.length == 0 && retSubType == "EventHandler") {
+        app ~= "Object_Getter__EventHandler";
+        dumpCallArgs(app, item.name);
+      }
     }
 
     return app.data;
@@ -1294,7 +1396,7 @@ struct DBindingFunction {
   //// AccessibleNode_roleDescription_Get => Object_getter__String("roleDescription", Handle)
   string generic_call = findGenericMangle();
   if (generic_call) {
-    item.generic = true;
+    isGeneric[mangleName(item.parentTypeName, item.customName.length > 0 ? item.customName : item.name,item.manglePostfix)] = true;
     a.put(generic_call);
   }
   else {
