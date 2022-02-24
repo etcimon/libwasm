@@ -115,6 +115,6 @@ struct NamedNode(string tag) {
   alias node this;
 }
 
-mixin template Node(string str) {
+mixin template NodeDef(string str) {
   mixin("NamedNode!\""~str~"\" node;");
 }

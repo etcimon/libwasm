@@ -17,6 +17,7 @@ const setupMemory = () => {
     memory.heapf32 = new Float32Array(buffer)
     memory.heapf64 = new Float64Array(buffer)
 }
+Promise
 const setBool = (ptr, val) => (memory.heapi32u[ptr/4] = +val),
       setInt = (ptr, val) => (memory.heapi32s[ptr/4] = val),
       setUInt = (ptr, val) => (memory.heapi32u[ptr/4] = val),

@@ -48,6 +48,7 @@ struct DBindingFunction {
   string baseType;
   string customName;
   string handle;
+  bool generic;
 }
 
 struct DImportFunction {
@@ -728,7 +729,9 @@ void dump(Appender)(ref Context context, JsExportFunction item, ref Appender a) 
 }
 
 void dump(Appender)(ref Semantics semantics, DImportFunction item, ref Appender a) {
+  // if(item.generic) return;
   auto context = Context(semantics);
+  
   a.put("extern (C) ");
   if (item.result == ParseTree.init || item.result.matches[0] == "void")
     a.put("void");
@@ -875,7 +878,13 @@ void dump(Appender)(ref Semantics semantics, DBindingFunction item, ref Appender
     return;
   }
   bool returns = item.result != ParseTree.init && item.result.matches[0] != "void";
-  if (returns) a.put("auto "); else a.put("void ");
+  if (returns) {
+    
+    if (item.type == FunctionType.ExposedConstructor)
+      a.put(item.name);
+    else item.result.generateDType(a, Context(semantics));
+    a.put(" ");
+   } else a.put("void ");
   void putFuncName() {
     switch (item.type & (FunctionType.OpIndex | FunctionType.OpDispatch | FunctionType.OpIndexAssign)) {
     case FunctionType.OpIndex:
@@ -955,20 +964,355 @@ void dump(Appender)(ref Semantics semantics, DBindingFunction item, ref Appender
       a.put("(");
     }
   }
-  a.put(mangleName(item.parentTypeName, item.customName.length > 0 ? item.customName : item.name,item.manglePostfix));
-  a.put("(");
-  if (!(item.type & FunctionType.Static)) {
-    a.put(["this.", item.handle]);
-    if (item.args.length > 0)
-      a.put(", ");
+/*
+struct DBindingFunction {
+  string parentTypeName;
+  string name;
+  Argument[] args;
+  ParseTree result;
+  FunctionType type;
+  string manglePostfix;
+  string baseType;
+  string customName;
+  string handle;
+}*/
+
+// optional 1856
+  void dumpCallArgs(AppenderObj)(ref AppenderObj app, string generic_member) 
+  {
+    app.put("(");
+    if (!(item.type & FunctionType.Static)) {
+      app.put("this.");
+      app.put(item.handle);
+      if (generic_member) {
+        app.put(", \"");
+        app.put(generic_member);
+        app.put("\"");
+      }
+      if (item.args.length > 0)
+        app.put(", ");
+    }
+    semantics.dumpDJsArguments(item.args, app);
+    
   }
-  semantics.dumpDJsArguments(item.args, a);
+  string findGenericMangle() {
+    static import std.array;
+    std.array.Appender!string app;
+    
+    auto context = Context(semantics).withLocals(locals);
+    if (!returns) {
+      // setter // caller
+      // TODO: EventHandler
+      // generics that return void
+      switch (item.args.length) {
+        case 0:              
+            app ~= "Object_Call__void";
+            dumpCallArgs(app, item.name);
+            break;              
+        case 1:
+          switch (item.args[0].type.generateDType(context)) {
+            case "string":
+              app ~= "Object_Call_string__void";
+              dumpCallArgs(app, item.name);
+              break;
+            case "uint":
+              app ~= "Object_Call_uint__void";
+              dumpCallArgs(app, item.name);
+              break;
+            case "int":
+              app ~= "Object_Call_int__void";
+              dumpCallArgs(app, item.name);
+              break;
+            case "bool":
+              app ~= "Object_Call_bool__void";
+              dumpCallArgs(app, item.name);
+              break;
+            case "double":
+              app ~= "Object_Call_double__void";
+              dumpCallArgs(app, item.name);
+              break;
+            case "float":
+              app ~= "Object_Call_float__void";
+              dumpCallArgs(app, item.name);
+              break;
+            case "Handle":
+              app ~= "Object_Call_Handle__void";
+              dumpCallArgs(app, item.name);
+              break;
+            default: break;
+          }
+          break;
+        case 2:
+          if (item.args[0].type.generateDType(context) == "string"
+          && item.args[1].type.generateDType(context) == "string") {
+              app ~= "Object_Call_string_string__void";
+              dumpCallArgs(app, item.name);
+              break;
+          }
+          if (item.args[0].type.generateDType(context) == "double"
+          && item.args[1].type.generateDType(context) == "double") {
+              app ~= "Object_Call_double_double__void";
+              dumpCallArgs(app, item.name);
+              break;
+          }
+          break;
+        default: break;  
+      }
+      
+    } else {
+      // getter // caller
+
+      // resolve return type
+
+      auto tree = item.result;
+
+      bool optional = !context.skipOptional && (semantics.isNullable(tree) || tree.children[$-1].name == "WebIDL.Null" && tree.children[$-1].matches[0] == "?");
+
+      if (!semantics.isNullable(tree) && !semantics.isPrimitive(tree) && !context.sumType && !(context.returnType && tree.children[0].name == "WebIDL.SequenceType"))
+      {
+        // generics that return Handle
+          //auto subType = semantics.getAliasedType(tree.getTypeName());
+          auto retSubType = generateDType(tree, context);
+          import std.string : indexOf;
+          
+          switch (item.args.length) {
+            case 0:              
+                app ~= "Object_Getter__Handle";
+                dumpCallArgs(app, item.name);
+                break;              
+            case 1:
+              switch (item.args[0].type.generateDType(context)) {
+                case "string":
+                  app ~= "Object_Call_string__Handle";
+                  dumpCallArgs(app, item.name);
+                  break;
+                case "uint":
+                  app ~= "Object_Call_uint__Handle";
+                  dumpCallArgs(app, item.name);
+                  break;
+                case "int":
+                  app ~= "Object_Call_int__Handle";
+                  dumpCallArgs(app, item.name);
+                  break;
+                case "bool":
+                  app ~= "Object_Call_bool__Handle";
+                  dumpCallArgs(app, item.name);
+                  break;
+                case "Handle":
+                  app ~= "Object_Call_Handle__Handle";
+                  dumpCallArgs(app, item.name);
+                  break;
+                default: 
+                break;
+              }
+              break;
+            case 2:
+              if (item.args[0].type.generateDType(context) == "string"
+              && item.args[1].type.generateDType(context) == "string") {
+                  app ~= "Object_Call_string_string__Handle";
+                  dumpCallArgs(app, item.name);
+                  break;
+              }
+              break;
+            default: break;  
+          }
+      }  
+      else if (optional && !semantics.isCallback(tree)) 
+      {
+        // generics that return Optional!(T)
+        auto baseType = tree.stripNullable;
+
+        // T = baseType
+        // sub member
+        
+        if (semantics.isPrimitive(baseType) && !semantics.isCallback(baseType) && !semantics.isUnion(baseType)) {
+          // Optional! string, int, float, etc          
+          auto retSubType = generateDType(baseType, context);
+          switch (item.args.length) {
+            case 0:              
+              switch (retSubType){
+                case "string":
+                  app ~= "Object_Getter__OptionalString";
+                  dumpCallArgs(app, item.name);
+                  break;
+                case "uint":
+                  app ~= "Object_Getter__OptionalUint";
+                  dumpCallArgs(app, item.name);
+                  break;
+                case "double":
+                  app ~= "Object_Getter__OptionalDouble";
+                  dumpCallArgs(app, item.name);
+                  break;
+                case "bool":
+                  app ~= "Object_Getter__OptionalBool";
+                  dumpCallArgs(app, item.name);
+                  break;
+                default: 
+                  writeln("Ignored Optional!~", retSubType);
+                break;
+              }
+              break;
+            case 1:
+              if (retSubType == "string") switch (item.args[0].type.generateDType(context)){
+                case "string":
+                  app ~= "Object_Call_string__OptionalString";
+                  dumpCallArgs(app, item.name);
+                  break;
+                 default:
+                  writeln("Ignored Optional!~", retSubType);
+                 break;
+              }
+              break;
+            default:
+              break;
+          }
+
+
+        }
+        else if (!semantics.isPrimitive(baseType) && !semantics.isCallback(baseType) && !semantics.isUnion(baseType))
+        {
+          // Optional!Handle / Objects that resolve to a handle
+          ParseTree subType = baseType;
+          string retSubType;
+          if (semantics.isTypedef(baseType)) {
+            subType = semantics.getAliasedType(baseType.getTypeName());
+          }
+          retSubType = generateDType(subType, context); 
+          
+          switch (item.args.length) {
+            case 0:              
+                app ~= "Object_Getter__OptionalHandle";
+                dumpCallArgs(app, item.name);
+                break;              
+            case 1:
+              switch (item.args[0].type.generateDType(context)) {
+                case "string":
+                  app ~= "Object_Call_string__OptionalHandle";
+                  dumpCallArgs(app, item.name);
+                  break;
+                case "uint":
+                  app ~= "Object_Call_uint__OptionalHandle";
+                  dumpCallArgs(app, item.name);
+                  break;
+                case "int":
+                  app ~= "Object_Call_int__OptionalHandle";
+                  dumpCallArgs(app, item.name);
+                  break;
+                case "bool":
+                  app ~= "Object_Call_bool__OptionalHandle";
+                  dumpCallArgs(app, item.name);
+                  break;
+                default: 
+                  writeln("Ignored Optional!~", retSubType);
+                break;
+              }
+              break;
+            default:
+              break;          
+          }
+          
+        }
+      }
+      else if (context.isPrimitive(tree) && !semantics.isCallback(tree)) 
+      {
+
+        // generics that return string, int, float, etc.
+          auto retSubType = generateDType(tree, context);
+          import std.string : indexOf;
+          assert(retSubType.indexOf("!") == -1);
+          switch (item.args.length) {
+            case 0:
+              switch (retSubType) {
+                case "string":
+                  app ~= "Object_Getter__string";
+                  dumpCallArgs(app, item.name);
+                  break;
+                case "int":
+                  app ~= "Object_Getter__int";
+                  dumpCallArgs(app, item.name);
+                  break;
+                case "uint":
+                  app ~= "Object_Getter__uint";
+                  dumpCallArgs(app, item.name);
+                  break;
+                case "ushort":
+                  app ~= "Object_Getter__ushort";
+                  dumpCallArgs(app, item.name);
+                  break;
+                case "bool":
+                  app ~= "Object_Getter__bool";
+                  dumpCallArgs(app, item.name);
+                  break;
+                case "float":
+                  app ~= "Object_Getter__float";
+                  dumpCallArgs(app, item.name);
+                  break;
+                case "double":
+                  app ~= "Object_Getter__double";
+                  dumpCallArgs(app, item.name);
+                  break;
+                default:
+                  writeln("Ignored Primitive ", retSubType);
+                  break;
+              }
+              break;  
+            case 1:
+              switch (item.args[0].type.generateDType(context)) {
+                case "string":
+                  switch(retSubType) {
+                    case "bool":                      
+                      app ~= "Object_Call_string__bool";
+                      dumpCallArgs(app, item.name);
+                      break;
+                    case "string":
+                      app ~= "Object_Call_string__string";
+                      dumpCallArgs(app, item.name);
+                      break;
+                    default:                      
+                      writeln("Ignored Primitive1 ", retSubType);
+                    break;
+                  }
+                  break;
+                  default: break;
+              }
+              break;
+            default:
+              break;          
+          }
+      } /// else if (semantics.isCallback(tree)) {
+      
+      // TODO: EventHandler
+
+      /// }
+    }
+
+    return app.data;
+  }
+
+  ///// if generic is available
+  //// AccessibleNode_roleDescription_Set => Object_setter_String__void("roleDescription", Handle, Value)
+  //// AccessibleNode_roleDescription_Get => Object_getter__String("roleDescription", Handle)
+  string generic_call = findGenericMangle();
+  if (generic_call) {
+    item.generic = true;
+    a.put(generic_call);
+  }
+  else {
+    a.put(mangleName(item.parentTypeName, item.customName.length > 0 ? item.customName : item.name,item.manglePostfix));
+    dumpCallArgs(a, null);
+  }
   if (returns) {
     if (!semantics.isPrimitive(item.result) && !semantics.isUnion(item.result) && !semantics.isNullable(item.result)) {
       a.put(")");
     }
   }
   a.putLn(");");
+  if (item.generic) {
+    a.put("// ");
+    a.put(mangleName(item.parentTypeName, item.customName.length > 0 ? item.customName : item.name,item.manglePostfix));
+    dumpCallArgs(a, null);
+    a.putLn("");
+  }
   foreach(any; anys) {
     a.putLn(["dropHandle!(T", any.index.to!string, ")(_handle_", any.value.name, ");"]);
   }
@@ -1039,10 +1383,12 @@ void dumpDJsArgument(Appender)(ref Semantics semantics, Argument arg, ref Append
   a.put(arg.name.friendlyName);
   if (optional) {
     if (!semantics.isUnion(arg.type)) {
-      a.put([".empty, ", arg.name.friendlyName]);
+      a.put(".empty, ");
+      a.put(arg.name.friendlyName);
       a.put(".front");
     } else {
-      a.put([".empty, *", arg.name.friendlyName]);
+      a.put(".empty, *");
+      a.put(arg.name.friendlyName);
       a.put(".frontRef");
     }
   }

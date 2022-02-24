@@ -1,6 +1,7 @@
 module spasm.event;
 
 import spasm.types;
+import spasm.bindings;
 version (LDC)
 import ldc.attributes;
 
@@ -9,7 +10,7 @@ extern(C)
 export
 @assumeUsed
 nothrow
-void domEvent(uint ctx, uint fun, EventType type) {
+void domEvent(uint ctx, uint fun, Handle event) {
   // NOTE: since all the Event structs (MouseEvent, KeyboardEvent)
   // are all just empty structs with only static functions,
   // the type signature of the delegate doesn't really matter much,
@@ -32,7 +33,7 @@ void domEvent(uint ctx, uint fun, EventType type) {
   Handler c;
   c.contextPtr = cast(void*) ctx;
   c.funcPtr = cast(void*) fun;
-  c.handle(Event());
+  c.handle(Event(event));
 }
 
 @safe:
@@ -40,56 +41,10 @@ nothrow:
 
 private extern(C) {
   nothrow:
-  bool getEventBool(string prop);
-  uint getEventInt(string prop);
-  string getEventString(string prop);
   void removeEventListener(Handle node, ListenerType type, uint ctx, uint fun, EventType type);
   void addEventListener(Handle node, ListenerType type, uint ctx, uint fun, EventType type);
 }
 enum eventemitter;
-
-// TODO: check if these are inlined
-mixin template BoolProperty(alias name) {
-  mixin("static bool "~name~"() { return getEventBool(\""~name~"\");}");
-}
-
-mixin template IntProperty(alias name) {
-  mixin("static int "~name~"() { return getEventInt(\""~name~"\");}");
-}
-
-mixin template StringProperty(alias name) {
-  mixin("static string "~name~"() { return getEventString(\""~name~"\");}");
-}
-
-struct Event {
-  nothrow:
-  mixin BoolProperty!("bubbles");
-  mixin BoolProperty!("isComposing");
-  mixin IntProperty!("eventPhase");
-}
-
-struct KeyboardEvent {
-  nothrow:
-  mixin BoolProperty!("altKey");
-  mixin StringProperty!("key");
-}
-
-struct InputEvent {
-  nothrow:
-  mixin BoolProperty!("isComposing");
-  // mixin StringProperty!("inputType");
-}
-
-struct MouseEvent {
-  nothrow:
-  mixin IntProperty!("x");
-  mixin IntProperty!("y");
-  mixin IntProperty!("offsetX");
-  mixin IntProperty!("offsetY");
-}
-
-struct FocusEvent {
-}
 
 template ToEvent(EventType type) {
   import spasm.ct : capitalize;

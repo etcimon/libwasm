@@ -46,6 +46,8 @@ version (unittest) {
     byte spasm_get__byte(Handle);
     ubyte spasm_get__ubyte(Handle);
     string spasm_get__string(Handle);
+    JSON JSON_parse_string(scope ref string);
+    string JSON_stringify(Handle);
   }
 }
 
@@ -63,8 +65,9 @@ struct JsHandle {
       spasm_removeObject(handle);
     }
   }
-  void opAssign(Handle handle) {
+  void opAssign(ref Handle handle) {
     this.handle = handle;
+    handle = 0;
   }
   @disable this(this);
   alias handle this;
@@ -346,6 +349,17 @@ mixin template ExternPromiseCallback(string funName, T, U) {
   }
 }
 
+mixin template ExternPromiseCallback(string funName, T) {
+  nothrow:
+  static if (is(T == void)) {
+    pragma(mangle, funName)
+      mixin("extern(C) Handle "~funName~"(Handle, void delegate() nothrow);");
+  } else {
+    import spasm.bindings;
+    pragma(mangle, funName)
+      mixin("extern(C) Handle "~funName~"(Handle, void delegate("~T.stringof~") nothrow);");
+  }
+}
 struct Promise(T, U = Any) {
   nothrow:
   JsHandle handle;
@@ -358,18 +372,26 @@ struct Promise(T, U = Any) {
   static if (is(T == void)) {
     alias FulfillCallback(P = void) = P delegate() nothrow;
     alias JoinedCallback(P = void) = extern(C) P delegate() nothrow;
+    alias RejectCallback = extern(C) void delegate(U) nothrow;
   } else {
     alias FulfillCallback(P) = P delegate(T) nothrow;
     alias JoinedCallback(P) = extern(C) P delegate(JoinedType) nothrow;
+    alias RejectCallback = extern(C) void delegate(U) nothrow;
   }
-  alias RejectCallback = void delegate(U) nothrow;
-  // NOTE: right now we support no error callback
+  
   auto then(ResultType)(ResultType delegate(T) nothrow cb) @trusted {
     enum TMangled = SpasmMangle!T;
     enum ResultTypeMangled = SpasmMangle!ResultType;
     enum funName = "promise_then_"~TMangled.length.stringof~TMangled~ResultTypeMangled;
     mixin ExternPromiseCallback!(funName, JoinedType, BridgeType!ResultType);
     mixin("return Promise!(ResultType, U)("~funName~"(handle, cast(JoinedCallback!(BridgeType!ResultType))cb));");
+  }
+  
+  auto error(void delegate(U) nothrow cb) @trusted {
+    enum TMangled = SpasmMangle!U;
+    enum funName = "promise_error_"~TMangled.length.stringof~TMangled;
+    mixin ExternPromiseCallback!(funName, U);
+    mixin("return Promise!(void, U)("~funName~"(handle, cast(RejectCallback)cb));");
   }
 }
 struct Sequence(T) {
@@ -553,7 +575,7 @@ struct JsObject {
   }
 }
 
-struct Json {
+struct JSON {
   nothrow:
   JsHandle handle;
   alias handle this;
@@ -565,6 +587,12 @@ struct Json {
   }
   auto as(Target)() {
     return .as!(Target)(this);
+  }
+  static JSON parse(string json) {
+    return JSON_parse_string(json);
+  }
+  static string stringify(Handle obj) {
+    return JSON_stringify(obj);
   }
 }
 

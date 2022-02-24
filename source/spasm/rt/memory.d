@@ -6,7 +6,7 @@ import stdx.allocator.building_blocks.null_allocator;
 version (LDC)
 import ldc.attributes;
 import spasm.intrinsics;
-
+nothrow:
 
 @safe nothrow void alloc_init(uint heap_base) {
   WasmAllocator.init(heap_base);

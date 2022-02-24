@@ -189,7 +189,7 @@ version (unittest) {
   }
 } else {
   private extern(C) {
-    Handle createElement(NodeType type);
+    Handle createElement(NodeType type);    
     void addClass(Handle node, string className);
     void setProperty(Handle node, string prop, string value);
     void removeChild(Handle childPtr);
