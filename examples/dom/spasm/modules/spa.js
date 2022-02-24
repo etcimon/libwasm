@@ -153,22 +153,22 @@ export let jsExports = {
             return encoder.string(resultRaw,node[prop]);
         },
         Object_Call__void: (nodePtr, propLen, propOffset) => {
-            const node = nodes[nodePtr];
-            const prop = decoder.string(propLen, propOffset);
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
             node[prop]();
         },
         Object_Call_string__void: (nodePtr, propLen, propOffset, argLen, argOffset) => {
-            const node = nodes[nodePtr];
-            const prop = decoder.string(propLen, propOffset);
-            const arg = decoder.string(argLen, argOffset);
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
+            let arg = decoder.string(argLen, argOffset);
             if (typeof(node[prop]) === "function")
                 node[prop](arg);
             else 
                 node[prop] = arg;
         },
         Object_Call_uint__void: (nodePtr, propLen, propOffset, arg) => {
-            const node = nodes[nodePtr];
-            const prop = decoder.string(propLen, propOffset);
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
             if (typeof(node[prop]) === "function")
                 node[prop](arg);
             else 
@@ -188,8 +188,8 @@ export let jsExports = {
             jsExports.env.Object_Call_uint__void(nodePtr, propLen, propOffset, arg);
         },
         Object_Call_handle__void: (nodePtr, propLen, propOffset, handle) => {
-            const node = nodes[nodePtr];
-            const prop = decoder.string(propLen, propOffset);
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
             
             if (typeof(node[prop]) === "function" )
                 node[prop](nodes[handle]);
@@ -197,20 +197,26 @@ export let jsExports = {
                 node[prop] = nodes[handle];
         },
         Object_Call_string_string__void: (nodePtr, propLen, propOffset, argLen, argOffset, arg2Len, arg2Offset) => {
-            const node = nodes[nodePtr];
-            const prop = decoder.string(propLen, propOffset);
-            const arg = decoder.string(argLen, argOffset);
-            const arg2 = decoder.string(arg2Len, arg2Offset);
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
+            let arg = decoder.string(argLen, argOffset);
+            let arg2 = decoder.string(arg2Len, arg2Offset);
+            node[prop](arg, arg2);
+        },
+        Object_Call_string_uint__void: (nodePtr, propLen, propOffset, argLen, argOffset, arg2) => {
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
+            let arg = decoder.string(argLen, argOffset);
             node[prop](arg, arg2);
         },
         Object_Call_double_double__void: (nodePtr, propLen, propOffset, arg, arg2) => {
-            const node = nodes[nodePtr];
-            const prop = decoder.string(propLen, propOffset);
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
             node[prop](arg, arg2);
         },
         Object_Getter__Handle: (nodePtr, propLen, propOffset) => {
-            const node = nodes[nodePtr];
-            const prop = decoder.string(propLen, propOffset);
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
             if (typeof(node[prop]) === "function")
                 return addPtr(node[prop]());
             else 
@@ -218,16 +224,16 @@ export let jsExports = {
             
         },
         Object_Getter__string: (rawResult, nodePtr, propLen, propOffset) => {
-            const node = nodes[nodePtr];
-            const prop = decoder.string(propLen, propOffset);
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
             if (typeof(node[prop]) === "function")
                 encoders.string(rawResult, node[prop]());                
             else 
                 encoders.string(rawResult, node[prop]);
         },
         Object_Getter__int: (nodePtr, propLen, propOffset) => {
-            const node = nodes[nodePtr];
-            const prop = decoder.string(propLen, propOffset);
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
             if (typeof(node[prop]) === "function")
                 return node[prop]();                
             else 
@@ -250,48 +256,66 @@ export let jsExports = {
         },
 
         Object_Call_string__Handle: (nodePtr, propLen, propOffset, argLen, argOffset) => {
-            const node = nodes[nodePtr];
-            const prop = decoder.string(propLen, propOffset);
-            const arg = decoder.string(argLen, argOffset);
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
+            let arg = decoder.string(argLen, argOffset);
             return addPtr(node[prop](arg));
         },
         Object_Call_uint__Handle: (nodePtr, propLen, propOffset, arg) => {
-            const node = nodes[nodePtr];
-            const prop = decoder.string(propLen, propOffset);
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
             return addPtr(node[prop](arg));
         },
         Object_Call_int__Handle: (nodePtr, propLen, propOffset, arg) => {
             return jsExports.env.Object_Call_uint__Handle(nodePtr, propLen, propOffset, arg);
         },
         Object_Call_bool__Handle: (nodePtr, propLen, propOffset, arg) => {
-            const node = nodes[nodePtr];
-            const prop = decoder.string(propLen, propOffset);
-            const arg = decoder.string(argLen, argOffset);
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
+            let arg = decoder.string(argLen, argOffset);
             return addPtr(node[prop](arg));
         },
         Object_Call_string__bool: (nodePtr, propLen, propOffset, argLen, argOffset) => {
-            const node = nodes[nodePtr];
-            const prop = decoder.string(propLen, propOffset);
-            const arg = decoder.string(argLen, argOffset);
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
+            let arg = decoder.string(argLen, argOffset);
             return node[prop](arg);            
+        },
+        Object_Call_uint__string: (rawResult, nodePtr, propLen, propOffset, arg) => {
+            
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
+            encoders.string(rawResult, node[prop](arg));
+        },
+        Object_Call_uint_uint__string: (rawResult, nodePtr, propLen, propOffset, arg, arg2) => {
+            
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
+            encoders.string(rawResult, node[prop](arg, arg2));
         },
         Object_Call_string__string: (rawResult, nodePtr, propLen, propOffset, argLen, argOffset) => {
             
-            const node = nodes[nodePtr];
-            const prop = decoder.string(propLen, propOffset);
-            const arg = decoder.string(argLen, argOffset);
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
+            let arg = decoder.string(argLen, argOffset);
             encoders.string(rawResult, node[prop](arg));
         },
         Object_Call_handle__Handle: (nodePtr, propLen, propOffset, handle) => {
-            const node = nodes[nodePtr];
-            const prop = decoder.string(propLen, propOffset);
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
             return addPtr(node[prop](nodes[handle]));
         },
         Object_Call_string_string__Handle: (nodePtr, propLen, propOffset, argLen, argOffset, arg2len, arg2Offset) => {
-            const node = nodes[nodePtr];
-            const prop = decoder.string(propLen, propOffset);
-            const arg = decoder.string(argLen, argOffset);
-            const arg2 = decoder.string(arg2Len, arg2Offset);
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
+            let arg = decoder.string(argLen, argOffset);
+            let arg2 = decoder.string(arg2Len, arg2Offset);
+            return addPtr(node[prop](arg, arg2));
+        },
+        Object_Call_string_uint__Handle: (nodePtr, propLen, propOffset, argLen, argOffset, arg2) => {
+            let node = nodes[nodePtr];
+            let prop = decoder.string(propLen, propOffset);
+            let arg = decoder.string(argLen, argOffset);
             return addPtr(node[prop](arg, arg2));
         }
         /* needs testing

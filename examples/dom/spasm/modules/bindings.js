@@ -83,5 +83,236 @@ export let jsExports = {
       setupMemory();
       console.log(spasm.objects[data]);
     },
+    
+    promise_error_6uhandle: (handle, ctx, ptr) => {      
+      var ret = spasm.addObject(spasm.objects[handle].catch((r)=>{
+      
+        let prev_promise_idx = (handle % 126 + 2)*4;
+        let this_param_promise_idx = (ret % 126 + 2)*4;
+        encode_handle(this_param_promise_idx,r);
+        spasm_indirect_function_get(ptr)(ctx, this_param_promise_idx);
+        if (getUInt(prev_promise_idx)) {
+          spasm.removeObject(getUInt(prev_promise_idx));
+          encode_handle(prev_promise_idx, null);
+        }
+      }));
+      return ret;
+    },
+    promise_then_6uhandlehandle: (handle, ctx, ptr) => {
+      
+      var ret = spasm.addObject(spasm.objects[handle].then((r)=>{
+      
+        let prev_promise_idx = (handle % 126 + 2)*4;
+        let this_ret_promise_idx = (ret % 126 + 2)*4;
+        let this_param_promise_idx = (ret % 126 + 2 + 128)*4;
+        encode_handle(this_param_promise_idx,r);
+        spasm_indirect_function_get(ptr)(this_ret_promise_idx, ctx, this_param_promise_idx);
+
+        encode_handle(this_param_promise_idx, null);
+        if (getUInt(prev_promise_idx)) {
+          spasm.removeObject(getUInt(prev_promise_idx));
+          encode_handle(prev_promise_idx, null);
+        }
+        return decode_handle(this_ret_promise_idx);
+      }));
+      return ret;
+    },
+    promise_then_6uhandlev: (handle, ctx, ptr) => {
+      var ret = spasm.addObject(spasm.objects[handle].then((r)=>{
+        let prev_promise_idx = (handle % 126 + 2)*4
+        let this_value_idx = (ret % 126 + 2)*4;
+
+        encode_handle(this_value_idx, r);
+        spasm_indirect_function_get(ptr)(ctx, this_value_idx);
+        
+        encode_handle(this_value_idx, null);
+        if (getUInt(prev_promise_idx)) {
+          spasm.removeObject(getUInt(prev_promise_idx));
+          encode_handle(prev_promise_idx, null);
+        }
+        encode_handle(this_value_idx, null);
+      }));
+      return ret;
+    },
+    /*EventTarget_addEventListener_0: (ctx, typeLen, typePtr, callbackCtx, callbackPtr) => {
+      setupMemory();
+      spasm.objects[ctx].addEventListener(spasm_decode_string(typeLen, typePtr), (event)=>{encode_handle(0, event);spasm_indirect_function_get(callbackPtr)(callbackCtx, 0)});
+    },*/
+    Object_Call_OptionalEventHandler__void: (ctx, propLen, propOffset, hasCallback, callbackCtx, callbackPtr) => {
+      setupMemory();
+      let node = spasm.objects[ctx];
+      let prop = decoder.string(propLen, propOffset);
+      let listenerType = prop.substring(2);
+      if (typeof(node.wasmEvents) === "object" 
+          && typeof(node.wasmEvents[listenerType]) === "object" 
+          && typeof(node.wasmEvents[listenerType].cbs) === "array"
+          && node.wasmEvents[listenerType].cbs.length > 0) 
+      {
+        if (hasCallback)
+          console.error(`Deleting ${node.wasmEvents[listenerType].cbs.length} existing event handler(s)`);
+        else
+          console.error(`Replacing ${node.wasmEvents[listenerType].cbs.length} existing event handler`);
+        delete node.wasmEvents[listenerType];
+      }
+      if (hasCallback) {
+        let newEventHandler = (event) => { // returns Any
+          encode_handle(0, event);
+          spasm_indirect_function_get(callbackPtr)(512, callbackCtx, 0);
+          encode_handle(0, null);
+          return decode_handle(512);
+        }
+        node[prop] = newEventHandler;
+        if (typeof(node.wasmEventHandlers) !== "object")
+          node.wasmEventHandlers = {};
+        // save callbackPtr, callbackCtx (uint, uint)
+        node.wasmEventHandlers[listenerType] = { ctx: callbackCtx, fun: callbackPtr };
+      }
+      else {
+        if (typeof(node.wasmEventHandlers) === "object"
+             && node.wasmEventHandlers[listenerType] === "object")
+          delete node.wasmEventHandlers[listenerType];
+        node[prop] = null; // delete the event handler
+      }
+    },
+    Object_Call_EventHandler__void: (ctx, propLen, propOffset, callbackCtx, callbackPtr) => {
+      jsExports.env.Object_Call_OptionalEventHandler__void(ctx, propLen, propOffset, true, callbackCtx, callbackPtr);
+    },
+    Object_Getter__EventHandler: (rawResult, ctx, propLen, propOffset) => {
+      setupMemory();
+      let node = spasm.objects[ctx];      
+      let prop = decoder.string(propLen, propOffset);
+      let listenerType = prop.substring(2);
+
+      if (node.wasmEvents && node.wasmEvents[listenerType]) {
+        let cb = node.wasmEvents[listenerType].cbs[0];
+        setUInt(rawResult, cb.ctx);
+        setUInt(rawResult+4, cb.fun);
+      } 
+      else if (node.wasmEventHandlers && typeof(node.wasmEventHandlers[listenerType]) === "object")
+      {
+        let cb = node.wasmEventHandlers[listenerType];
+        setUInt(rawResult, cb.ctx);
+        setUInt(rawResult+4, cb.fun);
+      }
+    },
+    Object_Getter__OptionalString: (rawResult, ctx, propLen, propOffset) => {
+      setupMemory();
+      let node = nodes[ctx];
+      if (typeof(node) === undefined) return;
+      let prop = decoder.string(propLen, propOffset);
+      
+      if (typeof(node[prop]) === "function") {
+        let str = node[prop]();
+        if (setBool(rawResult+4, isDefined(str)))
+          encoders.string(rawResult, str);
+      }
+      else {
+        let str = node[prop]
+        if (setBool(rawResult+4, isDefined(str)))
+          encoders.string(rawResult, str);
+      }
+    },
+    Object_Getter__OptionalUint: (rawResult, ctx, propLen, propOffset) => {
+      setupMemory();
+      let node = nodes[ctx];
+      if (typeof(node) === undefined) return;
+      let prop = decoder.string(propLen, propOffset);
+      
+      if (typeof(node[prop]) === "function") {
+        let number = node[prop]();
+        if (setBool(rawResult+4, isDefined(number)))
+          setUInt(rawResult, number);
+      }
+      else {
+        let number = node[prop]
+        if (setBool(rawResult+4, isDefined(number)))
+          setUInt(rawResult, number);
+      }
+    },
+    Object_Getter__OptionalDouble: (rawResult, ctx, propLen, propOffset) => {
+      setupMemory();
+      let node = nodes[ctx];
+      if (typeof(node) === undefined) return;
+      let prop = decoder.string(propLen, propOffset);
+      
+      if (typeof(node[prop]) === "function") {
+        let number = node[prop]();
+        if (setBool(rawResult+8, isDefined(number)))
+          setDouble(rawResult, number);
+      }
+      else {
+        let number = node[prop]
+        if (setBool(rawResult+8, isDefined(number)))
+          setDouble(rawResult, number);
+      }
+    },
+    Object_Getter__OptionalBool: (rawResult, ctx, propLen, propOffset) => {
+      setupMemory();
+      let node = nodes[ctx];
+      if (typeof(node) === undefined) return;
+      let prop = decoder.string(propLen, propOffset);
+      
+      if (typeof(node[prop]) === "function") {
+        let number = node[prop]();
+        if (setBool(rawResult+4, isDefined(number)))
+          setBool(rawResult, number);
+      }
+      else {
+        let number = node[prop]
+        if (setBool(rawResult+8, isDefined(number)))
+          setBool(rawResult, number);
+      }
+    },
+    Object_Getter__OptionalHandle: (rawResult, ctx, propLen, propOffset) => {
+      setupMemory();
+      let node = nodes[ctx];
+      if (typeof(node) === undefined) return;
+      let prop = decoder.string(propLen, propOffset);
+      
+      if (typeof(node[prop]) === "function") {
+        let obj = node[prop]();
+        spasm_encode_optional_Handle(rawResult, obj)
+      }
+      else {
+        let obj = node[prop];
+        spasm_encode_optional_Handle(rawResult, obj)
+      }
+    },
+    Object_Call_string__OptionalString: (rawResult, ctx, propLen, propOffset, argLen, argOffset) => {
+      setupMemory();
+      let node = nodes[ctx];
+      if (typeof(node) === undefined) return;
+      let prop = decoder.string(propLen, propOffset);
+      let arg = decoder.string(argLen, argOffset);
+      let str = node[prop](arg);
+      
+      if (setBool(rawResult+4, isDefined(str)))
+        encoders.string(rawResult, str);
+    },
+    Object_Call_string__OptionalHandle: (rawResult, ctx, propLen, propOffset, argLen, argOffset) => {
+      setupMemory();
+      let node = nodes[ctx];
+      if (typeof(node) === undefined) return;
+      let prop = decoder.string(propLen, propOffset);
+      let arg = decoder.string(argLen, argOffset);
+      
+      let obj = node[prop](arg);
+      spasm_encode_optional_Handle(rawResult, obj);
+    },
+    Object_Call_uint__OptionalHandle: (rawResult, ctx, propLen, propOffset, arg) => {
+      setupMemory();
+      let node = nodes[ctx];
+      if (typeof(node) === undefined) return;
+      let prop = decoder.string(propLen, propOffset);
+      
+      let obj = node[prop](arg);
+      spasm_encode_optional_Handle(rawResult, obj);
+    },
+    Object_Call_int__OptionalHandle: (rawResult, ctx, propLen, propOffset, arg) => {
+      jsExports.env.Object_Call_uint__OptionalHandle(rawResult, ctx, propLen, propOffset, arg);
+    },
+    Object_Call_bool__OptionalHandle: (rawResult, ctx, propLen, propOffset, arg) => {
+      jsExports.env.Object_Call_uint__OptionalHandle(rawResult, ctx, propLen, propOffset, arg);
+    }
   }
 }
