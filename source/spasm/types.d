@@ -11,6 +11,7 @@ version (LDC) {
   enum assumeUsed;
 }
 
+alias Handle = uint;
 version (unittest) {
   @safe:
   Handle spasm_add__object() {return 0;}
@@ -84,9 +85,6 @@ version (unittest) {
     string Object_Call_string__string(Handle, string, string);
     string Object_Call_uint__string(Handle, string, uint);
     string Object_Call_uint_uint__string(Handle, string, uint, uint);
-    void Object_Call_OptionalEventHandler__void(Handle, string, Optional!EventHandler);
-    void Object_Call_EventHandler__void(Handle, string, EventHandler);
-    EventHandler Object_Getter__EventHandler(Handle, string);
 
     JSON JSON_parse_string(scope ref string);
     string JSON_stringify(Handle);
@@ -97,7 +95,6 @@ version (unittest) {
 
 @safe:
 
-alias Handle = uint;
 struct JsHandle {
   nothrow:
   package Handle handle;
@@ -385,7 +382,6 @@ mixin template ExternPromiseCallback(string funName, T, U) {
     pragma(mangle, funName)
       mixin("extern(C) Handle "~funName~"(Handle, U delegate() nothrow);");
   } else {
-    import spasm.bindings;
     pragma(mangle, funName)
       mixin("extern(C) Handle "~funName~"(Handle, U delegate("~T.stringof~") nothrow);");
   }
@@ -397,12 +393,12 @@ mixin template ExternPromiseCallback(string funName, T) {
     pragma(mangle, funName)
       mixin("extern(C) Handle "~funName~"(Handle, void delegate() nothrow);");
   } else {
-    import spasm.bindings;
     pragma(mangle, funName)
       mixin("extern(C) Handle "~funName~"(Handle, void delegate("~T.stringof~") nothrow);");
   }
 }
-struct Promise(T, U = Any) {
+struct Promise(T) {
+  alias U = Any;
   nothrow:
   JsHandle handle;
   alias handle this;
@@ -426,14 +422,14 @@ struct Promise(T, U = Any) {
     enum ResultTypeMangled = SpasmMangle!ResultType;
     enum funName = "promise_then_"~TMangled.length.stringof~TMangled~ResultTypeMangled;
     mixin ExternPromiseCallback!(funName, JoinedType, BridgeType!ResultType);
-    mixin("return Promise!(ResultType, U)("~funName~"(handle, cast(JoinedCallback!(BridgeType!ResultType))cb));");
+    mixin("return Promise!(ResultType)("~funName~"(handle, cast(JoinedCallback!(BridgeType!ResultType))cb));");
   }
   
   auto error(void delegate(U) nothrow cb) @trusted {
     enum TMangled = SpasmMangle!U;
     enum funName = "promise_error_"~TMangled.length.stringof~TMangled;
     mixin ExternPromiseCallback!(funName, U);
-    mixin("return Promise!(void, U)("~funName~"(handle, cast(RejectCallback)cb));");
+    mixin("return Promise!(void)("~funName~"(handle, cast(RejectCallback)cb));");
   }
 }
 struct Sequence(T) {
@@ -571,15 +567,7 @@ struct FrozenArray(T) {
     this.handle = JsHandle(h);
   }
 }
-// TODO: for now animation is defined here, but when accepted we can use the idl (or newer) at https://www.w3.org/TR/2018/WD-web-animations-1-20181011
-struct Animation {
-  nothrow:
-  JsHandle handle;
-  alias handle this;
-  this(Handle h) {
-    this.handle = JsHandle(h);
-  }
-}
+
 struct Iterator(T) {
   nothrow:
   JsHandle handle;
@@ -637,6 +625,73 @@ struct JSON {
     return JSON_stringify(obj);
   }
 }
+
+struct BufferSource {
+  nothrow:
+  JsHandle handle;
+  alias handle this;
+  this(Handle h) {
+    this.handle = JsHandle(h);
+  }
+}
+struct MIDIInput {
+  nothrow:
+  JsHandle handle;
+  alias handle this;
+  this(Handle h) {
+    this.handle = JsHandle(h);
+  }
+}
+struct MIDIOutput {
+  nothrow:
+  JsHandle handle;
+  alias handle this;
+  this(Handle h) {
+    this.handle = JsHandle(h);
+  }
+}
+struct nsISupports {
+  nothrow:
+  JsHandle handle;
+  alias handle this;
+  this(Handle h) {
+    this.handle = JsHandle(h);
+  }
+}
+struct nsIVariant {
+  nothrow:
+  JsHandle handle;
+  alias handle this;
+  this(Handle h) {
+    this.handle = JsHandle(h);
+  }
+}
+struct ArrayBufferView {
+  nothrow:
+  JsHandle handle;
+  alias handle this;
+  this(Handle h) {
+    this.handle = JsHandle(h);
+  }
+}
+struct ReadableStream {
+  nothrow:
+  JsHandle handle;
+  alias handle this;
+  this(Handle h) {
+    this.handle = JsHandle(h);
+  }
+}
+struct AudioParam {
+  nothrow:
+  JsHandle handle;
+  alias handle this;
+  this(Handle h) {
+    this.handle = JsHandle(h);
+  }
+}
+import spasm.bindings.Window : Window;
+alias WindowProxy = Window;
 
 extern (C) {
   Handle Int8Array_Create(const byte[]);

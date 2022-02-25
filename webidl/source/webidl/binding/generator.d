@@ -881,9 +881,14 @@ void dump(Appender)(ref Semantics semantics, DBindingFunction item, ref Appender
   bool returns = item.result != ParseTree.init && item.result.matches[0] != "void";
   if (returns) {
     
-    if (item.type == FunctionType.ExposedConstructor)
-      a.put(item.name);
-    else item.result.generateDType(a, Context(semantics));
+    //if (item.type == FunctionType.ExposedConstructor)
+    //  a.put(item.name);
+    if (semantics.isPrimitive(item.result)){
+      if (item.type == FunctionType.ExposedConstructor)
+        a.put(item.name);
+      else item.result.generateDType(a, Context(semantics));
+    }      
+    else a.put("auto");
     a.put(" ");
    } else a.put("void ");
   void putFuncName() {
@@ -968,8 +973,7 @@ void dump(Appender)(ref Semantics semantics, DBindingFunction item, ref Appender
     a.putLn("return;");
     a.undent();
     a.putLn("}");
-  }
-
+  } 
   foreach(any; anys) {
     a.put("// ");
     any.value.type.generateDType(a, Context(semantics).withLocals(locals));
@@ -1395,7 +1399,7 @@ struct DBindingFunction {
   //// AccessibleNode_roleDescription_Set => Object_setter_String__void("roleDescription", Handle, Value)
   //// AccessibleNode_roleDescription_Get => Object_getter__String("roleDescription", Handle)
   string generic_call = findGenericMangle();
-  if (generic_call) {
+  if (generic_call && !(item.type & FunctionType.Static)) {
     isGeneric[mangleName(item.parentTypeName, item.customName.length > 0 ? item.customName : item.name,item.manglePostfix)] = true;
     a.put(generic_call);
   }

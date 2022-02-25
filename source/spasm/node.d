@@ -25,7 +25,7 @@ struct BaseNode {
 }
 
 struct TagHtmlElementMap {
-  import spasm.bindings.html;
+  import spasm.bindings;
   alias a = HTMLAnchorElement;
   alias area = HTMLAreaElement;
   alias audio = HTMLAudioElement;

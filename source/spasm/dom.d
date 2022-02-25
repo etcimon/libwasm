@@ -1,7 +1,6 @@
 module spasm.dom;
 
 import spasm.types;
-import spasm.dom;
 import spasm.ct;
 import std.traits : hasMember, isAggregateType;
 import std.traits : TemplateArgsOf, staticMap, isPointer, PointerTarget, getUDAs, EnumMembers, isInstanceOf, isBasicType, isIntegral;
@@ -216,8 +215,9 @@ version (unittest) {
   }
 }
 
-import spasm.bindings.dom : Document;
-import spasm.bindings.html : Window;
+import spasm.bindings.Document : Document;
+import spasm.bindings.Window : Window;
+
 
 @trusted ref auto undefined() {
   static __gshared u = Any(JsHandle(0));
