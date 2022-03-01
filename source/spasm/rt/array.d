@@ -106,7 +106,7 @@ struct PointerArray(T, Allocator) if (is(T : U*, U)) {
 
 struct DynamicArray(T, Allocator)
 {
-    Allocator allocator;
+    static Allocator allocator;
 
 	this(this) @disable;
 
@@ -601,14 +601,6 @@ template ContainerElementType(ContainerType, ElementType)
 		else
 			alias ContainerElementType = ElementType;
 	}
-}
-
-mixin template AllocatorState(Allocator)
-{
-  static if (stateSize!Allocator == 0)
-    alias allocator = Allocator.instance;
-  else
-    Allocator allocator;
 }
 
 struct StringAppender(Allocator) {

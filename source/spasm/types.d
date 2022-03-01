@@ -19,6 +19,9 @@ version (unittest) {
 } else {
   extern (C) {
     @safe:
+    void[] FL_allocate(size_t);
+    void[] FL_reallocate(void[], size_t);
+    void FL_deallocate(void[]);
     void doLog(uint val);
     Handle spasm_add__bool(bool);
     Handle spasm_add__int(int);
@@ -94,6 +97,15 @@ version (unittest) {
 @trusted extern(C) export @assumeUsed ubyte* allocString(uint bytes);
 
 @safe:
+
+struct Eval {
+  string eval_str;
+}
+
+// used for lodash
+Eval eval(string eval_str) {
+  return Eval(eval_str);
+}
 
 struct JsHandle {
   nothrow:
@@ -432,12 +444,17 @@ struct Promise(T) {
     mixin("return Promise!(void)("~funName~"(handle, cast(RejectCallback)cb));");
   }
 }
+
+
 struct Sequence(T) {
   nothrow:
   JsHandle handle;
   alias handle this;
   this(Handle h) {
     this.handle = JsHandle(h);
+  }
+  Lodash lodash() {
+    return Lodash(this.handle.handle);
   }
 }
 struct TypedArray(T) {

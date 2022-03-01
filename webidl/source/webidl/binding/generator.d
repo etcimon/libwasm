@@ -887,7 +887,7 @@ void dump(Appender)(ref Semantics semantics, DBindingFunction item, ref Appender
       if (item.type == FunctionType.ExposedConstructor)
         a.put(item.name);
       else item.result.generateDType(a, Context(semantics));
-    }      
+    }
     else a.put("auto");
     a.put(" ");
    } else a.put("void ");

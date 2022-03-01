@@ -1,7 +1,6 @@
 module spasm.rt.memory;
 
 import spasm.rt.allocator : WasmAllocator;
-import stdx.allocator.building_blocks.null_allocator;
 
 version (LDC)
 import ldc.attributes;
@@ -12,32 +11,81 @@ nothrow:
   WasmAllocator.init(heap_base);
 }
 
-alias allocator = WasmAllocator;
+extern (C) void * malloc(size_t num) {
+  return WasmAllocator.allocate(num).ptr;
+}
+
+extern (C) void free(void* ptr, size_t size) {
+  // this doesn't free. Try to un-grow?
+  WasmAllocator.deallocate(ptr[0 .. size]);
+  import ldc.intrinsics;
+  memset(ptr, 0, size);
+}
+
+extern (C) void* realloc(void* ptr, size_t oldsize, size_t size) {
+  void* ret = WasmAllocator.allocate(size).ptr;
+  import ldc.intrinsics;
+  memcpy(ret, ptr, oldsize);
+  memset(ptr, 0, oldsize);
+  return ret;
+}
 
 extern (C) void * memcpy(void * destination, const void * source, size_t num) {
-  foreach(i; 0..num) {
-    (cast(ubyte*)destination)[i] = (cast(ubyte*)source)[i];
+  version (LDC) {
+    import ldc.intrinsics;
+    llvm_memcpy(p,v,nv,0);
+  } else {
+    foreach(i; 0..num) {
+      (cast(ubyte*)destination)[i] = (cast(ubyte*)source)[i];
+    }
+    return destination;
   }
-  return destination;
 }
 
 extern (C) void * memset(void* ptr, int value, size_t num) {
-  ubyte val = cast(ubyte)value;
-  ubyte* p = cast(ubyte*)ptr;
-  foreach(i;0..num)
-    p[i] = val;
-  return ptr;
+  version (LDC) {
+    import ldc.intrinsics;
+    llvm_memset(ptr,value,num,0);
+  } else {
+    ubyte val = cast(ubyte)value;
+    ubyte* p = cast(ubyte*)ptr;
+    foreach(i;0..num)
+      p[i] = val;
+    return ptr;
+  }
 }
 
 extern(C):
   int memcmp(void*a,void*b,size_t cnt) {
-    foreach(i;0..cnt) {
-      if ((cast(byte*)a)[i] < (cast(byte*)b)[i])
-        return -1;
-      if ((cast(byte*)a)[i] > (cast(byte*)b)[i])
-        return 1;
+    version (LDC) {
+      import ldc.intrinsics;
+      llvm_memset(a,b,cnt,0);
+    } else {
+      foreach(i;0..cnt) {
+        if ((cast(byte*)a)[i] < (cast(byte*)b)[i])
+          return -1;
+        if ((cast(byte*)a)[i] > (cast(byte*)b)[i])
+          return 1;
+      }
+      return 0;
     }
-    return 0;
+  }
+  
+extern(C):
+  int memmove(void*dest,void*src,size_t num) {
+    version (LDC) {
+      import ldc.intrinsics;
+      llvm_memmove(dest,src,num,0);
+    } else {
+      ubyte[] tmp = cast(ubyte[])FL_allocate(num);
+      foreach(i; 0..num) {
+        *cast(ubyte*)&tmp[i] = *cast(ubyte*)&src[i];
+      }
+      foreach(i; 0..num) {
+        *cast(ubyte*)&dest[i] = *cast(ubyte*)&tmp[i];
+      }
+      FL_deallocate(tmp);
+    }
   }
 // per-element array init routines
 
@@ -126,11 +174,7 @@ void _d_array_init_mem(void* a, size_t na, void* v, size_t nv)
     auto p = a;
     auto end = a + na*nv;
     while (p !is end) {
-      version (LDC) {
-        import ldc.intrinsics;
-        llvm_memcpy(p,v,nv,0);
-      } else
-        memcpy(p,v,nv);
+      memcpy(p,v,nv);
       p += nv;
     }
 }

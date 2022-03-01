@@ -30,7 +30,6 @@ struct WasmAllocator {
     return mem[0..rounded];
   }
 
-  // NOTE: temporary until we front this with a FreeTree
   bool deallocate(void[] data) {
     return true;
   }
