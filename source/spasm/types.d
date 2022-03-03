@@ -4,6 +4,7 @@ nothrow:
 
 public import optional;
 public import spasm.sumtype;
+public import spasm.lodash;
 import std.traits : hasMember, isCallable, isBasicType;
 version (LDC) {
   public import ldc.attributes : assumeUsed;
@@ -19,9 +20,6 @@ version (unittest) {
 } else {
   extern (C) {
     @safe:
-    void[] FL_allocate(size_t);
-    void[] FL_reallocate(void[], size_t);
-    void FL_deallocate(void[]);
     void doLog(uint val);
     Handle spasm_add__bool(bool);
     Handle spasm_add__int(int);
@@ -38,6 +36,7 @@ version (unittest) {
     Handle spasm_add__object();
     void spasm_removeObject(Handle);
     Handle spasm_get__field(Handle, string);
+    Handle spasm_get_idx__field(Handle, uint);
     bool spasm_get__bool(Handle);
     int spasm_get__int(Handle);
     uint spasm_get__uint(Handle);
@@ -89,7 +88,19 @@ version (unittest) {
     string Object_Call_uint__string(Handle, string, uint);
     string Object_Call_uint_uint__string(Handle, string, uint, uint);
 
-    JSON JSON_parse_string(scope ref string);
+    long ldexec_Handle__string(Handle, string, bool delegate(), void delegate(Handle));
+    string ldexec_Handle__long(Handle, string, bool delegate(), void delegate(Handle));
+    Handle ldexec_Handle__Handle(Handle, string, bool delegate(), void delegate(Handle));
+    
+    string ldexec_string__string(string, string, bool delegate(), void delegate(Handle), bool);
+    long ldexec_string__long(string, string, bool delegate(), void delegate(Handle), bool);
+    Handle ldexec_string__Handle(string, string, bool delegate(), void delegate(Handle), bool);
+    
+    long ldexec_long__long(long, string, bool delegate(), void delegate(Handle));
+    string ldexec_long__string(long, string, bool delegate(), void delegate(Handle));
+    Handle ldexec_long__Handle(long, string, bool delegate(), void delegate(Handle));
+    
+    Handle JSON_parse_string(string);
     string JSON_stringify(Handle);
   }
 }
@@ -120,6 +131,11 @@ struct JsHandle {
     this.handle = handle;
     handle = 0;
   }
+  
+  auto lodash()() {
+    return Lodash(this.handle, VarType.handle, 128);
+  }
+
   @disable this(this);
   alias handle this;
 }
@@ -453,9 +469,6 @@ struct Sequence(T) {
   this(Handle h) {
     this.handle = JsHandle(h);
   }
-  Lodash lodash() {
-    return Lodash(this.handle.handle);
-  }
 }
 struct TypedArray(T) {
   nothrow:
@@ -629,14 +642,17 @@ struct JSON {
   this(Handle h) {
     this.handle = JsHandle(h);
   }
-  auto opDispatch(string name)() {
-    return Json(spasm_get__field(this.handle, name));
+  auto opIndex(string name)() {
+    return JSON(spasm_get__field(this.handle, name));
+  }
+  auto opIndex(uint idx)() {
+    return JSON(spasm_get_idx__field(this.handle, idx));
   }
   auto as(Target)() {
     return .as!(Target)(this);
   }
   static JSON parse(string json) {
-    return JSON_parse_string(json);
+    return JSON(JSON_parse_string(json));
   }
   static string stringify(Handle obj) {
     return JSON_stringify(obj);

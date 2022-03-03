@@ -1,8 +1,15 @@
 module spasm.lodash;
 
 import spasm.types;
+import spasm.rt.memory;
 import std.string : indexOf;
-import std.traits : isSomeString;
+import std.traits;
+
+/*
+public auto lodash(T = Any)(auto ref T init = T.init) {
+  if (!init) return Lodash(JsHandle(0), VarType.handle);
+  return Lodash(init, getVarType!T, 128);
+}*/
 
 enum VarType : short {
   handle = 1,
@@ -11,7 +18,6 @@ enum VarType : short {
   number = 4,
   decimal = 5,
   eval = 6,
-  json = 6,  
   Handle_string__bool = 7, // objects
   Handle_long__bool = 8, // array
   string_string__bool = 9, // string collection
@@ -28,12 +34,15 @@ union Param {
   Callback cb;
 }
 
+alias NoAttributes(T) = SetFunctionAttributes!(T, "D", FunctionAttribute.none);
+
 union Callback {
-  bool delegate(Handle, string) iteratee_1;
-  bool delegate(Handle, int) iteratee_2;
-  bool delegate(string, string) iteratee_3;
-  bool delegate(string, int) iteratee_4;
-  bool delegate(int, int) iteratee_5;
+  extern(C) bool delegate(Handle, string) iteratee_1;
+  extern(C) bool delegate(Handle, long) iteratee_2;
+  extern(C) bool delegate(string, string) iteratee_3;
+  extern(C) bool delegate(string, long) iteratee_4;
+  extern(C) bool delegate(long, long) iteratee_5;
+  extern(C) bool delegate() any;
 }
 
 
@@ -48,8 +57,8 @@ VarType getVarType(T)() {
   else static if (isNumeric!T) {
     value_type = VarType.number;
   }
-  else static if (is(T : delegate)) {
-    value_type = getTypeFromCallback(val);
+  else static if (isDelegate!T) {
+    value_type = getTypeFromCallback!T();
   }
   else static if (is(T : JsHandle)) {
     value_type = VarType.handle;
@@ -71,17 +80,17 @@ union InitVal {
   long number;
 }
 
-VarType getTypeFromCallback(T)(T del) {
+VarType getTypeFromCallback(T)() {
   VarType type;
-  static if (is(T == bool delegate(Handle, string)))
+  static if (is(NoAttributes!T == bool delegate(Handle, string)))
     type = VarType.Handle_string__bool;
-  else static if (is (T == bool delegate(Handle, long)))
+  else static if (is (NoAttributes!T == bool delegate(Handle, long)))
     type = VarType.Handle_long__bool;
-  else static if (is(T == bool delegate(string, string)))
+  else static if (is(NoAttributes!T == bool delegate(string, string)))
     type = VarType.string_string__bool;
-  else static if (is(T == bool delegate(string, long)))
+  else static if (is(NoAttributes!T == bool delegate(string, long)))
     type = VarType.string_long__bool;
-  else static if (is(T == bool delegate(long, long)))
+  else static if (is(NoAttributes!T == bool delegate(long, long)))
     type = VarType.long_long__bool;
   return type;
 }
@@ -96,29 +105,29 @@ struct Command {
     size_t idx = param_count;
     static if (is(T == Eval)) {
       params[idx].str = any.eval_str;
-      params_types[idx] = VarType.eval;
+      param_types[idx] = VarType.eval;
     } 
     else static if (isSomeString!T) {
       params[idx].str = any;
-      params_types[idx] = VarType.string_;
+      param_types[idx] = VarType.string_;
     }
     else static if (isNumeric!T) {
       params[idx].number = cast(long) any;
-      params_types[idx] = VarType.number;
+      param_types[idx] = VarType.number;
     }
     else static if (is(T : JsHandle)) {
       params[idx].handle = any.handle;
-      params_types[idx] = VarType.handle;
+      param_types[idx] = VarType.handle;
     }
     else static if (is(T == bool)){
       params[idx].boolean = any;
-      params_types[idx] = VarType.boolean;
+      param_types[idx] = VarType.boolean;
     }
     else static if (isFloatingPoint!T) {
       params[idx].decimal = any;
-      params_types[idx] = VarType.decimal;
+      param_types[idx] = VarType.decimal;
     }
-    else static if (is(T  : delegate)) {
+    else static if (isDelegate!T) {
       setCallback(idx, any);
     } else static assert(false, "Unsupported parameter supplied");
     param_count++;
@@ -150,15 +159,15 @@ struct Command {
     
     static if (is(T == Eval)) {
       params[idx].str = str.eval_str;
-      params_types[idx] = VarType.eval;
+      param_types[idx] = VarType.eval;
     } 
     else static if (isSomeString!T) {
       params[idx].str = str;
-      params_types[idx] = VarType.string_;
+      param_types[idx] = VarType.string_;
     }
     else static if (is(T : JsHandle)) {
       params[idx].handle = number.handle;
-      params_types[idx] = VarType.handle;
+      param_types[idx] = VarType.handle;
     } else static assert(false, "Unsupported type given to function (setString)");
     param_count++;
   }
@@ -169,23 +178,23 @@ struct Command {
     
     static if (is(T == bool)) {
       params[idx].boolean = number.boolean;
-      params_types[idx] = VarType.boolean;      
+      param_types[idx] = VarType.boolean;      
     }
     static if (is(T == Eval)) {
       params[idx].str = number.eval_str;
-      params_types[idx] = VarType.eval;
+      param_types[idx] = VarType.eval;
     } 
     else static if (isSomeString!T) {
       params[idx].str = number;
-      params_types[idx] = VarType.eval;
+      param_types[idx] = VarType.eval;
     }
     else static if (isNumeric!T) {
       params[idx].boolean = number != 0;
-      params_types[idx] = VarType.boolean;
+      param_types[idx] = VarType.boolean;
     }
     else static if (is(T : JsHandle)) {
       params[idx].handle = number.handle;
-      params_types[idx] = VarType.handle;
+      param_types[idx] = VarType.handle;
     } else static assert(false, "Unsupported type given to function (setNumber)");
     param_count++;
   }
@@ -195,44 +204,48 @@ struct Command {
     
     static if (is(T == Eval)) {
       params[idx].str = number.eval_str;
-      params_types[idx] = VarType.eval;
+      param_types[idx] = VarType.eval;
     } 
     else static if (isSomeString!T) {
       params[idx].str = number;
-      params_types[idx] = VarType.eval;
+      param_types[idx] = VarType.eval;
     }
     else static if (isNumeric!T) {
       params[idx].number = cast(long) number;
-      params_types[idx] = VarType.number;
+      param_types[idx] = VarType.number;
     }
     else static if (is(T : JsHandle)) {
       params[idx].handle = number.handle;
-      params_types[idx] = VarType.handle;
+      param_types[idx] = VarType.handle;
     } else static assert(false, "Unsupported type given to function (setNumber)");
     param_count++;
   }
 
   void setCallback(T)(size_t idx, T callback) {
-    static if (is(T == bool delegate(Handle, string))) {      
-      params[idx].cb.iteratee_1 = callback;
-      params_types[idx] = VarType.Handle_string__bool;
+
+    static if (is(NoAttributes!T == bool delegate(Handle, string))) {      
+      params[idx].cb.iteratee_1 = cast(typeof(params[idx].cb.iteratee_1))callback;
+      param_types[idx] = VarType.Handle_string__bool;
     }
-    else static if (is (T == bool delegate(Handle, long))){   
-      params[idx].cb.iteratee_2 = callback;
-      params_types[idx] = VarType.Handle_long__bool;
+    else static if (is (NoAttributes!T == bool delegate(Handle, long))){   
+      params[idx].cb.iteratee_2 = cast(typeof(params[idx].cb.iteratee_2))callback;
+      param_types[idx] = VarType.Handle_long__bool;
     }
-    else static if (is(T == bool delegate(string, string))) {   
-      params[idx].cb.iteratee_3 = callback;
-      params_types[idx] = VarType.string_string__bool;
+    else static if (is(NoAttributes!T == bool delegate(string, string))) {   
+      params[idx].cb.iteratee_3 = cast(typeof(params[idx].cb.iteratee_3))callback;
+      param_types[idx] = VarType.string_string__bool;
     }
-    else static if (is(T == bool delegate(string, long))) {   
-      params[idx].cb.iteratee_4 = callback;
-      params_types[idx] = VarType.string_long__bool;
+    else static if (is(NoAttributes!T == bool delegate(string, long))) {   
+      params[idx].cb.iteratee_4 = cast(typeof(params[idx].cb.iteratee_4))callback;
+      param_types[idx] = VarType.string_long__bool;
     }
-    else static if (is(T == bool delegate(long, long))) {   
-      params[idx].cb.iteratee_5 = callback;
-      params_types[idx] = VarType.long_long__bool;
-    } else static assert(false, "Invalid callback type used as parameter");
+    else static if (is(NoAttributes!T == bool delegate(long, long))) {   
+      params[idx].cb.iteratee_5 = cast(typeof(params[idx].cb.iteratee_5))callback;
+      param_types[idx] = VarType.long_long__bool;
+    } else {
+      pragma(msg, (NoAttributes!T).stringof);
+      static assert(false, "Invalid callback type used as parameter");
+    }
   }
 
   // Used for iteratee. Missing a lot of delegate types
@@ -270,9 +283,9 @@ struct Command {
           // => 0
         */
         params[idx].handle = any.handle;
-        params_types[idx] = VarType.handle;
+        param_types[idx] = VarType.handle;
       }
-      else static if (is(T : delegate)) {
+      else static if (isDelegate!T) {
         setCallback(idx, callback);
       } else static assert(false, "Unsupported type given to function (setCallback)");
 
@@ -291,9 +304,10 @@ struct Lodash {
   private:
 
   InitVal m_initVal;
-  VarType m_initType;
 
-  size_t m_size_est;
+  VarType m_initType = VarType.handle;
+
+  size_t m_size_est = 128;
 
   char[] m_commands; // [{func: 'name', params:[function(){}, 2, 'str']}]
                       // [{local: 'a', value: function(){} }]
@@ -303,7 +317,7 @@ struct Lodash {
   Callback m_cb;
   CallbackType m_cbType;
 
-  void delegate(Handle reason) m_error;
+  extern(C) void delegate(Handle reason) m_error;
 /*
   // next cb are Handles
   Handle[] m_owns;
@@ -324,40 +338,6 @@ struct Lodash {
     }
   }
 
-  /++
-    Initialize the Lodash chaining with VarType
-  +/
-  this(T)(ref T val, VarType init_type = VarType.handle, int size_estimate = 128) 
-  {
-    // init with a string
-    m_initType = init_type;
-
-    switch (init_type) {
-      case VarType.string_:
-        m_initVal.str = val;        
-        break;
-      case VarType.handle:
-        static if (is(T : struct))
-          m_initVal.handle = val.handle;
-        else m_initVal.handle = val;
-        break;
-
-       case VarType.number:
-          m_initVal.number = cast(long)val;
-        break;
-      default: assert(false, "Not implemented"); break;
-    }
-
-
-  }
-
-  void setupMemory() {
-    if (!m_commands)
-    {
-      m_commands = cast(char[]) FL_allocate(m_size_est);
-      put('[');
-    }
-  }
 
   bool put(long i, bool noop = true) {
     long u = i;
@@ -370,14 +350,16 @@ struct Lodash {
       maxsize *= 10;
       digits++;
     }
-    
-    ptr += digits;
+    if (m_ptr + digits > m_commands.ptr + m_commands.length)
+      return false;
+    m_ptr += digits - 1;
     while(u > 0) {
-      *(ptr--) = char('0' + u % 10);
+      *(m_ptr--) = char('0' + u % 10);
 		  u /= 10;
     }
-    if (i < 0) *(ptr--) = '-';
-    ptr += digits;
+    if (i < 0) *(m_ptr--) = '-';
+    m_ptr += digits + 1;
+    return true;
   }
 
   bool put(bool istrue) {
@@ -387,89 +369,145 @@ struct Lodash {
   }
 
   bool putHandle(long handle) {
-    if (m_ptr + "nodes[]".sizeof  > &m_commands[$-1]) return false;
-    put("nodes[");
-    put(handle);
-    put("]");
+    //if (m_ptr + "nodes[]".sizeof  > m_commands.ptr + m_commands.length) return false;
+    if (!put("nodes[")) return false;
+    if (!put(handle)) return false;
+    if (!put("]")) return false;
+    return true;
   }
 
   bool put(char c) {
-    *(m_ptr++) = c;
-    if (m_ptr > &m_commands[$-1])
+    if (m_ptr + 1 > m_commands.ptr + m_commands.length)
       return false;
+    *(m_ptr++) = c;
     return true;
   }
 
-  bool put(T)(T arr, bool add_quotes = false) if (isSomeString!T) {
-    import std.string : count;
-    if (m_ptr + arr.length + (add_quotes ? 2 + arr.count('\'') : 0)  > &m_commands[$-1]) return false;
-    if (add_quotes)
-      *(m_ptr++) = '\'';
-    foreach (val; arr) {
-      if (add_quotes && val == '\'') *(m_ptr++) // escape for quotes
-      *(m_ptr++) = val;
+
+  bool putEval(T)(T arr) if (isSomeString!T) {
+    // starts with =
+    size_t escape_count;
+
+    foreach(el; arr) if (hasEscape(el)) escape_count++;
+
+    if (m_ptr + arr.length + 3 + escape_count > m_commands.ptr + m_commands.length) 
+      return false;
+
+    *(m_ptr++) = '"';
+    *(m_ptr++) = '='; // eval condition, escaped in strings
+    foreach (ref val; arr) {
+      if (val <= 0x1F || val == '"' || val == '\\') {
+        putEscape(val);
+      }
+      else *(m_ptr++) = val;
     }
-    if (add_quotes)
-      *(m_ptr++) = '\'';
+    *(m_ptr++) = '"';
     return true;
   }
 
-  bool put(Command command) {
+  void putEscape(char c) {
+    if (c == '\t') { *(m_ptr++) = '\\'; *(m_ptr++) = 't'; }
+    else if (c == '\b') { *(m_ptr++) = '\\'; *(m_ptr++) = 'b'; }
+    else if (c == '\n') { *(m_ptr++) = '\\'; *(m_ptr++) = 'n'; }
+    else if (c == '\r') { *(m_ptr++) = '\\'; *(m_ptr++) = 'r'; }
+    else if (c == '"') { *(m_ptr++) = '\\'; *(m_ptr++) = '"'; }
+    else if (c == '\\') { m_ptr++; *(m_ptr++) = '\\'; }
+    else { *(m_ptr++) = '?'; }
+  }
+
+  bool hasEscape(char c) {
+    if ((c <= 0x1F && c > 0xC) || (c > 0x1F && c != '"' && c != '\\')) 
+      return false;
+    else if (c == '\t') return true;
+    else if (c == '\b') return true;
+    else if (c == '\n') return true;
+    else if (c == '\r') return true;
+    else if (c == '"') return true;
+    else if (c == '\\') return true;
+    else return false; // '?'
+  }
+
+
+  bool put(T)(T arr, bool to_json_string = false) if (isSomeString!T) {    
+    size_t escape_count;
+    if (arr[0] == '=') {
+      if (!put('\\')) return false;
+    }
+    if (to_json_string) foreach(el; arr) if (hasEscape(el)) escape_count++;
+
+    if (m_ptr + arr.length + (to_json_string ? 2 + escape_count : 0)  > m_commands.ptr + m_commands.length) 
+      return false;
+
+    if (to_json_string)
+      *(m_ptr++) = '"';
+    foreach (ref val; arr) {
+      if (to_json_string && (val <= 0x1F || val == '"' || val == '\\')) {
+        putEscape(val);
+      }
+      else *(m_ptr++) = val;
+    }
+    if (to_json_string)
+      *(m_ptr++) = '"';
+    return true;
+  }
+
+  bool putCommand(ref Command command) {
     // check locals
     
-    foreach (i, param; command.params)
+    foreach (i, ref param; command.params)
     {
       if (i == command.param_count) break;
 
       switch (command.param_types[i]) {
-
         case VarType.Handle_string__bool:
-          assert(m_cb is null, "You can only have one callback");
+          //assert(m_cb.any is null, "You can only have one callback");
           Local!(typeof(Callback.iteratee_1)) local;
-          local.local_name = 'cb';
+          local.local_name = "cb";
           local.value = param.cb.iteratee_1;
           local.value_type = command.param_types[i];
-          put(local);
+          if(!putLocal(local)) return false;
           break;
         case VarType.Handle_long__bool:
-          assert(m_cb is null, "You can only have one callback");
+          //assert(m_cb.any is null, "You can only have one callback");
           Local!(typeof(Callback.iteratee_2)) local;
-          local.local_name = 'cb';
+          local.local_name = "cb";
           local.value = param.cb.iteratee_2;
           local.value_type = command.param_types[i];
-          put(local);
+          if(!putLocal(local)) return false;
           break;
         case VarType.string_string__bool:
-          assert(m_cb is null, "You can only have one callback");
+          //assert(m_cb.any is null, "You can only have one callback");
           Local!(typeof(Callback.iteratee_3)) local;
-          local.local_name = 'cb';
+          local.local_name = "cb";
           local.value = param.cb.iteratee_3;
           local.value_type = command.param_types[i];
-          put(local);
+          if(!putLocal(local)) return false;
           break;
-        case string_long__bool:
-          assert(m_cb is null, "You can only have one callback");
+        case VarType.string_long__bool:
+          //assert(m_cb.any is null, "You can only have one callback");
           Local!(typeof(Callback.iteratee_4)) local;
-          local.local_name = 'cb';
+          local.local_name = "cb";
           local.value = param.cb.iteratee_4;
           local.value_type = command.param_types[i];
-          put(local);
+          if(!putLocal(local)) return false;
           break;
-        case long_long__bool:
-          assert(m_cb is null, "You can only have one callback");
+        case VarType.long_long__bool:
+          //assert(m_cb.any is null, "You can only have one callback");
           Local!(typeof(Callback.iteratee_5)) local;
-          local.local_name = 'cb';
+          local.local_name = "cb";
           local.value = param.cb.iteratee_5;
           local.value_type = command.param_types[i];
-          put(local);
+          if(!putLocal(local)) return false;
           break;
-        default: break;
+        default: 
+          
+          break;
       }
     }
-    if (!put('{')) return false;
-    if (!put(command.func)) return false;
-    if (!put(", params: [")) return false;
-    foreach (i, param; command.params)
+    if (!put(`{"func":`)) return false;
+    if (!put(command.func, true)) return false;
+    if (!put(`,"params":[`)) return false;
+    foreach (i, ref param; command.params)
     {
       if (i == command.param_count) break;
 
@@ -480,12 +518,12 @@ struct Lodash {
           break;
         case VarType.boolean:
           if (!put(param.boolean)) return false;
+          break;
         case VarType.string_:
           if (!put(param.str, true)) return false;
           break;
         case VarType.eval:
-        case VarType.json:
-          if (!put(param.str, false)) return false;
+          if (!putEval(param.str)) return false;
           break;
         case VarType.number:
           if (!put(param.number, false)) return false;
@@ -494,21 +532,21 @@ struct Lodash {
           // todo
         //  break;
         case VarType.Handle_string__bool:
-          if (!put("cb", false)) return false;
+          if (!putEval("cb")) return false;
           break;
         case VarType.Handle_long__bool:
-          if (!put("cb", false)) return false;
+          if (!putEval("cb")) return false;
           break;
         case VarType.string_string__bool:
-          if (!put("cb", false)) return false;
+          if (!putEval("cb")) return false;
           break;
-        case string_long__bool:
-          if (!put("cb", false)) return false;
+        case VarType.string_long__bool:
+          if (!putEval("cb")) return false;
           break;
-        case long_long__bool:
-          if (!put("cb", false)) return false;
+        case VarType.long_long__bool:
+          if (!putEval("cb")) return false;
           break;
-        default: assert(false, "Command parameter type not implemented"); break;
+        default: assert(false, "Command parameter type not implemented");
       }
         
     }
@@ -516,59 +554,71 @@ struct Lodash {
     return true;
   }
 
-  bool put(T)(ref Local!T local) {
-    if (!put("{local:")) return false;
-    if (!put(local.local, true)) return false;
-    if (!put(", value: ")) return false;
+  bool putLocal(T)(ref Local!T local) {
+    if (!put(`{"local":`)) return false;
+    if (!put(local.local_name, true)) return false;
+    if (!put(`,"value":`)) return false;
 
     switch(local.value_type) {
       case VarType.handle:
-        if (!put(local.value.handle)) return false;
+        static if (isImplicitlyConvertible!(T, JsHandle)) {
+          if (!put(local.value.handle)) return false;
+        }
+        else static if (!isDelegate!T) {
+          if (!put(local.value)) return false;
+        } 
         break;
       case VarType.string_:
-         if (!put(local.value, true)) return false;
+         static if (!isDelegate!T) if (!put(local.value, true)) return false;
         break;
       case VarType.eval:
-      case VarType.json:
-         if (!put(local.value, false)) return false;
+         static if (!isDelegate!T) if (!putEval(local.value)) return false;
         break;
       case VarType.boolean:
       case VarType.number:
-        if (!put(local.value)) return false;
+        static if (!isDelegate!T) if (!put(local.value)) return false;
       case VarType.Handle_string__bool:
       // generate boilerplate
-        __gshared immutable cb_boilerplate_1 = `(o,s)=>{let ri=0;let ci=0;let ci2=512;
-eh(ci, o); es(ci2, s); sifg(cbPtr)(ri, cbCtx, ci, ci2); return gB(ri);}`;
-        m_cb.iteratee_1 = local.value;
-        if (!put(cb_boilerplate_1, false)) return false;
+        static if (is(NoAttributes!(typeof(local.value)) == bool delegate(Handle, string))) {
+          __gshared immutable cb_boilerplate_1 = `(o,s)=>{let hndl=ao(o);let str=es(0,s,null,true);return !!sifg(cbPtr)(cbCtx,str[0],str[1],hndl);}`;
+          m_cb.iteratee_1 = cast(typeof(m_cb.iteratee_1))local.value;
+          if (!putEval(cb_boilerplate_1)) return false;
+        }
         // handler must touch Handle with any type that implements JsObject
         break;
       case VarType.Handle_long__bool:
-        __gshared immutable cb_boilerplate_2 = `(o,i)=>{let ri=0;let ci=0;let ci2=512;
-eh(ci, o); sL(ci2, i); sifg(cbPtr)(ri, cbCtx, ci, ci2); return gB(ri);}`;
-        m_cb.iteratee_2 = local.value;
-        if (!put(cb_boilerplate_2, false)) return false;
+        static if (is(NoAttributes!(typeof(local.value)) == bool delegate(Handle, long))) {
+          __gshared immutable cb_boilerplate_2 = `(o,i)=>{let hndl=ao(o);return !!sifg(cbPtr)(cbCtx,BigInt(i),hndl);}`;
+          m_cb.iteratee_2 = cast(typeof(m_cb.iteratee_2))local.value;
+          if (!putEval(cb_boilerplate_2)) return false;
+        }
         break;
       case VarType.string_string__bool:
-        __gshared immutable cb_boilerplate_3 = `(s1,s2)=>{let ri=0;let ci=0;let ci2=512;
-es(ci, s1); es(ci2, s2); sifg(cbPtr)(ri, cbCtx, ci, ci2); return gB(ri);}`;
-        m_cb.iteratee_3 = local.value;
-        if (!put(cb_boilerplate_3, false)) return false;
+        static if (is(NoAttributes!(typeof(local.value)) == bool delegate(string,string))) {
+          __gshared immutable cb_boilerplate_3 = `(s1,s2)=>{let str1=es(0,s1,null,true);let str2=es(0,s2,null,true);return !!sifg(cbPtr)(cbCtx,str2[0],str2[1],str1[0],str1[1]);}`;
+          m_cb.iteratee_3 = cast(typeof(m_cb.iteratee_3))local.value;
+          if (!putEval(cb_boilerplate_3)) return false;
+        }
+        break;
       case VarType.string_long__bool:
-        __gshared immutable cb_boilerplate_4 = `(s,i)=>{let ri=0;let ci=0;let ci2=512;
-es(ci, s); sL(ci2, i); sifg(cbPtr)(ri, cbCtx, ci, ci2); return gB(ri);}`;
-        m_cb.iteratee_4 = local.value;
-        if (!put(cb_boilerplate_4, false)) return false;
+        static if (is(NoAttributes!(typeof(local.value)) == bool delegate(string, long))) {
+          __gshared immutable cb_boilerplate_4 = `(s,i)=>{let str=es(0,s,null,true);return !!sifg(cbPtr)(cbCtx,BigInt(i),str[0],str[1]);}`;
+          m_cb.iteratee_4 = cast(typeof(m_cb.iteratee_4))local.value;
+          if (!putEval(cb_boilerplate_4)) return false;
+        }
+        break;
       case VarType.long_long__bool:
-        __gshared immutable cb_boilerplate_5 = `(i1,i2)=>{let ri=0;let ci=0;let ci2=512;
-sL(ci, i1); sL(ci2, i2); sifg(cbPtr)(ri, cbCtx, ci, ci2); return gB(ri);}`;
-        m_cb.iteratee_5 = local.value;
-        if (!put(cb_boilerplate_5, false)) return false;
+        static if (is(NoAttributes!(typeof(local.value)) == bool delegate(long, long))) {
+          __gshared immutable cb_boilerplate_5 = `(i1,i2)=>{return !!sifg(cbPtr)(cbCtx, BigInt(i2), BigInt(i1));}`;
+          m_cb.iteratee_5 = cast(typeof(m_cb.iteratee_5))local.value;
+          if (!putEval(cb_boilerplate_5)) return false;
+        }
         break;
       
-      default: assert(false, "Local variable type not implemented"); break;
+      default: 
+        
+      break;//assert(false, "Local variable type not implemented");
     }
-    if (!put(local.value, local.value_type == VarType.string_)) return false;
 
     if (!put("},")) return false;
     return true;
@@ -583,11 +633,12 @@ sL(ci, i1); sL(ci2, i2); sifg(cbPtr)(ri, cbCtx, ci, ci2); return gB(ri);}`;
       - Local(T) Object
   +/
   void tryPut(T)(ref Local!T local) {
-    char* restore;
-    while (!put(local)) {
+    char* restore = m_ptr;
+    while (!putLocal(local)) {
       m_ptr = restore;
-      char[] alloc = cast(char[])FL_reallocate(m_commands.length * 2);
+      char[] alloc = cast(char[])FL_reallocate(m_commands, m_commands.length * 2);
       m_ptr = alloc.ptr + (m_ptr - m_commands.ptr);
+      restore = m_ptr;
       m_commands = alloc;
     }
   }
@@ -599,17 +650,81 @@ sL(ci, i1); sL(ci2, i2); sifg(cbPtr)(ri, cbCtx, ci, ci2); return gB(ri);}`;
     Params: 
       - Command Object
   +/
-  void tryPut(Command command) {
-    char* restore;
-    while (!put(command)) {
+  void tryPut(ref Command command) {
+    char* restore = m_ptr;
+    while (!putCommand(command)) {
       m_ptr = restore;
-      char[] alloc = cast(char[])FL_reallocate(m_commands.length * 2);
+      char[] alloc = cast(char[])FL_reallocate(m_commands, m_commands.length * 2);
       m_ptr = alloc.ptr + (m_ptr - m_commands.ptr);
+      restore = m_ptr;
       m_commands = alloc;
     }
   }
 
 public:
+
+  /++
+    Initialize the Lodash chaining with VarType
+  +/
+  this(T)(auto ref T val, VarType init_type, int size_estimate) 
+  {
+    // init with a string
+    m_initType = init_type;
+
+    switch (init_type) {
+      case VarType.string_:
+      case VarType.eval:
+        static if (isImplicitlyConvertible!(T, string))
+          m_initVal.str = val;        
+        break;
+      case VarType.handle:
+        static if (isImplicitlyConvertible!(T,JsHandle))
+          m_initVal.handle = val.handle;
+        else m_initVal.handle = val;
+        break;
+
+       case VarType.number:       
+        static if (isNumeric!T)
+          m_initVal.number = cast(long)val;
+        break;
+      default: assert(false, "Not implemented");
+    }
+  }
+
+  auto ref initialize(T)(auto ref T val, VarType init_type = VarType.handle, int size_estimate = 128)
+  {
+        // init with a string
+    m_initType = init_type;
+
+    switch (init_type) {
+      case VarType.string_:
+      case VarType.eval:
+        static if (isImplicitlyConvertible!(T, string))
+          m_initVal.str = val;        
+        break;
+      case VarType.handle:
+        static if (isImplicitlyConvertible!(T,JsHandle))
+          m_initVal.handle = val.handle;
+        else m_initVal.handle = val;
+        break;
+
+       case VarType.number:       
+        static if (isNumeric!T)
+          m_initVal.number = cast(long)val;
+        break;
+      default: assert(false, "Not implemented"); break;
+    }
+    return this;
+  }
+
+  void setupMemory() {
+    if (!m_commands)
+    {
+      m_commands = cast(char[]) FL_allocate(m_size_est);
+      m_ptr = m_commands.ptr;
+      put('[');
+    }
+  }
   /++
     Adds a variable accessible through the javascript context
     If it's a callback and one exists, will fail with assert failure
@@ -619,12 +734,12 @@ public:
       - Value of the variable
       - VarType for handling logic to define the value correctly for the Javascript VM
   +/
-  auto addLocal(T)(string var_name, auto ref T val) 
+  auto ref addLocal(T)(string var_name, auto ref T val) 
     if (!isFloatingPoint!T) //todo
   {
     setupMemory();
 
-    auto local = Local!T(var_name, val);
+    auto ref local = Local!T(var_name, val);
 
     assert(local.value_type != 0, "Local has no value type");
 
@@ -642,8 +757,8 @@ public:
     Returns:
       - Unexecuted Lodash compute object with chaining capability
   +/
-  auto onError()(void delegate(Handle) errcb) {
-    m_error = errcb;
+  auto ref onError()(void delegate(Handle) errcb) {
+    m_error = cast(typeof(m_error))errcb;
     return this;
   }  
   
@@ -657,7 +772,7 @@ public:
     Returns:
       - Lodash chained on (Array): the new array of chunks.
   +/
-  auto chunk(T = Any)(auto ref T size = null) if (isNumeric!T) {
+  auto ref chunk(T = Any)(auto ref T size = T.init) if (isNumeric!T) {
     setupMemory();
     Command c = Command("chunk");
     if (size) c.setNumber(size);
@@ -671,7 +786,7 @@ public:
     Returns:
       - Lodash chained on (Array): the new array of filtered values.
   +/
-  auto compact()() {    
+  auto ref compact()() {    
     setupMemory();
     Command c = Command("compact");
     tryPut(c);
@@ -688,7 +803,7 @@ public:
       - Lodash chained on (Array): the new concatenated array.
 
   +/
-  auto concat(ARGS...)(auto ref ARGS values) {
+  auto ref concat(ARGS...)(auto ref ARGS values) {
     setupMemory();
     Command c = Command("concat");
     foreach(ref val; values) c.setAnyValue(val);
@@ -708,7 +823,7 @@ public:
       - Lodash chained on (Array): the new array of filtered values.
 
   +/
-  auto difference(T)(auto ref T values) {
+  auto ref difference(T)(auto ref T values) {
     setupMemory();
     Command c = Command("difference");
     c.setHandleOrEval(values);
@@ -732,7 +847,7 @@ public:
       - Lodash chained on (Array): the new array of filtered values.
 
   +/
-  auto differenceBy(T, U = Any)(auto ref T values, auto ref U iteratee = null) 
+  auto ref differenceBy(T, U = Any)(auto ref T values, auto ref U iteratee = U.init) 
   {
     setupMemory();
     Command c = Command("differenceBy");
@@ -758,7 +873,7 @@ public:
       - Lodash chained on (Array): the new array of filtered values.
 
   +/  
-  auto differenceWith(T, U)(auto ref T values, auto ref U comparator) 
+  auto ref differenceWith(T, U)(auto ref T values, auto ref U comparator) 
   {
     setupMemory();
     Command c = Command("differenceWith");
@@ -777,7 +892,7 @@ public:
     Returns:
       - Lodash chained on (Array): the slice of array.
   +/
-  auto drop(T = Any)(T size = null) if (isNumeric!T) {
+  auto ref drop(T = Any)(auto ref T size = T.init) if (isNumeric!T) {
     setupMemory();
     Command c = Command("drop");
     if (size) c.setNumber(size);
@@ -796,7 +911,7 @@ public:
     Returns:
       - Lodash chained on (Array): the slice of array.
   +/
-  auto dropRightWhile(T = Any)(auto ref T predicate = null) {
+  auto ref dropRightWhile(T = Any)(auto ref T predicate = T.init) {
     setupMemory();
     Command c = Command("dropRightWhile");
     if (predicate) c.setCallback(predicate);
@@ -815,7 +930,7 @@ public:
     Returns:
       - Lodash chained on (Array): the slice of array.
   +/
-  auto dropWhile(T = Any)(auto ref T predicate = null) {
+  auto ref dropWhile(T = Any)(auto ref T predicate = T.init) {
     setupMemory();
     Command c = Command("dropWhile");
     if (predicate) c.setCallback(predicate);
@@ -835,7 +950,7 @@ public:
     Returns:
       - Lodash chained on (Array): the filled array.
   +/
-  auto fill(T, U = Any, V = Any)(auto ref T fill_value, auto ref U start = null, auto ref V end = null) {
+  auto ref fill(T, U = Any, V = Any)(auto ref T fill_value, auto ref U start = U.init, auto ref V end = V.init) {
     setupMemory();
     Command c = Command("fill");
     c.setAnyValue(fill_value);
@@ -856,7 +971,7 @@ public:
     Returns:
       - Lodash chained on (number): the index of the found element, else -1.
   +/
-  auto findIndex(T = Any, U = Any)(auto ref T predicate = null, auto ref U fromIndex = null) {
+  auto ref findIndex(T = Any, U = Any)(auto ref T predicate = T.init, auto ref U fromIndex = U.init) {
     setupMemory();
     Command c = Command("findIndex");
     if (predicate) c.setCallback(predicate);
@@ -876,7 +991,7 @@ public:
     Returns:
       - Lodash chained on (number): the index of the found element, else -1.
   +/
-  auto findLastIndex(T = Any, U = Any)(auto ref T predicate = null, auto ref U fromIndex = null) {
+  auto ref findLastIndex(T = Any, U = Any)(auto ref T predicate = T.init, auto ref U fromIndex = U.init) {
     setupMemory();
     Command c = Command("findLastIndex");
     if (predicate) c.setCallback(predicate);
@@ -891,7 +1006,7 @@ public:
     Returns:
       - Lodash chained on (Array): the new flattened array.
   +/
-  auto flatten()() {
+  auto ref flatten()() {
     setupMemory();
     Command c = Command("flatten");
     tryPut(c);
@@ -904,7 +1019,7 @@ public:
     Returns:
       - Lodash chained on (Array): the new flattened array.
   +/
-  auto flattenDeep()() {
+  auto ref flattenDeep()() {
     setupMemory();
     Command c = Command("flattenDeep");
     tryPut(c);
@@ -921,7 +1036,7 @@ public:
     Returns:
       - Lodash chained on (Array): the new flattened array.
   +/
-  auto flattenDepth(T = Any)(auto ref T depth = null) {
+  auto ref flattenDepth(T = Any)(auto ref T depth = T.init) {
     setupMemory();
     Command c = Command("flattenDepth");
     if (depth) c.setNumber(depth);
@@ -938,7 +1053,7 @@ public:
     Returns:
       - Lodash chained on (Object): the new object.
   +/
-  auto fromPairs()() {
+  auto ref fromPairs()() {
     setupMemory();
     Command c = Command("fromPairs");
     tryPut(c);
@@ -951,7 +1066,7 @@ public:
     Returns:
       - Lodash chained on (*): the first element of array.
   +/
-  auto head()() {
+  auto ref head()() {
     setupMemory();
     Command c = Command("head");
     tryPut(c);
@@ -970,7 +1085,7 @@ public:
     Returns:
       - Lodash chained on (number): the index of the matched value, else -1.
   +/
-  auto indexOf(T, U = Any)(auto ref T value, auto ref U fromIndex = null) {
+  auto ref indexOf(T, U = Any)(auto ref T value, auto ref U fromIndex = U.init) {
     setupMemory();
     Command c = Command("indexOf");
     c.setAnyValue(value);
@@ -985,7 +1100,7 @@ public:
     Returns:
       - Lodash chained on (Array): the slice of array.
   +/
-  auto initial()() {
+  auto ref initial()() {
     setupMemory();
     Command c = Command("initial");
     tryPut(c);
@@ -1000,7 +1115,7 @@ public:
     Returns:
       - Lodash chained on (Array): the new array of intersecting values.
   +/
-  auto intersection()() {
+  auto ref intersection()() {
     setupMemory();
     Command c = Command("intersection");
     tryPut(c);
@@ -1022,7 +1137,7 @@ public:
       - Lodash chained on (Array): the new array of intersecting values.
 
   +/
-  auto intersectionBy(T = Any)(auto ref T iteratee = null) 
+  auto ref intersectionBy(T = Any)(auto ref T iteratee = T.init) 
   {
     setupMemory();
     Command c = Command("intersectionBy");
@@ -1045,7 +1160,7 @@ public:
       - Lodash chained on (Array): the new array of intersecting values.
 
   +/
-  auto intersectionWith(T)(auto ref T comparator) 
+  auto ref intersectionWith(T)(auto ref T comparator) 
   {
     setupMemory();
     Command c = Command("intersectionWith");
@@ -1064,7 +1179,7 @@ public:
       - Lodash chained on (string): the joined string.
 
   +/
-  auto join(T)(auto ref T separator) 
+  auto ref join(T)(auto ref T separator) 
   {
     setupMemory();
     Command c = Command("join");
@@ -1080,7 +1195,7 @@ public:
     Returns:
       - Lodash chained on (*): the last element of array.
   +/
-  auto last()() {
+  auto ref last()() {
     setupMemory();
     Command c = Command("last");
     tryPut(c);
@@ -1098,7 +1213,7 @@ public:
     Returns:
       - Lodash chained on (number): the index of the matched value, else -1.
   +/
-  auto lastIndexOf(T, U = Any)(auto ref T value, auto ref U fromIndex = null) {
+  auto ref lastIndexOf(T, U = Any)(auto ref T value, auto ref U fromIndex = U.init) {
     setupMemory();
     Command c = Command("lastIndexOf");
     c.setAnyValue(value);
@@ -1117,7 +1232,7 @@ public:
     Returns:
       - Lodash chained on (*): the nth element of array.
   +/
-  auto nth(T = Any)(auto ref T n = null) {
+  auto ref nth(T = Any)(auto ref T n = T.init) {
     setupMemory();
     Command c = Command("nth");
     if (n) c.setNumber(n);
@@ -1139,7 +1254,7 @@ public:
     Returns:
       - Lodash chained on (Array): array.
   +/
-  auto pull(ARGS...)(auto ref ARGS values) {
+  auto ref pull(ARGS...)(auto ref ARGS values) {
     setupMemory();
     Command c = Command("pull");
     foreach(ref val; values) c.setAnyValue(val);
@@ -1160,7 +1275,7 @@ public:
     Returns:
       - Lodash chained on (Array): array.
   +/
-  auto pullAll(T)(auto ref T values) {
+  auto ref pullAll(T)(auto ref T values) {
     setupMemory();
     Command c = Command("pullAll");
     c.setHandleOrEval(values);
@@ -1184,7 +1299,7 @@ public:
     Returns:
       - Lodash chained on (Array): array.
   +/
-  auto pullAllBy(T, U = Any)(auto ref T values, auto ref U iteratee = null) {
+  auto ref pullAllBy(T, U = Any)(auto ref T values, auto ref U iteratee = U.init) {
     setupMemory();
     Command c = Command("pullAllBy");
     c.setHandleOrEval(values);
@@ -1209,7 +1324,7 @@ public:
     Returns:
       - Lodash chained on (Array): array.
   +/
-  auto pullAllWith(T, U = Any)(auto ref T values, auto ref U iteratee = null) {
+  auto ref pullAllWith(T, U = Any)(auto ref T values, auto ref U iteratee = U.init) {
     setupMemory();
     Command c = Command("pullAllWith");
     c.setHandleOrEval(values);
@@ -1230,7 +1345,7 @@ public:
     Returns:
       - Lodash chained on (Array): the new array of removed elements.
   +/
-  auto pullAt(ARGS...)(auto ref ARGS values) {
+  auto ref pullAt(ARGS...)(auto ref ARGS values) {
     setupMemory();
     Command c = Command("pullAt");
     foreach(ref val; values) c.setNumber(val); // could be a JsHandle to an array too
@@ -1252,7 +1367,7 @@ public:
     Returns:
       - Lodash chained on (Array): the new array of removed elements.
   +/
-  auto remove(T = Any)(auto ref T predicate = null) {
+  auto ref remove(T = Any)(auto ref T predicate = T.init) {
     setupMemory();
     Command c = Command("remove");
     if (predicate) c.setCallback(predicate);
@@ -1269,7 +1384,7 @@ public:
     Returns:
       - Lodash chained on (Array): array.
   +/
-  auto reverse()() {
+  auto ref reverse()() {
     setupMemory();
     Command c = Command("reverse");
     tryPut(c);
@@ -1286,7 +1401,7 @@ public:
     Returns:
       - Lodash chained on (Array): the slice of array.
   +/
-  auto slice(T = Any, U = Any)(auto ref T start = null, auto ref U end = null) {
+  auto ref slice(T = Any, U = Any)(auto ref T start = T.init, auto ref U end = U.init) {
     setupMemory();
     Command c = Command("slice");
     if (start) c.setNumber(start);
@@ -1306,7 +1421,7 @@ public:
       - Lodash chained on (number): the index at which value should be inserted into array.
 
   +/
-  auto sortedIndex(T)(auto ref T value) {
+  auto ref sortedIndex(T)(auto ref T value) {
     setupMemory();
     Command c = Command("sortedIndex");
     c.setAnyValue(value);
@@ -1328,7 +1443,7 @@ public:
       - Lodash chained on (number): the index at which value should be inserted into array.
 
   +/
-  auto sortedIndexBy(T, U)(auto ref T value, auto ref U iteratee = null) {
+  auto ref sortedIndexBy(T, U)(auto ref T value, auto ref U iteratee = U.init) {
     setupMemory();
     Command c = Command("sortedIndexBy");
     c.setAnyValue(value);
@@ -1347,7 +1462,7 @@ public:
       - Lodash chained on (number): the index of the matched value, else -1.
 
   +/
-  auto sortedIndexOf(T)(auto ref T value) {
+  auto ref sortedIndexOf(T)(auto ref T value) {
     setupMemory();
     Command c = Command("sortedIndexOf");
     c.setAnyValue(value);
@@ -1367,7 +1482,7 @@ public:
       - Lodash chained on (number): the index at which value should be inserted into array.
 
   +/
-  auto sortedLastIndex(T)(auto ref T value) {
+  auto ref sortedLastIndex(T)(auto ref T value) {
     setupMemory();
     Command c = Command("sortedLastIndex");
     c.setAnyValue(value);
@@ -1388,7 +1503,7 @@ public:
       - Lodash chained on (number): the index at which value should be inserted into array.
 
   +/
-  auto sortedLastIndexBy(T, U)(auto ref T value, auto ref U iteratee = null) {
+  auto ref sortedLastIndexBy(T, U)(auto ref T value, auto ref U iteratee = U.init) {
     setupMemory();
     Command c = Command("sortedLastIndexBy");
     c.setAnyValue(value);
@@ -1408,7 +1523,7 @@ public:
       - Lodash chained on (number): the index of the matched value, else -1.
 
   +/
-  auto sortedLastIndexOf(T)(auto ref T value) {
+  auto ref sortedLastIndexOf(T)(auto ref T value) {
     setupMemory();
     Command c = Command("sortedLastIndexOf");
     c.setAnyValue(value);
@@ -1423,7 +1538,7 @@ public:
       - Lodash chained on (Array): the new duplicate free array.
 
   +/
-  auto sortedUniq()() {
+  auto ref sortedUniq()() {
     setupMemory();
     Command c = Command("sortedUniq");
     tryPut(c);
@@ -1440,7 +1555,7 @@ public:
       - Lodash chained on (Array): the new duplicate free array.
 
   +/
-  auto sortedUniqBy(T)(auto ref T iteratee) {
+  auto ref sortedUniqBy(T)(auto ref T iteratee) {
     setupMemory();
     Command c = Command("sortedUniqBy");
     c.setCallback(iteratee);
@@ -1456,7 +1571,7 @@ public:
       - Lodash chained on (Array): the slice of array.
 
   +/
-  auto tail()() {
+  auto ref tail()() {
     setupMemory();
     Command c = Command("tail");
     tryPut(c);
@@ -1473,7 +1588,7 @@ public:
       - Lodash chained on (Array): the slice of array.
 
   +/
-  auto take(T = Any)(auto ref T n = null) {
+  auto ref take(T = Any)(auto ref T n = T.init) {
     setupMemory();
     Command c = Command("take");
     if (n) c.setNumber(n);
@@ -1491,7 +1606,7 @@ public:
       - Lodash chained on (Array): the slice of array.
 
   +/
-  auto takeRight(T = Any)(auto ref T n = null) {
+  auto ref takeRight(T = Any)(auto ref T n = T.init) {
     setupMemory();
     Command c = Command("takeRight");
     if (n) c.setNumber(n);
@@ -1511,7 +1626,7 @@ public:
       - Lodash chained on (Array): the slice of array.
 
   +/
-  auto takeRightWhile(T = Any)(auto ref T predicate = null) {
+  auto ref takeRightWhile(T = Any)(auto ref T predicate = T.init) {
     setupMemory();
     Command c = Command("takeRightWhile");
     if (predicate) c.setCallback(predicate);
@@ -1531,7 +1646,7 @@ public:
       - Lodash chained on (Array): the slice of array.
 
   +/
-  auto takeWhile(T = Any)(auto ref T predicate = null) {
+  auto ref takeWhile(T = Any)(auto ref T predicate = T.init) {
     setupMemory();
     Command c = Command("takeWhile");
     if (predicate) c.setCallback(predicate);
@@ -1549,7 +1664,7 @@ public:
     Returns:
       - Lodash chained on (Array): the new array of combined values.
   +/
-  auto union_(ARGS...)(auto ref ARGS values) {
+  auto ref union_(ARGS...)(auto ref ARGS values) {
     setupMemory();
     Command c = Command("union");
     foreach(ref val; values) c.setHandleOrEval(val); // could be a JsHandle to an array too
@@ -1572,7 +1687,7 @@ public:
     Returns:
       - Lodash chained on (Array): the new array of combined values.
   +/
-  auto unionBy(T)(auto ref T values, auto ref U iteratee = null) {
+  auto ref unionBy(T)(auto ref T values, auto ref U iteratee = U.init) {
     setupMemory();
     Command c = Command("unionBy");
     c.setHandleOrEval(values);
@@ -1594,7 +1709,7 @@ public:
     Returns:
       - Lodash chained on (Array): the new array of combined values.
   +/
-  auto unionWith(T)(auto ref T values, auto ref U comparator = null) {
+  auto ref unionWith(T)(auto ref T values, auto ref U comparator = U.init) {
     setupMemory();
     Command c = Command("unionWith");
     c.setHandleOrEval(values);
@@ -1613,7 +1728,7 @@ public:
       - Lodash chained on (Array): the new duplicate free array.
 
   +/
-  auto uniq()() {
+  auto ref uniq()() {
     setupMemory();
     Command c = Command("uniq");
     tryPut(c);
@@ -1634,7 +1749,7 @@ public:
       - Lodash chained on (Array): the new duplicate free array.
 
   +/
-  auto uniqBy(T = Any)(auto ref T iteratee = null) {
+  auto ref uniqBy(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("uniqBy");
     if (iteratee) c.setCallback(iteratee);
@@ -1655,7 +1770,7 @@ public:
       - Lodash chained on (Array): the new duplicate free array.
 
   +/
-  auto uniqWith(T)(auto ref T comparator = null) {
+  auto ref uniqWith(T)(auto ref T comparator = T.init) {
     setupMemory();
     Command c = Command("uniqWith");
     c.setCallback(comparator);
@@ -1673,7 +1788,7 @@ public:
       - Lodash chained on (Array): the new array of regrouped elements.
 
   +/
-  auto unzip()() {
+  auto ref unzip()() {
     setupMemory();
     Command c = Command("unzip");
     tryPut(c);
@@ -1692,7 +1807,7 @@ public:
       - Lodash chained on (Array): the new array of regrouped elements.
 
   +/
-  auto unzipWith(T)(auto ref T iteratee = null) {
+  auto ref unzipWith(T)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("unzipWith");
     c.setCallback(iteratee);
@@ -1712,7 +1827,7 @@ public:
       - Lodash chained on (Array): the new array of filtered values.
 
   +/
-  auto without(ARGS...)(auto ref ARGS values) {
+  auto ref without(ARGS...)(auto ref ARGS values) {
     setupMemory();
     Command c = Command("without");
     foreach(ref val; values) c.setAnyValue(val);
@@ -1732,7 +1847,7 @@ public:
       - Lodash chained on (Array): the new array of filtered values.
 
   +/
-  auto xor(ARGS...)(auto ref ARGS arrays) {
+  auto ref xor(ARGS...)(auto ref ARGS arrays) {
     setupMemory();
     Command c = Command("xor");
     foreach(ref val; arrays) c.setHandleOrEval(val);
@@ -1755,7 +1870,7 @@ public:
       - Lodash chained on (Array): the new array of filtered values.
 
   +/
-  auto xorBy(T, U = Any)(auto ref T values, auto ref U iteratee = null) {
+  auto ref xorBy(T, U = Any)(auto ref T values, auto ref U iteratee = U.init) {
     setupMemory();
     Command c = Command("xorBy");
     c.setHandleOrEval(values);
@@ -1779,7 +1894,7 @@ public:
       - Lodash chained on (Array): the new array of filtered values.
 
   +/
-  auto xorWith(T, U)(auto ref T values, auto ref U comparator) {
+  auto ref xorWith(T, U)(auto ref T values, auto ref U comparator) {
     setupMemory();
     Command c = Command("xorWith");
     c.setHandleOrEval(values);
@@ -1801,7 +1916,7 @@ public:
       - Lodash chained on (Array): the new array of grouped elements.
 
   +/
-  auto zip(ARGS...)(auto ref ARGS arrays) {
+  auto ref zip(ARGS...)(auto ref ARGS arrays) {
     setupMemory();
     Command c = Command("zip");
     foreach(ref val; arrays) c.setHandleOrEval(val);
@@ -1821,7 +1936,7 @@ public:
       - Lodash chained on (Object): the new object.
 
   +/
-  auto zipObject(T)(auto ref T values) {
+  auto ref zipObject(T)(auto ref T values) {
     setupMemory();
     Command c = Command("zipObject");
     c.setHandleOrEval(values);
@@ -1839,7 +1954,7 @@ public:
       - Lodash chained on (Object): the new object.
 
   +/
-  auto zipObjectDeep(T)(auto ref T values) {
+  auto ref zipObjectDeep(T)(auto ref T values) {
     setupMemory();
     Command c = Command("zipObjectDeep");
     c.setHandleOrEval(values);
@@ -1860,7 +1975,7 @@ public:
       - Lodash chained on (Object): the new object.
 
   +/
-  auto zipWith(T, U = Any)(auto ref T arrays, auto ref U iteratee = null) {
+  auto ref zipWith(T, U = Any)(auto ref T arrays, auto ref U iteratee = U.init) {
     setupMemory();
     Command c = Command("zipWith");
     c.setHandleOrEval(arrays);
@@ -1881,7 +1996,7 @@ public:
       - Lodash chained on (Object): the composed aggregate object.
 
   +/
-  auto countBy(T = Any)(auto ref T iteratee = null) {
+  auto ref countBy(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("countBy");
     if (iteratee) c.setCallback(iteratee);
@@ -1904,7 +2019,7 @@ public:
       - Lodash chained on (boolean): true if all elements pass the predicate check, else false.
 
   +/
-  auto every(T = Any)(auto ref T predicate = null) {
+  auto ref every(T = Any)(auto ref T predicate = T.init) {
     setupMemory();
     Command c = Command("every");
     if (predicate) c.setCallback(predicate);
@@ -1926,7 +2041,7 @@ public:
       - Lodash chained on (Array): the new filtered array.
 
   +/
-  auto filter(T = Any)(auto ref T predicate = null) {
+  auto ref filter(T = Any)(auto ref T predicate = T.init) {
     setupMemory();
     Command c = Command("filter");
     if (predicate) c.setCallback(predicate);
@@ -1947,7 +2062,7 @@ public:
       - Lodash chained on (*): the matched element, else undefined.
 
   +/
-  auto find(T = Any, U = Any)(auto ref T predicate = null, auto ref U fromIndex = null) {
+  auto ref find(T = Any, U = Any)(auto ref T predicate = T.init, auto ref U fromIndex = U.init) {
     setupMemory();
     Command c = Command("find");
     if (predicate) c.setCallback(predicate);
@@ -1968,7 +2083,7 @@ public:
       - Lodash chained on (*): the matched element, else undefined.
 
   +/
-  auto findLast(T = Any, U = Any)(auto ref T predicate = null, auto ref U fromIndex = null) {
+  auto ref findLast(T = Any, U = Any)(auto ref T predicate = T.init, auto ref U fromIndex = U.init) {
     setupMemory();
     Command c = Command("findLast");
     if (predicate) c.setCallback(predicate);
@@ -1989,7 +2104,7 @@ public:
       - Lodash chained on (Array): the new flattened array.
 
   +/
-  auto flatMap(T = Any)(auto ref T iteratee = null) {
+  auto ref flatMap(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("flatMap");
     if (iteratee) c.setCallback(iteratee);
@@ -2009,7 +2124,7 @@ public:
       - Lodash chained on (Array): the new flattened array.
 
   +/
-  auto flatMapDeep(T = Any)(auto ref T iteratee = null) {
+  auto ref flatMapDeep(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("flatMapDeep");
     if (iteratee) c.setCallback(iteratee);
@@ -2030,7 +2145,7 @@ public:
       - Lodash chained on (Array): the new flattened array.
 
   +/
-  auto flatMapDepth(T = Any, U = Any)(auto ref T iteratee = null, auto ref U depth = null) {
+  auto ref flatMapDepth(T = Any, U = Any)(auto ref T iteratee = T.init, auto ref U depth = U.init) {
     setupMemory();
     Command c = Command("flatMapDepth");
     if (iteratee) c.setCallback(iteratee);
@@ -2057,7 +2172,7 @@ public:
       - Lodash chained on (*): collection.
 
   +/
-  auto forEach(T = Any)(auto ref T iteratee = null) {
+  auto ref forEach(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("forEach");
     if (iteratee) c.setCallback(iteratee);
@@ -2077,7 +2192,7 @@ public:
       - Lodash chained on (*): collection.
 
   +/
-  auto forEachRight(T = Any)(auto ref T iteratee = null) {
+  auto ref forEachRight(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("forEachRight");
     if (iteratee) c.setCallback(iteratee);
@@ -2100,7 +2215,7 @@ public:
       - Lodash chained on (Object): the composed aggregate object.
 
   +/
-  auto groupBy(T = Any)(auto ref T iteratee = null) {
+  auto ref groupBy(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("groupBy");
     if (iteratee) c.setCallback(iteratee);
@@ -2122,7 +2237,7 @@ public:
       - Lodash chained on (boolean): true if value is found, else false.
 
   +/
-  auto includes(T, U = Any)(auto ref T value, auto ref U fromIndex = null) {
+  auto ref includes(T, U = Any)(auto ref T value, auto ref U fromIndex = U.init) {
     setupMemory();
     Command c = Command("includes");
     c.setAnyValue(value);
@@ -2145,7 +2260,7 @@ public:
       - Lodash chained on (Array): the array of results.
 
   +/
-  auto invokeMap(T, U = Any)(auto ref T path, auto ref U args = null) {
+  auto ref invokeMap(T, U = Any)(auto ref T path, auto ref U args = U.init) {
     setupMemory();
     Command c = Command("invokeMap");
     c.setAnyValue(path);
@@ -2168,7 +2283,7 @@ public:
       - Lodash chained on (Object): the composed aggregate object.
 
   +/
-  auto keyBy(T = Any)(auto ref T iteratee = null) {
+  auto ref keyBy(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("keyBy");
     if (iteratee) c.setCallback(iteratee);
@@ -2197,7 +2312,7 @@ public:
       - Lodash chained on (Object): the composed aggregate object.
 
   +/
-  auto map(T = Any)(auto ref T iteratee = null) {
+  auto ref map(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("map");
     if (iteratee) c.setCallback(iteratee);
@@ -2220,7 +2335,7 @@ public:
       - Lodash chained on (Array): the new sorted array.
 
   +/
-  auto orderBy(T, U)(auto ref T iteratees, auto ref U orders) {
+  auto ref orderBy(T, U)(auto ref T iteratees, auto ref U orders) {
     setupMemory();
     Command c = Command("orderBy");
     c.setCallback(iteratees);
@@ -2242,7 +2357,7 @@ public:
       - Lodash chained on (Object): the array of grouped elements.
 
   +/
-  auto partition(T = Any)(auto ref T iteratee = null) {
+  auto ref partition(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("partition");
     if (iteratee) c.setCallback(iteratee);
@@ -2272,7 +2387,7 @@ public:
       - Lodash chained on (*): the accumulated value.
 
   +/
-  auto reduce(T, U)(auto ref T iteratee, auto ref U accumulator) {
+  auto ref reduce(T, U)(auto ref T iteratee, auto ref U accumulator) {
     setupMemory();
     Command c = Command("reduce");
     c.setCallback(iteratee);
@@ -2292,7 +2407,7 @@ public:
       - Lodash chained on (*): the accumulated value.
 
   +/
-  auto reduceRight(T, U)(auto ref T iteratee, auto ref U accumulator) {
+  auto ref reduceRight(T, U)(auto ref T iteratee, auto ref U accumulator) {
     setupMemory();
     Command c = Command("reduceRight");
     c.setCallback(iteratee);
@@ -2311,7 +2426,7 @@ public:
       - Lodash chained on (Array): the new filtered array.
 
   +/
-  auto reject(T = Any)(auto ref T predicate = null) {
+  auto ref reject(T = Any)(auto ref T predicate = T.init) {
     setupMemory();
     Command c = Command("reject");
     if (predicate) c.setCallback(predicate);
@@ -2327,7 +2442,7 @@ public:
       - Lodash chained on (*): the random element.
 
   +/
-  auto sample()() {
+  auto ref sample()() {
     setupMemory();
     Command c = Command("sample");
     tryPut(c);
@@ -2344,7 +2459,7 @@ public:
       - Lodash chained on (Array): the random elements.
 
   +/
-  auto sampleSize(T = Any)(auto ref T n = null) {
+  auto ref sampleSize(T = Any)(auto ref T n = T.init) {
     setupMemory();
     Command c = Command("sampleSize");
     if (n) c.setNumber(n);
@@ -2360,7 +2475,7 @@ public:
       - Lodash chained on (Array): the new shuffled array.
 
   +/
-  auto shuffle()() {
+  auto ref shuffle()() {
     setupMemory();
     Command c = Command("shuffle");
     tryPut(c);
@@ -2375,7 +2490,7 @@ public:
       - Lodash chained on (number): the collection size.
 
   +/
-  auto size()() {
+  auto ref size()() {
     setupMemory();
     Command c = Command("size");
     tryPut(c);
@@ -2394,7 +2509,7 @@ public:
       - Lodash chained on (Array): the new filtered array.
 
   +/
-  auto some(T = Any)(auto ref T predicate = null) {
+  auto ref some(T = Any)(auto ref T predicate = T.init) {
     setupMemory();
     Command c = Command("some");
     if (predicate) c.setCallback(predicate);
@@ -2416,7 +2531,7 @@ public:
       - Lodash chained on (Array): the new sorted array.
 
   +/
-  auto sortBy(ARGS...)(auto ref ARGS iteratees) {
+  auto ref sortBy(ARGS...)(auto ref ARGS iteratees) {
     setupMemory();
     Command c = Command("sortBy");
     foreach (ref iteratee; iteratees) c.setCallback(iteratee);
@@ -2433,7 +2548,7 @@ public:
       - Lodash chained on (number): the timestamp.
 
   +/
-  auto now()() {
+  auto ref now()() {
     setupMemory();
     Command c = Command("now");
     tryPut(c);
@@ -2448,7 +2563,7 @@ public:
       - Lodash chained on (Array): the cast array.
 
   +/
-  auto castArray()() {
+  auto ref castArray()() {
     setupMemory();
     Command c = Command("castArray");
     tryPut(c);
@@ -2466,7 +2581,7 @@ public:
       - Lodash chained on (*): the cloned value
 
   +/
-  auto clone()() {
+  auto ref clone()() {
     setupMemory();
     Command c = Command("clone");
     tryPut(c);
@@ -2480,7 +2595,7 @@ public:
       - Lodash chained on (*): the deep cloned value.
 
   +/
-  auto cloneDeep()() {
+  auto ref cloneDeep()() {
     setupMemory();
     Command c = Command("cloneDeep");
     tryPut(c);
@@ -2497,7 +2612,7 @@ public:
       - Lodash chained on (*): the deep cloned value.
 
   +/
-  auto cloneDeepWith(T)(auto ref T customizer) {
+  auto ref cloneDeepWith(T)(auto ref T customizer) {
     setupMemory();
     Command c = Command("cloneDeepWith");
     c.setCallback(customizer);
@@ -2518,7 +2633,7 @@ public:
       - Lodash chained on (*): the cloned value.
 
   +/
-  auto cloneWith(T)(auto ref T customizer) {
+  auto ref cloneWith(T)(auto ref T customizer) {
     setupMemory();
     Command c = Command("cloneWith");
     c.setCallback(customizer);
@@ -2539,7 +2654,7 @@ public:
       - Lodash chained on (boolean): true if object conforms, else false.
 
   +/
-  auto conformsTo(T)(auto ref T source) {
+  auto ref conformsTo(T)(auto ref T source) {
     setupMemory();
     Command c = Command("conformsTo");
     c.setHandleOrEval(source);
@@ -2557,7 +2672,7 @@ public:
       - Lodash chained on (boolean): true if the values are equivalent, else false.
 
   +/
-  auto eq(T)(auto ref T other) {
+  auto ref eq(T)(auto ref T other) {
     setupMemory();
     Command c = Command("eq");
     c.setAnyValue(other);
@@ -2575,7 +2690,7 @@ public:
       - Lodash chained on (boolean): true if value is greater than other, else false.
 
   +/
-  auto gt(T)(auto ref T other) {
+  auto ref gt(T)(auto ref T other) {
     setupMemory();
     Command c = Command("gt");
     c.setAnyValue(other);
@@ -2593,7 +2708,7 @@ public:
       - Lodash chained on (boolean): true if value is greater than or equal to other, else false.
 
   +/
-  auto gte(T)(auto ref T other) {
+  auto ref gte(T)(auto ref T other) {
     setupMemory();
     Command c = Command("gte");
     c.setAnyValue(other);
@@ -2609,7 +2724,7 @@ public:
       - Lodash chained on (boolean): true if value is an arguments object, else false.
 
   +/
-  auto isArguments()() {
+  auto ref isArguments()() {
     setupMemory();
     Command c = Command("isArguments");
     tryPut(c);
@@ -2624,7 +2739,7 @@ public:
       - Lodash chained on (boolean): true if value is an array, else false.
 
   +/
-  auto isArray()() {
+  auto ref isArray()() {
     setupMemory();
     Command c = Command("isArray");
     tryPut(c);
@@ -2638,7 +2753,7 @@ public:
       - Lodash chained on (boolean): true if value is an array buffer, else false.
 
   +/
-  auto isArrayBuffer()() {
+  auto ref isArrayBuffer()() {
     setupMemory();
     Command c = Command("isArrayBuffer");
     tryPut(c);
@@ -2654,7 +2769,7 @@ public:
       - Lodash chained on (boolean): true if value is array-like, else false.
 
   +/
-  auto isArrayLike()() {
+  auto ref isArrayLike()() {
     setupMemory();
     Command c = Command("isArrayLike");
     tryPut(c);
@@ -2668,7 +2783,7 @@ public:
       - Lodash chained on (boolean): true if value is an array-like object, else false.
 
   +/
-  auto isArrayLikeObject()() {
+  auto ref isArrayLikeObject()() {
     setupMemory();
     Command c = Command("isArrayLikeObject");
     tryPut(c);
@@ -2682,7 +2797,7 @@ public:
       - Lodash chained on (boolean): true if value is a boolean, else false.
 
   +/
-  auto isBoolean()() {
+  auto ref isBoolean()() {
     setupMemory();
     Command c = Command("isBoolean");
     tryPut(c);
@@ -2696,7 +2811,7 @@ public:
       - Lodash chained on (boolean): true if value is a buffer, else false.
 
   +/
-  auto isBuffer()() {
+  auto ref isBuffer()() {
     setupMemory();
     Command c = Command("isBuffer");
     tryPut(c);
@@ -2710,7 +2825,7 @@ public:
       - Lodash chained on (boolean): true if value is a date object, else false.
 
   +/
-  auto isDate()() {
+  auto ref isDate()() {
     setupMemory();
     Command c = Command("isDate");
     tryPut(c);
@@ -2725,7 +2840,7 @@ public:
       - Lodash chained on (boolean): true if value is a DOM element, else false.
 
   +/
-  auto isElement()() {
+  auto ref isElement()() {
     setupMemory();
     Command c = Command("isElement");
     tryPut(c);
@@ -2744,7 +2859,7 @@ public:
       - Lodash chained on (boolean): true if value is empty, else false.
 
   +/
-  auto isEmpty()() {
+  auto ref isEmpty()() {
     setupMemory();
     Command c = Command("isEmpty");
     tryPut(c);
@@ -2766,7 +2881,7 @@ public:
       - Lodash chained on (boolean): true if the values are equivalent, else false.
 
   +/
-  auto isEqual(T)(auto ref T other) {
+  auto ref isEqual(T)(auto ref T other) {
     setupMemory();
     Command c = Command("isEqual");
     c.setAnyValue(other);
@@ -2788,7 +2903,7 @@ public:
       - Lodash chained on (boolean): true if the values are equivalent, else false.
 
   +/
-  auto isEqualWith(T, U)(auto ref T other, auto ref U customizer) {
+  auto ref isEqualWith(T, U)(auto ref T other, auto ref U customizer) {
     setupMemory();
     Command c = Command("isEqual");
     c.setAnyValue(other);
@@ -2806,7 +2921,7 @@ public:
       - Lodash chained on (boolean): true if value is an error object, else false.
 
   +/
-  auto isError()() {
+  auto ref isError()() {
     setupMemory();
     Command c = Command("isError");
     tryPut(c);
@@ -2821,7 +2936,7 @@ public:
       - Lodash chained on (boolean): true if value is a finite number, else false.
 
   +/
-  auto isFinite()() {
+  auto ref isFinite()() {
     setupMemory();
     Command c = Command("isFinite");
     tryPut(c);
@@ -2835,7 +2950,7 @@ public:
       - Lodash chained on (boolean): true if value is a function, else false.
 
   +/
-  auto isFunction()() {
+  auto ref isFunction()() {
     setupMemory();
     Command c = Command("isFunction");
     tryPut(c);
@@ -2848,7 +2963,7 @@ public:
       - Lodash chained on (boolean): true if value is an integer, else false.
 
   +/
-  auto isInteger()() {
+  auto ref isInteger()() {
     setupMemory();
     Command c = Command("isInteger");
     tryPut(c);
@@ -2863,7 +2978,7 @@ public:
       - Lodash chained on (boolean): true if value is a valid length, else false.
 
   +/
-  auto isLength()() {
+  auto ref isLength()() {
     setupMemory();
     Command c = Command("isLength");
     tryPut(c);
@@ -2878,7 +2993,7 @@ public:
       - Lodash chained on (boolean): true if value is a map, else false.
 
   +/
-  auto isMap()() {
+  auto ref isMap()() {
     setupMemory();
     Command c = Command("isMap");
     tryPut(c);
@@ -2904,7 +3019,7 @@ public:
       - Lodash chained on (boolean): true if object is a match, else false.
 
   +/
-  auto isMatch(T)(auto ref T other) {
+  auto ref isMatch(T)(auto ref T other) {
     setupMemory();
     Command c = Command("isMatch");
     c.setHandleOrEval(other);
@@ -2925,7 +3040,7 @@ public:
       - Lodash chained on (boolean): true if object is a match, else false.
 
   +/
-  auto isMatchWith(T, U)(auto ref T other, auto ref U customizer) {
+  auto ref isMatchWith(T, U)(auto ref T other, auto ref U customizer) {
     setupMemory();
     Command c = Command("isMatchWith");
     c.setHandleOrEval(other);
@@ -2945,7 +3060,7 @@ public:
       - Lodash chained on (boolean): true if value is NaN, else false.
 
   +/
-  auto isNaN()() {
+  auto ref isNaN()() {
     setupMemory();
     Command c = Command("isNaN");
     tryPut(c);
@@ -2966,7 +3081,7 @@ public:
       - Lodash chained on (boolean): true if value is a native function, else false.
 
   +/
-  auto isNative()() {
+  auto ref isNative()() {
     setupMemory();
     Command c = Command("isNative");
     tryPut(c);
@@ -2980,7 +3095,7 @@ public:
       - Lodash chained on (boolean): true if value is nullish, else false.
 
   +/
-  auto isNil()() {
+  auto ref isNil()() {
     setupMemory();
     Command c = Command("isNil");
     tryPut(c);
@@ -2993,7 +3108,7 @@ public:
       - Lodash chained on (boolean): true if value is null, else false.
 
   +/
-  auto isNull()() {
+  auto ref isNull()() {
     setupMemory();
     Command c = Command("isNull");
     tryPut(c);
@@ -3009,7 +3124,7 @@ public:
       - Lodash chained on (boolean): true if value is a number, else false.
 
   +/
-  auto isNumber()() {
+  auto ref isNumber()() {
     setupMemory();
     Command c = Command("isNumber");
     tryPut(c);
@@ -3023,7 +3138,7 @@ public:
       - Lodash chained on (boolean): true if value is an object, else false.
 
   +/
-  auto isObject()() {
+  auto ref isObject()() {
     setupMemory();
     Command c = Command("isObject");
     tryPut(c);
@@ -3037,7 +3152,7 @@ public:
       - Lodash chained on (boolean): true if value is object-like, else false.
 
   +/
-  auto isObjectLike()() {
+  auto ref isObjectLike()() {
     setupMemory();
     Command c = Command("isObjectLike");
     tryPut(c);
@@ -3051,7 +3166,7 @@ public:
       - Lodash chained on (boolean): true if value is a plain object, else false.
 
   +/
-  auto isPlainObject()() {
+  auto ref isPlainObject()() {
     setupMemory();
     Command c = Command("isPlainObject");
     tryPut(c);
@@ -3064,7 +3179,7 @@ public:
       - Lodash chained on (boolean): true if value is a regexp, else false.
 
   +/
-  auto isRegExp()() {
+  auto ref isRegExp()() {
     setupMemory();
     Command c = Command("isRegExp");
     tryPut(c);
@@ -3080,7 +3195,7 @@ public:
       - Lodash chained on (boolean): true if value is a safe integer, else false.
 
   +/
-  auto isSafeInteger()() {
+  auto ref isSafeInteger()() {
     setupMemory();
     Command c = Command("isSafeInteger");
     tryPut(c);
@@ -3093,7 +3208,7 @@ public:
       - Lodash chained on (boolean): true if value is a set, else false.
 
   +/
-  auto isSet()() {
+  auto ref isSet()() {
     setupMemory();
     Command c = Command("isSet");
     tryPut(c);
@@ -3107,7 +3222,7 @@ public:
       - Lodash chained on (boolean): true if value is a string, else false.
 
   +/
-  auto isString()() {
+  auto ref isString()() {
     setupMemory();
     Command c = Command("isString");
     tryPut(c);
@@ -3120,7 +3235,7 @@ public:
       - Lodash chained on (boolean): true if value is a symbol, else false.
 
   +/
-  auto isSymbol()() {
+  auto ref isSymbol()() {
     setupMemory();
     Command c = Command("isSymbol");
     tryPut(c);
@@ -3133,7 +3248,7 @@ public:
       - Lodash chained on (boolean): true if value is a typed array, else false.
 
   +/
-  auto isTypedArray()() {
+  auto ref isTypedArray()() {
     setupMemory();
     Command c = Command("isTypedArray");
     tryPut(c);
@@ -3146,7 +3261,7 @@ public:
       - Lodash chained on (boolean): true if value is undefined, else false.
 
   +/
-  auto isUndefined()() {
+  auto ref isUndefined()() {
     setupMemory();
     Command c = Command("isUndefined");
     tryPut(c);
@@ -3159,7 +3274,7 @@ public:
       - Lodash chained on (boolean): true if value is a weak map, else false.
 
   +/
-  auto isWeakMap()() {
+  auto ref isWeakMap()() {
     setupMemory();
     Command c = Command("isWeakMap");
     tryPut(c);
@@ -3173,7 +3288,7 @@ public:
       - Lodash chained on (boolean): true if value is a weak set, else false.
 
   +/
-  auto isWeakSet()() {
+  auto ref isWeakSet()() {
     setupMemory();
     Command c = Command("isWeakSet");
     tryPut(c);
@@ -3191,7 +3306,7 @@ public:
       - Lodash chained on (boolean): true if value is less than other, else false.
 
   +/
-  auto lt(T)(auto ref T other) {
+  auto ref lt(T)(auto ref T other) {
     setupMemory();
     Command c = Command("lt");
     c.setAnyValue(other);
@@ -3208,7 +3323,7 @@ public:
       - Lodash chained on (boolean): true if value is less than or equal to other, else false.
 
   +/
-  auto lte(T)(auto ref T other) {
+  auto ref lte(T)(auto ref T other) {
     setupMemory();
     Command c = Command("lte");
     c.setAnyValue(other);
@@ -3231,7 +3346,7 @@ public:
       - Lodash chained on (Array): the converted array.
 
   +/
-  auto toArray()() {
+  auto ref toArray()() {
     setupMemory();
     Command c = Command("toArray");
     tryPut(c);
@@ -3250,7 +3365,7 @@ public:
       - Lodash chained on (number): the converted number.
 
   +/
-  auto toFinite()() {
+  auto ref toFinite()() {
     setupMemory();
     Command c = Command("toFinite");
     tryPut(c);
@@ -3268,7 +3383,7 @@ public:
       - Lodash chained on (number):  the converted integer.
 
   +/
-  auto toInteger()() {
+  auto ref toInteger()() {
     setupMemory();
     Command c = Command("toInteger");
     tryPut(c);
@@ -3289,7 +3404,7 @@ public:
       - Lodash chained on (number):  the converted integer.
 
   +/
-  auto toLength()() {
+  auto ref toLength()() {
     setupMemory();
     Command c = Command("toLength");
     tryPut(c);
@@ -3311,7 +3426,7 @@ public:
       - Lodash chained on (number): the number.
 
   +/
-  auto toNumber()() {
+  auto ref toNumber()() {
     setupMemory();
     Command c = Command("toNumber");
     tryPut(c);
@@ -3337,7 +3452,7 @@ public:
       - Lodash chained on (Object): the converted plain object.
 
   +/
-  auto toPlainObject()() {
+  auto ref toPlainObject()() {
     setupMemory();
     Command c = Command("toPlainObject");
     tryPut(c);
@@ -3357,7 +3472,7 @@ public:
       - Lodash chained on (number): the converted integer.
 
   +/
-  auto toSafeInteger()() {
+  auto ref toSafeInteger()() {
     setupMemory();
     Command c = Command("toSafeInteger");
     tryPut(c);
@@ -3373,7 +3488,7 @@ public:
       - Lodash chained on (string): the converted string.
 
   +/
-  auto toString()() {
+  auto ref toString()() {
     setupMemory();
     Command c = Command("toString");
     tryPut(c);
@@ -3391,7 +3506,7 @@ public:
       - Lodash chained on (number): the total.
 
   +/
-  auto add(T)(auto ref T other) {
+  auto ref add(T)(auto ref T other) {
     setupMemory();
     Command c = Command("number");
     c.setNumber(other);
@@ -3410,7 +3525,7 @@ public:
       - Lodash chained on (number): the rounded up number.
 
   +/
-  auto ceil(T = Any)(auto ref T precision = null) {
+  auto ref ceil(T = Any)(auto ref T precision = T.init) {
     setupMemory();
     Command c = Command("ceil");
     if (precision) c.setNumber(precision);
@@ -3429,7 +3544,7 @@ public:
       - Lodash chained on (number): the quotient.
 
   +/
-  auto divide(T)(auto ref T other) {
+  auto ref divide(T)(auto ref T other) {
     setupMemory();
     Command c = Command("divide");
     c.setNumber(other);
@@ -3448,7 +3563,7 @@ public:
       - Lodash chained on (number): the rounded down number.
 
   +/
-  auto floor(T = Any)(auto ref T precision = null) {
+  auto ref floor(T = Any)(auto ref T precision = T.init) {
     setupMemory();
     Command c = Command("floor");
     if (precision) c.setNumber(precision);
@@ -3464,7 +3579,7 @@ public:
       - Lodash chained on (*): the maximum value.
 
   +/
-  auto max()() {
+  auto ref max()() {
     setupMemory();
     Command c = Command("max");
     tryPut(c);
@@ -3484,7 +3599,7 @@ public:
       - Lodash chained on (*): the maximum value.
 
   +/
-  auto maxBy(T = Any)(auto ref T iteratee = null) {
+  auto ref maxBy(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("maxBy");
     if (iteratee) c.setCallback(iteratee);
@@ -3500,7 +3615,7 @@ public:
       - Lodash chained on (number): the mean.
 
   +/
-  auto mean()() {
+  auto ref mean()() {
     setupMemory();
     Command c = Command("mean");
     tryPut(c);
@@ -3520,7 +3635,7 @@ public:
       - Lodash chained on (number): the mean.
 
   +/
-  auto meanBy(T = Any)(auto ref T iteratee = null) {
+  auto ref meanBy(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("meanBy");
     if (iteratee) c.setCallback(iteratee);
@@ -3537,7 +3652,7 @@ public:
       - Lodash chained on (*): the minimum value.
 
   +/
-  auto min()() {
+  auto ref min()() {
     setupMemory();
     Command c = Command("min");
     tryPut(c);
@@ -3558,7 +3673,7 @@ public:
       - Lodash chained on (*): the minimum value.
 
   +/
-  auto minBy(T = Any)(auto ref T iteratee = null) {
+  auto ref minBy(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("minBy");
     if (iteratee) c.setCallback(iteratee);
@@ -3577,7 +3692,7 @@ public:
       - Lodash chained on (number): the product.
 
   +/
-  auto multiply(T)(auto ref T other) {
+  auto ref multiply(T)(auto ref T other) {
     setupMemory();
     Command c = Command("multiply");
     c.setNumber(other);
@@ -3596,7 +3711,7 @@ public:
       - Lodash chained on (number): the rounded number.
 
   +/
-  auto round(T = Any)(auto ref T precision = null) {
+  auto ref round(T = Any)(auto ref T precision = T.init) {
     setupMemory();
     Command c = Command("round");
     if (precision) c.setNumber(precision);
@@ -3616,7 +3731,7 @@ public:
       - Lodash chained on (number): the difference.
 
   +/
-  auto subtract(T)(auto ref T other) {
+  auto ref subtract(T)(auto ref T other) {
     setupMemory();
     Command c = Command("subtract");
     c.setNumber(other);
@@ -3632,7 +3747,7 @@ public:
       - Lodash chained on (number): the sum.
 
   +/
-  auto sum()() {
+  auto ref sum()() {
     setupMemory();
     Command c = Command("sum");
     tryPut(c);
@@ -3652,7 +3767,7 @@ public:
       - Lodash chained on (number): the sum.
 
   +/
-  auto sumBy(T = Any)(auto ref T iteratee = null) {
+  auto ref sumBy(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("sumBy");
     if (iteratee) c.setCallback(iteratee);
@@ -3672,7 +3787,7 @@ public:
       - Lodash chained on (number): the clamped number.
 
   +/
-  auto clamp(T, U)(auto ref T lower, auto ref U upper) {
+  auto ref clamp(T, U)(auto ref T lower, auto ref U upper) {
     setupMemory();
     Command c = Command("clamp");
     c.setNumber(lower);
@@ -3696,7 +3811,7 @@ public:
       - Lodash chained on (boolean): true if number is in the range, else false
 
   +/
-  auto inRange(T, U)(auto ref T start, auto ref U end) {
+  auto ref inRange(T, U)(auto ref T start, auto ref U end) {
     setupMemory();
     Command c = Command("inRange");
     c.setNumber(start);
@@ -3705,7 +3820,7 @@ public:
     return this;
   }
 
-  auto inRange(T)(auto ref T end) {
+  auto ref inRange(T)(auto ref T end) {
     setupMemory();
     Command c = Command("inRange");
     c.setNumber(end);
@@ -3732,7 +3847,7 @@ public:
       - Lodash chained on (number): the random number.
 
   +/
-  auto random(T)(auto ref T upper, auto ref U floating) {
+  auto ref random(T)(auto ref T upper, auto ref U floating) {
     setupMemory();
     Command c = Command("random");
     c.setNumber(upper);
@@ -3754,7 +3869,7 @@ public:
       - Lodash chained on (Object): object.
 
   +/
-  auto assign(ARGS...)(auto ref ARGS sources) {
+  auto ref assign(ARGS...)(auto ref ARGS sources) {
     setupMemory();
     Command c = Command("assign");
     foreach(ref obj; sources) { c.setHandleOrEval(obj); }
@@ -3775,7 +3890,7 @@ public:
       - Lodash chained on (Object): object.
 
   +/
-  auto assignIn(ARGS...)(auto ref ARGS sources) {
+  auto ref assignIn(ARGS...)(auto ref ARGS sources) {
     setupMemory();
     Command c = Command("assignIn");
     foreach(ref obj; sources) { c.setHandleOrEval(obj); }
@@ -3799,7 +3914,7 @@ public:
       - Lodash chained on (Object): object.
 
   +/
-  auto assignInWith(T, U)(auto ref T sources, auto ref U customizer) {
+  auto ref assignInWith(T, U)(auto ref T sources, auto ref U customizer) {
     setupMemory();
     Command c = Command("assignInWith");
     c.setHandleOrEval(sources);
@@ -3824,7 +3939,7 @@ public:
       - Lodash chained on (Object): object.
 
   +/
-  auto assignWith(T, U)(auto ref T sources, auto ref U customizer) {
+  auto ref assignWith(T, U)(auto ref T sources, auto ref U customizer) {
     setupMemory();
     Command c = Command("assignWith");
     c.setHandleOrEval(sources);
@@ -3847,7 +3962,7 @@ public:
       - Lodash chained on (Array): the picked values.
 
   +/
-  auto at(ARGS...)(auto ref ARGS paths) {
+  auto ref at(ARGS...)(auto ref ARGS paths) {
     setupMemory();
     Command c = Command("at");
     foreach(ref path; paths) { c.setString(path); }
@@ -3868,7 +3983,7 @@ public:
       - Lodash chained on (Object): new object.
 
   +/
-  auto create(T)(auto ref T properties) {
+  auto ref create(T)(auto ref T properties) {
     setupMemory();
     Command c = Command("create");
     c.setHandleOrEval(properties);
@@ -3892,7 +4007,7 @@ public:
       - Lodash chained on (Object): object.
 
   +/
-  auto defaults(ARGS...)(auto ref ARGS sources) {
+  auto ref defaults(ARGS...)(auto ref ARGS sources) {
     setupMemory();
     Command c = Command("defaults");
     foreach(ref source; sources) c.setHandleOrEval(source);
@@ -3914,7 +4029,7 @@ public:
       - Lodash chained on (Object): object.
 
   +/
-  auto defaultsDeep(ARGS...)(auto ref ARGS sources) {
+  auto ref defaultsDeep(ARGS...)(auto ref ARGS sources) {
     setupMemory();
     Command c = Command("defaultsDeep");
     foreach(ref source; sources) c.setHandleOrEval(source);
@@ -3934,7 +4049,7 @@ public:
       - Lodash chained on (*): the key of the matched element, else undefined.
 
   +/
-  auto findKey(T = Any)(auto ref T predicate = null) {
+  auto ref findKey(T = Any)(auto ref T predicate = T.init) {
     setupMemory();
     Command c = Command("findKey");
     if (predicate) c.setCallback(predicate);
@@ -3955,7 +4070,7 @@ public:
       - Lodash chained on (*): the key of the matched element, else undefined.
 
   +/
-  auto findLastKey(T = Any)(auto ref T predicate = null) {
+  auto ref findLastKey(T = Any)(auto ref T predicate = T.init) {
     setupMemory();
     Command c = Command("findLastKey");
     if (predicate) c.setCallback(predicate);
@@ -3975,7 +4090,7 @@ public:
       - Lodash chained on (Object): object.
 
   +/
-  auto forIn(T = Any)(auto ref T iteratee = null) {
+  auto ref forIn(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("forIn");
     if (iteratee) c.setCallback(iteratee);
@@ -3995,7 +4110,7 @@ public:
       - Lodash chained on (Object): object.
 
   +/
-  auto forInRight(T = Any)(auto ref T iteratee = null) {
+  auto ref forInRight(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("forInRight");
     if (iteratee) c.setCallback(iteratee);
@@ -4016,7 +4131,7 @@ public:
       - Lodash chained on (Object): object.
 
   +/
-  auto forOwn(T = Any)(auto ref T iteratee = null) {
+  auto ref forOwn(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("forOwn");
     if (iteratee) c.setCallback(iteratee);
@@ -4036,7 +4151,7 @@ public:
       - Lodash chained on (Object): object.
 
   +/
-  auto forOwnRight(T = Any)(auto ref T iteratee = null) {
+  auto ref forOwnRight(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("forOwnRight");
     if (iteratee) c.setCallback(iteratee);
@@ -4053,7 +4168,7 @@ public:
       - Lodash chained on (Array): the function names.
 
   +/
-  auto functions()() {
+  auto ref functions()() {
     setupMemory();
     Command c = Command("functions");
     tryPut(c);
@@ -4069,7 +4184,7 @@ public:
       - Lodash chained on (Array): the function names.
 
   +/
-  auto functionsIn()() {
+  auto ref functionsIn()() {
     setupMemory();
     Command c = Command("functionsIn");
     tryPut(c);
@@ -4089,7 +4204,7 @@ public:
       - Lodash chained on (*):  the resolved value.
 
   +/
-  auto get(T, U = Any)(auto ref T path, auto ref U defaultValue = null) {
+  auto ref get(T, U = Any)(auto ref T path, auto ref U defaultValue = U.init) {
     setupMemory();
     Command c = Command("get");
     c.setString(path);
@@ -4109,7 +4224,7 @@ public:
       - Lodash chained on (boolean): true if path exists, else false.
 
   +/
-  auto has(T)(auto ref T path) {
+  auto ref has(T)(auto ref T path) {
     setupMemory();
     Command c = Command("has");
     c.setString(path);
@@ -4127,7 +4242,7 @@ public:
       - Lodash chained on (boolean): true if path exists, else false.
 
   +/
-  auto hasIn(T)(auto ref T path) {
+  auto ref hasIn(T)(auto ref T path) {
     setupMemory();
     Command c = Command("hasIn");
     c.setString(path);
@@ -4148,7 +4263,7 @@ public:
       - Lodash chained on (Object): the new inverted object.
 
   +/
-  auto invert()() {
+  auto ref invert()() {
     setupMemory();
     Command c = Command("invert");
     tryPut(c);
@@ -4170,7 +4285,7 @@ public:
       - Lodash chained on (Object): the new inverted object.
 
   +/
-  auto invertBy(T = Any)(auto ref T iteratee = null) {
+  auto ref invertBy(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("invertBy");
     if (iteratee) c.setCallback(iteratee);
@@ -4190,7 +4305,7 @@ public:
       - Lodash chained on (*): the result of the invoked method.
 
   +/
-  auto invoke(T, ARGS...)(auto ref T path, auto ref ARGS args) {
+  auto ref invoke(T, ARGS...)(auto ref T path, auto ref ARGS args) {
     setupMemory();
     Command c = Command("invoke");
     c.setString(path);
@@ -4212,7 +4327,7 @@ public:
       - Lodash chained on (Array): the array of property names.
 
   +/
-  auto keys()() {
+  auto ref keys()() {
     setupMemory();
     Command c = Command("keys");
     tryPut(c);
@@ -4233,7 +4348,7 @@ public:
       - Lodash chained on (Array): the array of property names.
 
   +/
-  auto keysIn()() {
+  auto ref keysIn()() {
     setupMemory();
     Command c = Command("keysIn");
     tryPut(c);
@@ -4254,7 +4369,7 @@ public:
       - Lodash chained on (Object): the new mapped object.
 
   +/
-  auto mapKeys(T = Any)(auto ref T iteratee = null) {
+  auto ref mapKeys(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("mapKeys");
     if (iteratee) c.setCallback(iteratee);
@@ -4273,7 +4388,7 @@ public:
       - Lodash chained on (Object): the new mapped object.
 
   +/
-  auto mapValues(T = Any)(auto ref T iteratee = null) {
+  auto ref mapValues(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("mapValues");
     if (iteratee) c.setCallback(iteratee);
@@ -4298,7 +4413,7 @@ public:
       - Lodash chained on (Object): object.
 
   +/
-  auto merge(ARGS...)(auto ref ARGS args) {
+  auto ref merge(ARGS...)(auto ref ARGS args) {
     setupMemory();
     Command c = Command("merge");
     foreach (ref arg; args) c.setHandleOrEval(arg);
@@ -4323,7 +4438,7 @@ public:
       - Lodash chained on (Object): object.
 
   +/
-  auto mergeWith(T, U)(auto ref T source, auto ref T customizer) {
+  auto ref mergeWith(T, U)(auto ref T source, auto ref T customizer) {
     setupMemory();
     Command c = Command("mergeWith");
     c.setHandleOrEval(source);
@@ -4345,7 +4460,7 @@ public:
       - Lodash chained on (Object): the new object.
 
   +/
-  auto omit(ARGS...)(auto ref ARGS paths) {
+  auto ref omit(ARGS...)(auto ref ARGS paths) {
     setupMemory();
     Command c = Command("omit");
     foreach (ref path; paths) c.setString(path);
@@ -4365,7 +4480,7 @@ public:
       - Lodash chained on (Object): the new object.
 
   +/
-  auto omitBy(T = Any)(auto ref T iteratee = null) {
+  auto ref omitBy(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("omitBy");
     if (iteratee) c.setCallback(iteratee);
@@ -4387,7 +4502,7 @@ public:
       - Lodash chained on (Object): the new object.
 
   +/
-  auto pick(ARGS...)(auto ref ARGS paths) {
+  auto ref pick(ARGS...)(auto ref ARGS paths) {
     setupMemory();
     Command c = Command("pick");
     foreach(ref path; paths) { c.setString(path); }
@@ -4407,7 +4522,7 @@ public:
       - Lodash chained on (Object): the new object.
 
   +/
-  auto pickBy(T = Any)(auto ref T iteratee = null) {
+  auto ref pickBy(T = Any)(auto ref T iteratee = T.init) {
     setupMemory();
     Command c = Command("pickBy");
     if (iteratee) c.setCallback(iteratee);
@@ -4430,7 +4545,7 @@ public:
       - Lodash chained on (*): the resolved value.
 
   +/
-  auto result(T, U)(auto ref T path, auto ref U defaultValue) {
+  auto ref result(T, U)(auto ref T path, auto ref U defaultValue) {
     setupMemory();
     Command c = Command("result");
     c.setString(path);
@@ -4455,7 +4570,7 @@ public:
       - Lodash chained on (Object): object.
 
   +/
-  auto set(T, U)(auto ref T path, auto ref U value) {
+  auto ref set(T, U)(auto ref T path, auto ref U value) {
     setupMemory();
     Command c = Command("set");
     c.setString(path);
@@ -4482,7 +4597,7 @@ public:
       - Lodash chained on (Object): object.
 
   +/
-  auto set(T, U, V)(auto ref T path, auto ref U value, auto ref V customizer) {
+  auto ref set(T, U, V)(auto ref T path, auto ref U value, auto ref V customizer) {
     setupMemory();
     Command c = Command("set");
     c.setString(path);
@@ -4504,7 +4619,7 @@ public:
       - Lodash chained on (Array): the key-value pairs.
 
   +/
-  auto toPairs()() {
+  auto ref toPairs()() {
     setupMemory();
     Command c = Command("toPairs");
     tryPut(c);
@@ -4521,7 +4636,7 @@ public:
       - Lodash chained on (Array): the key-value pairs.
 
   +/
-  auto toPairsIn()() {
+  auto ref toPairsIn()() {
     setupMemory();
     Command c = Command("toPairsIn");
     tryPut(c);
@@ -4545,7 +4660,7 @@ public:
       - Lodash chained on (*): the accumulated value.
 
   +/
-  auto transform(T, U)(auto ref T iteratee, auto ref U accumulator) {
+  auto ref transform(T, U)(auto ref T iteratee, auto ref U accumulator) {
     setupMemory();
     Command c = Command("transform");
     c.setCallback(iteratee);
@@ -4565,7 +4680,7 @@ public:
       - Lodash chained on (boolean): true if the property is deleted, else false.
 
   +/
-  auto unset(T)(auto ref T path) {
+  auto ref unset(T)(auto ref T path) {
     setupMemory();
     Command c = Command("unset");
     c.setString(path);
@@ -4589,7 +4704,7 @@ public:
       - Lodash chained on (Object): object.
 
   +/
-  auto update(T, U)(auto ref T path, auto ref U updater) {
+  auto ref update(T, U)(auto ref T path, auto ref U updater) {
     setupMemory();
     Command c = Command("update");
     c.setString(path);
@@ -4617,7 +4732,7 @@ public:
       - Lodash chained on (Object): object.
 
   +/
-  auto updateWith(T, U)(auto ref T path, auto ref U updater) {
+  auto ref updateWith(T, U)(auto ref T path, auto ref U updater) {
     setupMemory();
     Command c = Command("updateWith");
     c.setString(path);
@@ -4636,7 +4751,7 @@ public:
       - Lodash chained on (Array): the array of property values.
 
   +/
-  auto values()() {
+  auto ref values()() {
     setupMemory();
     Command c = Command("values");
     tryPut(c);
@@ -4655,7 +4770,7 @@ public:
       - Lodash chained on (Array): the array of property values.
 
   +/
-  auto valuesIn()() {
+  auto ref valuesIn()() {
     setupMemory();
     Command c = Command("valuesIn");
     tryPut(c);
@@ -4670,7 +4785,7 @@ public:
       - Lodash chained on (string): the camel cased string.
 
   +/
-  auto camelCase()() {
+  auto ref camelCase()() {
     setupMemory();
     Command c = Command("camelCase");
     tryPut(c);
@@ -4686,7 +4801,7 @@ public:
       - Lodash chained on (string): the capitalized string.
 
   +/
-  auto capitalize()() {
+  auto ref capitalize()() {
     setupMemory();
     Command c = Command("capitalize");
     tryPut(c);
@@ -4702,7 +4817,7 @@ public:
       - Lodash chained on (string): the deburred string.
 
   +/
-  auto deburr()() {
+  auto ref deburr()() {
     setupMemory();
     Command c = Command("deburr");
     tryPut(c);
@@ -4721,7 +4836,7 @@ public:
       - Lodash chained on (boolean): true if string ends with target, else false.
 
   +/
-  auto endsWith(T, U = Any)(auto ref T target, auto ref U position = null) {
+  auto ref endsWith(T, U = Any)(auto ref T target, auto ref U position = U.init) {
     setupMemory();
     Command c = Command("endsWith");
     c.setString(target);
@@ -4751,7 +4866,7 @@ public:
       - Lodash chained on (string): the escaped string.
 
   +/
-  auto escape()() {
+  auto ref escape()() {
     setupMemory();
     Command c = Command("escape");
     tryPut(c);
@@ -4768,7 +4883,7 @@ public:
       - Lodash chained on (string): the escaped string.
 
   +/
-  auto escapeRegExp()() {
+  auto ref escapeRegExp()() {
     setupMemory();
     Command c = Command("escapeRegExp");
     tryPut(c);
@@ -4783,7 +4898,7 @@ public:
       - Lodash chained on (string): the kebab cased string.
 
   +/
-  auto kebabCase()() {
+  auto ref kebabCase()() {
     setupMemory();
     Command c = Command("kebabCase");
     tryPut(c);
@@ -4798,7 +4913,7 @@ public:
       - Lodash chained on (string): the lower cased string.
 
   +/
-  auto lowerCase()() {
+  auto ref lowerCase()() {
     setupMemory();
     Command c = Command("lowerCase");
     tryPut(c);
@@ -4813,7 +4928,7 @@ public:
       - Lodash chained on (string): the converted string.
 
   +/
-  auto lowerFirst()() {
+  auto ref lowerFirst()() {
     setupMemory();
     Command c = Command("lowerFirst");
     tryPut(c);
@@ -4833,7 +4948,7 @@ public:
       - Lodash chained on (string): the padded string.
 
   +/
-  auto pad(T = Any, U = Any)(auto ref T length = null, auto ref U chars = null) {
+  auto ref pad(T = Any, U = Any)(auto ref T length = T.init, auto ref U chars = U.init) {
     setupMemory();
     Command c = Command("pad");
     if (length) c.setNumber(length);
@@ -4856,7 +4971,7 @@ public:
       - Lodash chained on (string): the padded string.
 
   +/
-  auto padEnd(T = Any, U = Any)(auto ref T length = null, auto ref U chars = null) {
+  auto ref padEnd(T = Any, U = Any)(auto ref T length = T.init, auto ref U chars = U.init) {
     setupMemory();
     Command c = Command("padEnd");
     if (length) c.setNumber(length);
@@ -4878,7 +4993,7 @@ public:
       - Lodash chained on (string): the padded string.
 
   +/
-  auto padStart(T = Any, U = Any)(auto ref T length = null, auto ref U chars = null) {
+  auto ref padStart(T = Any, U = Any)(auto ref T length = T.init, auto ref U chars = U.init) {
     setupMemory();
     Command c = Command("padStart");
     if (length) c.setNumber(length);
@@ -4902,7 +5017,7 @@ public:
       - Lodash chained on (number): the converted integer.
 
   +/
-  auto parseInt(T = Any)(auto ref T radix = null) {
+  auto ref parseInt(T = Any)(auto ref T radix = T.init) {
     setupMemory();
     Command c = Command("parseInt");
     if (radix) c.setNumber(radix);
@@ -4921,7 +5036,7 @@ public:
       - Lodash chained on (string): the repeated string.
 
   +/
-  auto repeat(T = Any)(auto ref T radix = null) {
+  auto ref repeat(T = Any)(auto ref T radix = T.init) {
     setupMemory();
     Command c = Command("repeat");
     if (n) c.setNumber(n);
@@ -4942,7 +5057,7 @@ public:
       - Lodash chained on (string): the modified string.
 
   +/
-  auto replace(T, U)(auto ref T pattern, auto ref U replacement) {
+  auto ref replace(T, U)(auto ref T pattern, auto ref U replacement) {
     setupMemory();
     Command c = Command("replace");
     if (pattern) c.setNumber(pattern);
@@ -4960,7 +5075,7 @@ public:
       - Lodash chained on (string): the snake cased string.
 
   +/
-  auto snakeCase()() {
+  auto ref snakeCase()() {
     setupMemory();
     Command c = Command("snakeCase");
     tryPut(c);
@@ -4979,7 +5094,7 @@ public:
       - Lodash chained on (Array): the string segments.
 
   +/
-  auto split(T, U)(auto ref T separator, auto ref U limit) {
+  auto ref split(T, U)(auto ref T separator, auto ref U limit) {
     setupMemory();
     Command c = Command("split");
     if (separator) c.setString(separator);
@@ -4997,7 +5112,7 @@ public:
       - Lodash chained on (string): the start cased string.
 
   +/
-  auto startCase()() {
+  auto ref startCase()() {
     setupMemory();
     Command c = Command("startCase");
     tryPut(c);
@@ -5017,7 +5132,7 @@ public:
       - Lodash chained on (boolean): true if string starts with target, else false.
 
   +/
-  auto startsWith(T, U = Any)(auto ref T target, auto ref U position = null) {
+  auto ref startsWith(T, U = Any)(auto ref T target, auto ref U position = U.init) {
     setupMemory();
     Command c = Command("startsWith");
     c.setString(target);
@@ -5056,7 +5171,7 @@ public:
       - Lodash chained on (Function): the compiled template function.
 
   +/
-  auto template_(T = Any)(auto ref T options = null) {
+  auto ref template_(T = Any)(auto ref T options = T.init) {
     setupMemory();
     Command c = Command("template");
     if (options) c.setHandleOrEval(options);
@@ -5073,7 +5188,7 @@ public:
       - Lodash chained on (*): the func result or error object.
 
   +/
-  auto attempt(ARGS...)(auto ref ARGS args) {
+  auto ref attempt(ARGS...)(auto ref ARGS args) {
     setupMemory();
     Command c = Command("attempt");
     foreach(ref arg; args) c.setAnyValue(arg);
@@ -5089,7 +5204,7 @@ public:
       - Lodash chained on (string): the lower cased string.
 
   +/
-  auto toLower()() {
+  auto ref toLower()() {
     setupMemory();
     Command c = Command("toLower");
     tryPut(c);
@@ -5105,7 +5220,7 @@ public:
       - Lodash chained on (string): the upper cased string.
 
   +/
-  auto toUpper()() {
+  auto ref toUpper()() {
     setupMemory();
     Command c = Command("toUpper");
     tryPut(c);
@@ -5123,7 +5238,7 @@ public:
       - Lodash chained on (string): the trimmed string.
 
   +/
-  auto trim(T = Any)(auto ref T chars = null) {
+  auto ref trim(T = Any)(auto ref T chars = T.init) {
     setupMemory();
     Command c = Command("trim");
     if (chars) c.setString(chars);
@@ -5142,7 +5257,7 @@ public:
       - Lodash chained on (string): the trimmed string.
 
   +/
-  auto trimEnd(T = Any)(auto ref T chars = null) {
+  auto ref trimEnd(T = Any)(auto ref T chars = T.init) {
     setupMemory();
     Command c = Command("trimEnd");
     if (chars) c.setString(chars);
@@ -5161,7 +5276,7 @@ public:
       - Lodash chained on (string): the trimmed string.
 
   +/
-  auto trimStart(T = Any)(auto ref T chars = null) {
+  auto ref trimStart(T = Any)(auto ref T chars = T.init) {
     setupMemory();
     Command c = Command("trimStart");
     if (chars) c.setString(chars);
@@ -5185,7 +5300,7 @@ public:
       - Lodash chained on (string): the truncated string.
 
   +/
-  auto truncate(T = Any)(auto ref T options = null) {
+  auto ref truncate(T = Any)(auto ref T options = T.init) {
     setupMemory();
     Command c = Command("truncate");
     if (options) c.setHandleOrEval(options);
@@ -5207,7 +5322,7 @@ public:
       - Lodash chained on (string): the unescaped string.
 
   +/
-  auto unescape()() {
+  auto ref unescape()() {
     setupMemory();
     Command c = Command("unescape");
     tryPut(c);
@@ -5223,7 +5338,7 @@ public:
       - Lodash chained on (string): the upper cased string.
 
   +/
-  auto upperCase()() {
+  auto ref upperCase()() {
     setupMemory();
     Command c = Command("upperCase");
     tryPut(c);
@@ -5238,7 +5353,7 @@ public:
       - Lodash chained on (string): the upper cased string.
 
   +/
-  auto upperFirst()() {
+  auto ref upperFirst()() {
     setupMemory();
     Command c = Command("upperFirst");
     tryPut(c);
@@ -5256,7 +5371,7 @@ public:
       - Lodash chained on (Array): the words of string.
 
   +/
-  auto words(T = Any)(auto ref T pattern = null) {
+  auto ref words(T = Any)(auto ref T pattern = T.init) {
     setupMemory();
     Command c = Command("words");
     if (pattern) c.setString(pattern);
@@ -5275,7 +5390,7 @@ public:
       - Lodash chained on (string): the unique ID.
 
   +/
-  auto uniqueId()() {
+  auto ref uniqueId()() {
     setupMemory();
     Command c = Command("uniqueId");
     tryPut(c);
@@ -5300,7 +5415,7 @@ public:
       - Lodash chained on (*): object.
 
   +/
-  auto mixin_(T, U = Any)(auto ref T source, auto ref U options = null) {
+  auto ref mixin_(T, U = Any)(auto ref T source, auto ref U options = U.init) {
     setupMemory();
     Command c = Command("mixin");
     c.setHandleOrEval(source);
@@ -5322,7 +5437,7 @@ public:
       - Lodash chained on (Object): object.
 
   +/
-  auto bindAll(ARGS...)(auto ref ARGS methodNames) {
+  auto ref bindAll(ARGS...)(auto ref ARGS methodNames) {
     setupMemory();
     Command c = Command("bindAll");
     foreach(ref method; methodNames) c.setString(method);
@@ -5342,7 +5457,7 @@ public:
       - Lodash chained on (*): the resolved value.
 
   +/
-  auto defaultTo(T)(auto ref T defaultValue) {
+  auto ref defaultTo(T)(auto ref T defaultValue) {
     setupMemory();
     Command c = Command("defaultTo");
     c.setAnyValue(defaultValue);
@@ -5358,7 +5473,7 @@ public:
       - Lodash chained on (Array): the new property path array.
 
   +/
-  auto toPath()() {
+  auto ref toPath()() {
     setupMemory();
     Command c = Command("toPath");
     tryPut(c);
@@ -5373,7 +5488,7 @@ public:
       - Lodash chained on (Function): a new lodash function.
 
   +/
-  auto runInContext()() {
+  auto ref runInContext()() {
     setupMemory();
     Command c = Command("runInContext");
     tryPut(c);
@@ -5386,50 +5501,53 @@ public:
     Returns:
       A value cast to type T
   +/
-  T execute(T) {
-    ptr--; *(ptr++) = ']'; // replace the last comma
+  T execute(T)() {
+    m_ptr--; *(m_ptr++) = ']'; // replace the last comma
     scope(exit) {
       // reset
       m_ptr = m_commands.ptr;
-      m_cb = null;
-      m_cbType = 0;
+      m_cb.any = null;
+      m_cbType = VarType.init;
       m_error = null;
-      // we keep the init val
+      FL_deallocate(m_commands);
+      m_commands = null;
+
+      // we keep the init val?
     }
-    string m_commands = cast(string) m_commands[0 .. $ - (m_commands.length - (m_ptr - m_commands.ptr))];
+    string commands = cast(string) m_commands[0 .. m_commands.length - (m_commands.length - (m_ptr - m_commands.ptr))];
     switch (m_initType) {
       case VarType.handle:
         static if (isSomeString!T)
-          return T(ldexec__string(m_initVal.handle, commands, m_cb.iteratee_1, m_error));
-        else static if (isNumeric!T && T.stringof != "Handle")
-          return T(ldexec__long(m_initVal.handle, commands, m_cb.iteratee_1, m_error));
-        else static if (is(T : struct) || T.stringof == "Handle")
-          return T(ldexec__Handle(m_initVal.handle, commands, m_cb.iteratee_1, m_error));
-      break;
+          return T(ldexec_Handle__string(m_initVal.handle, commands, m_cb.any, m_error));
+        else static if (isNumeric!T && !is(T == Handle))
+          return T(ldexec_Handle__long(m_initVal.handle, commands, m_cb.any, m_error));
+        else
+          return T(ldexec_Handle__Handle(m_initVal.handle, commands, m_cb.any, m_error));
+      
       // fast path for D Strings operations
       case VarType.string_:
+      case VarType.eval:
+        bool is_eval_init = m_initType == VarType.eval;
         static if (isSomeString!T)
-          return T(ldexec_string__string(m_initVal.str, commands, m_cb.iteratee_1, m_error));
-        else static if (isNumeric!T && T.stringof != "Handle")
-          return T(ldexec_string__long(m_initVal.str, commands, m_cb.iteratee_1, m_error));
-        else static if (is(T : struct) || T.stringof == "Handle")
-          return T(ldexec_string__Handle(m_initVal.str, commands, m_cb.iteratee_1, m_error));
-      break;
+          return T(ldexec_string__string(m_initVal.str, commands, m_cb.any, m_error, is_eval_init));
+        else static if (isNumeric!T && !is(T == Handle))
+          return T(ldexec_string__long(m_initVal.str, commands, m_cb.any, m_error, is_eval_init));
+        else
+          return T(ldexec_string__Handle(m_initVal.str, commands, m_cb.any, m_error, is_eval_init));
+      
       // fast path for D Numeric operations
       case VarType.number:
         static if (isSomeString!T)
-          return T(ldexec_long__string(m_initVal.str, commands, m_cb.iteratee_1, m_error));
-        else static if (isNumeric!T && T.stringof != "Handle")
-          return T(ldexec_long__long(m_initVal.str, commands, m_cb.iteratee_1, m_error));
-        else static if (is(T : struct) || T.stringof == "Handle")
-          return T(ldexec_long__Handle(m_initVal.str, commands, m_cb.iteratee_1, m_error));
-      break;
-      default: assert(false, "Init type not implemented"); break;    
+          return T(ldexec_long__string(m_initVal.number, commands, m_cb.any, m_error));
+        else static if (isNumeric!T && !is(T == Handle))
+          return T(ldexec_long__long(m_initVal.number, commands, m_cb.any, m_error));
+        else
+          return T(ldexec_long__Handle(m_initVal.number, commands, m_cb.any, m_error));
+      
+      default: assert(false, "Init type not implemented");   
       
     }
 
-    FL_deallocate(m_commands);
-    m_commands = null;
   }
 
 
