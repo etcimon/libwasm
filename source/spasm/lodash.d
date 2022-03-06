@@ -108,8 +108,14 @@ struct Command {
       param_types[idx] = VarType.eval;
     } 
     else static if (isSomeString!T) {
-      params[idx].str = any;
-      param_types[idx] = VarType.string_;
+      //if (any.length > 64) {
+      //  auto hndl = getOrCreateHandle(any);
+      //  params[idx].handle = hndl;
+      //  param_types[idx] = VarType.handle;
+      //} else {
+        params[idx].str = any;
+        param_types[idx] = VarType.string_;
+      //}
     }
     else static if (isNumeric!T) {
       params[idx].number = cast(long) any;
@@ -162,8 +168,14 @@ struct Command {
       param_types[idx] = VarType.eval;
     } 
     else static if (isSomeString!T) {
-      params[idx].str = str;
-      param_types[idx] = VarType.string_;
+      //if (any.length > 64) { need to destroy handle, maybe this should be handled by the caller
+      //  auto hndl = getOrCreateHandle(any);
+      //  params[idx].handle = hndl;
+      //  param_types[idx] = VarType.handle;
+      //} else {        
+        params[idx].str = any;
+        param_types[idx] = VarType.string_;
+      //}
     }
     else static if (is(T : JsHandle)) {
       params[idx].handle = number.handle;

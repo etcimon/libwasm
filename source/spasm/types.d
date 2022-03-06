@@ -87,9 +87,10 @@ version (unittest) {
     string Object_Call_string__string(Handle, string, string);
     string Object_Call_uint__string(Handle, string, uint);
     string Object_Call_uint_uint__string(Handle, string, uint, uint);
+    long getTimeStamp();
 
-    long ldexec_Handle__string(Handle, string, bool delegate(), void delegate(Handle));
-    string ldexec_Handle__long(Handle, string, bool delegate(), void delegate(Handle));
+    string ldexec_Handle__string(Handle, string, bool delegate(), void delegate(Handle));
+    long ldexec_Handle__long(Handle, string, bool delegate(), void delegate(Handle));
     Handle ldexec_Handle__Handle(Handle, string, bool delegate(), void delegate(Handle));
     
     string ldexec_string__string(string, string, bool delegate(), void delegate(Handle), bool);
@@ -642,20 +643,20 @@ struct JSON {
   this(Handle h) {
     this.handle = JsHandle(h);
   }
-  auto opIndex(string name)() {
+  auto opIndex(string name) {
     return JSON(spasm_get__field(this.handle, name));
   }
-  auto opIndex(uint idx)() {
+  auto opIndex(uint idx) {
     return JSON(spasm_get_idx__field(this.handle, idx));
   }
-  auto as(Target)() {
+  auto as(Target)() @trusted {
     return .as!(Target)(this);
   }
-  static JSON parse(string json) {
-    return JSON(JSON_parse_string(json));
+  static Handle parse(string json) {
+    return JSON_parse_string(json);
   }
-  static string stringify(Handle obj) {
-    return JSON_stringify(obj);
+  static string stringify(ref JSON obj) {
+    return JSON_stringify(obj.handle);
   }
 }
 
