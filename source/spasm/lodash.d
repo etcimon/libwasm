@@ -5,6 +5,7 @@ import spasm.rt.memory;
 import std.string : indexOf;
 import std.traits;
 
+nothrow: @safe:
 /*
 public auto lodash(T = Any)(auto ref T init = T.init) {
   if (!init) return Lodash(JsHandle(0), VarType.handle);
@@ -100,7 +101,7 @@ struct Command {
   Param[5] params;
   VarType[5] param_types;
   short param_count;
-
+@trusted:
   void setAnyValue(T)(ref T any) {
     size_t idx = param_count;
     static if (is(T == Eval)) {
@@ -113,8 +114,14 @@ struct Command {
       //  params[idx].handle = hndl;
       //  param_types[idx] = VarType.handle;
       //} else {
+      if (any.length == 0) {
+        params[idx].str = "null";
+        param_types[idx] = VarType.eval;
+
+      } else {
         params[idx].str = any;
         param_types[idx] = VarType.string_;
+      }
       //}
     }
     else static if (isNumeric!T) {
@@ -173,8 +180,13 @@ struct Command {
       //  params[idx].handle = hndl;
       //  param_types[idx] = VarType.handle;
       //} else {        
-        params[idx].str = any;
+      if (str.length == 0) {
+        params[idx].str = "null";
+        param_types[idx] = VarType.eval;
+      } else {
+        params[idx].str = str;
         param_types[idx] = VarType.string_;
+      }
       //}
     }
     else static if (is(T : JsHandle)) {
@@ -350,7 +362,7 @@ struct Lodash {
     }
   }
 
-
+@trusted:
   bool put(long i, bool noop = true) {
     long u = i;
     long maxsize = 10;
@@ -673,6 +685,16 @@ struct Lodash {
     }
   }
 
+  void setupMemory() {
+    if (!m_commands)
+    {
+      m_commands = cast(char[]) FL_allocate(m_size_est);
+      m_ptr = m_commands.ptr;
+      put('[');
+    }
+  }
+
+@safe:
 public:
 
   /++
@@ -729,14 +751,6 @@ public:
     return this;
   }
 
-  void setupMemory() {
-    if (!m_commands)
-    {
-      m_commands = cast(char[]) FL_allocate(m_size_est);
-      m_ptr = m_commands.ptr;
-      put('[');
-    }
-  }
   /++
     Adds a variable accessible through the javascript context
     If it's a callback and one exists, will fail with assert failure
@@ -5513,7 +5527,7 @@ public:
     Returns:
       A value cast to type T
   +/
-  T execute(T)() {
+  @trusted T execute(T)() {
     m_ptr--; *(m_ptr++) = ']'; // replace the last comma
     scope(exit) {
       // reset
@@ -5530,9 +5544,11 @@ public:
     switch (m_initType) {
       case VarType.handle:
         static if (isSomeString!T)
-          return T(ldexec_Handle__string(m_initVal.handle, commands, m_cb.any, m_error));
-        else static if (isNumeric!T && !is(T == Handle))
-          return T(ldexec_Handle__long(m_initVal.handle, commands, m_cb.any, m_error));
+          return ldexec_Handle__string(m_initVal.handle, commands, m_cb.any, m_error);
+        else static if (isNumeric!T && !is(T == Handle) && !isFloatingPoint!T)
+          return ldexec_Handle__long(m_initVal.handle, commands, m_cb.any, m_error);
+        else static if (isFloatingPoint!T)
+          return ldexec_Handle__double(m_initVal.handle, commands, m_cb.any, m_error);
         else
           return T(ldexec_Handle__Handle(m_initVal.handle, commands, m_cb.any, m_error));
       
@@ -5541,18 +5557,22 @@ public:
       case VarType.eval:
         bool is_eval_init = m_initType == VarType.eval;
         static if (isSomeString!T)
-          return T(ldexec_string__string(m_initVal.str, commands, m_cb.any, m_error, is_eval_init));
-        else static if (isNumeric!T && !is(T == Handle))
-          return T(ldexec_string__long(m_initVal.str, commands, m_cb.any, m_error, is_eval_init));
+          return ldexec_string__string(m_initVal.str, commands, m_cb.any, m_error, is_eval_init);
+        else static if (isNumeric!T && !is(T == Handle) && !isFloatingPoint!T)
+          return ldexec_string__long(m_initVal.str, commands, m_cb.any, m_error, is_eval_init);
+        else static if (isFloatingPoint!T)
+          return ldexec_string__double(m_initVal.str, commands, m_cb.any, m_error, is_eval_init);
         else
           return T(ldexec_string__Handle(m_initVal.str, commands, m_cb.any, m_error, is_eval_init));
       
       // fast path for D Numeric operations
       case VarType.number:
         static if (isSomeString!T)
-          return T(ldexec_long__string(m_initVal.number, commands, m_cb.any, m_error));
-        else static if (isNumeric!T && !is(T == Handle))
-          return T(ldexec_long__long(m_initVal.number, commands, m_cb.any, m_error));
+          return ldexec_long__string(m_initVal.number, commands, m_cb.any, m_error);
+        else static if (isNumeric!T && !is(T == Handle) && !isFloatingPoint!T)
+          return ldexec_long__long(m_initVal.number, commands, m_cb.any, m_error);
+        else static if (isFloatingPoint!T)
+          return ldexec_long__double(m_initVal.number, commands, m_cb.any, m_error);
         else
           return T(ldexec_long__Handle(m_initVal.number, commands, m_cb.any, m_error));
       

@@ -1,5 +1,7 @@
 import {spasm as spa, encoders as encoder, decoders as decoder} from '../modules/spasm.js';
 import {_} from 'lodash';
+import moment from 'moment';
+window.moment = moment;
 let spasm = spa;
 let memory = {};
 let ops = {};
@@ -35,8 +37,8 @@ const setupMemory = (cond) => {
             ops.setUInt = (ptr, val) => (memory.heapi32u[ptr/4] = val),
             ops.getUInt = (ptr) => memory.heapi32u[ptr/4],
             ops.getBool = (ptr) => memory.heapi32u[ptr/4],
-            ops.encode_handle = (ptr, val) => { setUInt(ptr, spasm.addObject(val)); },      
-            ops.decode_handle = (ptr) => { return spasm.objects[getUInt(ptr)]; }
+            ops.encode_handle = (ptr, val) => { ops.setUInt(ptr, spasm.addObject(val)); },      
+            ops.decode_handle = (ptr) => { return spasm.objects[ops.getUInt(ptr)]; }
             ops.isDefined = (val) => (val != undefined && val != null)
             ops.spasm_encode_optional_Handle = (ptr, val)=>{
               if (ops.setBool(ptr+4, ops.isDefined(val))) {
@@ -103,7 +105,15 @@ export let jsExports = {
   env: {
     JSON_stringify: (rawResult, ctx) => { encoder.string(rawResult, JSON.stringify(spasm.objects[ctx])); },
     JSON_parse_string: (valLen, valOffset) => { return spasm.addObject(JSON.parse(decoder.string(valLen,valOffset)))},
-    
+    WindowOrWorkerGlobalScope_setTimeout__string_int_Handle: async(CbCtx, CbPtr, ms) =>{
+      
+      console.log("Sleeping");
+      
+      sleep(5000);
+      await new Promise(resolve => setTimeout(resolve, ms));
+      console.log("Await done");       
+      return null;
+    },
     Body_json: (ctx) => {
       return spasm.addObject(spasm.objects[ctx].json());
     },
@@ -122,10 +132,24 @@ export let jsExports = {
       };
       return spasm.addObject(spasm.objects[ctx].fetch(spasm_decode_union2_Request_string(input)));
     },
+
+    WindowOrWorkerGlobalScope_fetch: (ctx, input, riHndl) => {
+      setupMemory([spasm.MemoryIdentifiers.i32u]);
+      console.log("Got handle for ri: ");
+      console.log(riHndl);
+      const spasm_decode_union2_Request_string = (ptr)=>{
+        if (ops.getUInt(ptr) == 0) {
+          return ops.decode_handle(ptr+4);
+        } else if (ops.getUInt(ptr) == 1) {
+          return decoder.string(ptr+4);//broken
+        }
+      };
+      return spasm.addObject(spasm.objects[ctx].fetch(spasm_decode_union2_Request_string(input), spasm.objects[riHndl]));
+    },
     
     promise_error_6uhandle: (handle, ctx, ptr) => {      
+      setupMemory([spasm.MemoryIdentifiers.i32u]);
       let ret = spasm.addObject(spasm.objects[handle].catch((r)=>{
-        setupMemory([spasm.MemoryIdentifiers.i32u]);
       
         let prev_promise_idx = (handle % 124 + 4)*4;
         let this_param_promise_idx = (ret % 124 + 4)*4;
@@ -138,10 +162,9 @@ export let jsExports = {
       }));
       return ret;
     },
-    promise_then_6uhandlehandle: (handle, ctx, ptr) => {
-      
+    promise_then_6uhandlehandle: (handle, ctx, ptr) => {      
+      setupMemory([spasm.MemoryIdentifiers.i32u]);
       let ret = spasm.addObject(spasm.objects[handle].then((r)=>{
-        setupMemory([spasm.MemoryIdentifiers.i32u]);
       
         let prev_promise_idx = (handle % 124 + 4)*4;
         let this_ret_promise_idx = (ret % 124 + 4)*4;
@@ -161,8 +184,8 @@ export let jsExports = {
     promise_then_6uhandlev: (handle, ctx, ptr) => {
       let ret = spasm.addObject(spasm.objects[handle].then((r)=>{
         setupMemory([spasm.MemoryIdentifiers.i32u]);
-        let prev_promise_idx = (handle % 126 + 2)*4
-        let this_value_idx = (ret % 126 + 2)*4;
+        let prev_promise_idx = (handle % 124 + 4)*4
+        let this_value_idx = (ret % 124 + 4)*4;
 
         ops.encode_handle(this_value_idx, r);
         spasm.instance.exports.__indirect_function_table.get(ptr)(ctx, this_value_idx);
@@ -335,8 +358,8 @@ export let jsExports = {
       let node = spasm.objects[ctx];
       if (typeof(node) === undefined) return;
       setupMemory([spasm.MemoryIdentifiers.i32u]);
-      let prop = decoder.string(propLen, propOffset);
-      let arg = decoder.string(argLen, argOffset);
+      let prop = decoder.string(propLen, propOffset, memory.heapi32u);
+      let arg = decoder.string(argLen, argOffset, memory.heapi32u);
       let str = node[prop](arg);
       
       if (ops.setBool(rawResult+4, ops.isDefined(str)))
@@ -369,73 +392,125 @@ export let jsExports = {
     },
     ldexec: (initVal, commandsLen, commandsOffset, callbackCtx, callbackPtr, errorCtx, errorPtr, mustEvalInitVal = false) => {
       /// executed with Window as context...
-      if (mustEvalInitVal)
-        var firstArg = eval(initVal);
-      else var firstArg = initVal;
-
-      let _ = window._;
-      if (!window.sifg) {
-        window.sifg = (ptr)=>spasm.instance.exports.__indirect_function_table.get(ptr),
-        window.ao = spasm.addObject;
-        window.es = encoder.string;
-        window.nodes = spasm.objects;
+      let firstArg;
+      if (mustEvalInitVal) {
+        if (_.last(initVal) != ';' && !_.includes(initVal, '(') && !_.includes(initVal, '{'))
+          firstArg = _.get(window, initVal); // try a variable query (singleton?)
+        if (firstArg === undefined) firstArg = eval(initVal);
       }
-      window.cbPtr = callbackPtr;
-      window.cbCtx = callbackCtx;
-      var globalThis = this;
-      var exec = _.runInContext(globalThis)
-      let arg_cleanup = []
-      try {
-        const commands_str = decoder.string(commandsLen, commandsOffset);
-        console.log(commands_str);
-        let commands = JSON.parse(commands_str);
+      else firstArg = initVal;
 
+      if (callbackPtr > 0) {
+        window.cbPtr = callbackPtr;
+        window.cbCtx = callbackCtx;
+      }
+      const _ = window._;
+      let arg_cleanup = []
+      let params = [];
+      try {
+        // this part is expensive enough to suggest large queries
+        const commands_str = decoder.string(commandsLen, commandsOffset, memory.heapi32u);
+        const commands = JSON.parse(commands_str);
+        //
+        console.log(commands_str);
         // find locals
         for(let idx in commands) {
           if (commands[idx]['local'] !== undefined) {
-            arg_cleanup.push(commands[idx]['local']);
-            if (_.startsWith(commands[idx]['value'], '=')) {
-              eval.call(globalThis, 'var ' + commands[idx]['local'] + ' = ' + commands[idx]['value'].substring(1) + ';');
-            } else if (_.startsWith(commands[idx]['value'], '\\=')) {
-              eval.call(globalThis, 'var ' + commands[idx]['local'] + ' = ' + JSON.stringify(commands[idx]['value'].substring(1)) + ';');
-            } else {
-              eval.call(globalThis, 'var ' + commands[idx]['local'] + ' = ' + JSON.stringify(commands[idx]['value']) + ';');            
-            }
+            let key = commands[idx]['local'];
+            let value = commands[idx]['value'];
+            arg_cleanup.push(key);
+            if (value[0] == '=') {
+              if (value[1] == '(') {
+                if (!window.spasm.precompiled) window.spasm.precompiled = {};
+                let precompiled = window.spasm.precompiled[value]
+                if (!precompiled) { 
+                  let res = eval.call(null, value.substring(1));
+                  if (typeof(res) === "function") 
+                    window.spasm.precompiled[value] = res;
+                  window[key] = res;
+                } else window[key] = precompiled;
+              } else {
+                if (value[1] == 't' && value == '=true')
+                  window[key] = true;
+                else if (value[1] == 'f' && value == '=false')
+                  window[key] = false;
+                else if (value[1] == 'n' && value == '=null')
+                  window[key] = null;
+                else if (value[1] == 'u' && value == '=undefined')
+                  window[key] = undefined;
+                else if (value[1] >= '0' && value[1] <= '9')
+                  window[key] = parseInt(value.substring(1));
+                else if (value[1] != '{' && !_.includes(value, '(') && _.last(value) != ';')
+                  window[key] = _.get(window, value.substring(1));                
+                
+                if (window[key] === undefined) // fall back to eval
+                  window[key] = eval.call(null, value.substring(1));
+              }
+               
+            } 
+            else if (value[0] == '\\' && value[1] == '=' ) 
+              window[key] = value.substring(2);
+            else  
+              window[key] = value;                       
+            
           }
         }
         for (let idx in commands) {
           if (commands[idx]['func'] !== undefined) {
-            
-            if (exec[commands[idx]['func']].length == 0)
-            {
-              firstArg = exec.invoke(exec, commands[idx]['func']);
+            let func = commands[idx]['func'];
+            if (commands[idx]['params'].length == 0) { // 1 parameter call, it's a chain         
+             
+               firstArg = _.invoke(_, func, firstArg);
               continue;
             }
-            else if (commands[idx]['params'].length == 0) {              
-              firstArg = exec.invoke(exec, commands[idx]['func'], firstArg);
-              continue;
-            }
-
-            exec.params = [];
+            params = [];
             for (let idx2 in commands[idx]['params']) {
-              if (_.startsWith(commands[idx]['params'][idx2], '=')) {
-                function fct() { return eval.call(globalThis, commands[idx]['params'][idx2].substring(1)); }
-                let fct_guts = fct.call(globalThis);
-                exec.params.push(fct_guts);
+              let value = commands[idx]['params'][idx2];
+              //if (value.length == 0) continue;
+              if (value[0] == '=') {
+                if (value[1] == '(') {
+                  if (!window.spasm.precompiled) window.spasm.precompiled = {};
+                  let precompiled = window.spasm.precompiled[value]
+                  if (!precompiled) { 
+                    // this is a function, eval() it
+                    let res = eval.call(null, value.substring(1));   
+                    if (typeof(res) === "function")                
+                      window.spasm.precompiled[value] = res;
+                    params.push(res); 
+                  } 
+                  else params.push(precompiled);
+
+                } else {                    
+                  if (value[1] == 't' && value == '=true')
+                    params.push(true);
+                  else if (value[1] == 'f' && value == '=false')
+                    params.push(false);
+                  else if (value[1] >= '0' && value[1] <= '9')
+                    params.push(parseInt(value.substring(1)));
+                  else if (value[1] == 'n' && value == '=null')
+                    params.push(null);
+                  else if (value[1] == 'u' && value == '=undefined')
+                    params.push(undefined);
+                  else if (value[1] != '{' && !_.includes(value, '(') && _.last(value) != ';')
+                      params.push(_.get(window, value.substring(1)));                
+                  
+                  if (params[idx2] === undefined) 
+                    params[idx2] = eval.call(null, value.substring(1));
+                }
               }
-              else if (_.startsWith(commands[idx]['params'][idx2], '\\=')) {
-                exec.params.push(commands[idx]['params'][idx2].substring(1));
+              else if (value[0] == '\\' && value[1] == '=') { 
+                params.push(value.substring(2));
               }
               else {
-                exec.params.push(commands[idx]['params'][idx2]);                
+                params.push(value);                
               }
             }
-            firstArg = exec.invoke(exec, commands[idx]['func'], firstArg, ...exec.params);
+            firstArg = _.invoke(_, func, firstArg, ...params);
           }
         }
 
       } catch (err) {
-        if (errorPtr) {
+        if (errorPtr > 0) {
           let hndl = spasm.addObject(err);
           spasm.instance.exports.__indirect_function_table.get(errorPtr)(errorCtx, hndl);
         } else {
@@ -443,8 +518,10 @@ export let jsExports = {
         }
       }
       for(let idx in arg_cleanup) _.unset(window, arg_cleanup[idx]);
-      _.unset(window, 'cbPtr');
-      _.unset(window, 'cbCtx');
+      if (callbackPtr > 0) {
+        _.unset(window, 'cbPtr');
+        _.unset(window, 'cbCtx');
+      }
       return firstArg;
 
     },
@@ -455,25 +532,43 @@ export let jsExports = {
     ldexec_Handle__long: (ctx, cLen, cOff, cCtx, cPtr, errCtx, errPtr) => {
       return BigInt(jsExports.env.ldexec(spasm.objects[ctx], cLen, cOff, cCtx, cPtr, errCtx, errPtr, false));
     },
+    ldexec_Handle__double: (ctx, cLen, cOff, cCtx, cPtr, errCtx, errPtr) => {
+      return jsExports.env.ldexec(spasm.objects[ctx], cLen, cOff, cCtx, cPtr, errCtx, errPtr, false);
+    },
     ldexec_Handle__Handle: (ctx, cLen, cOff, cCtx, cPtr, errCtx, errPtr) => {
       return spasm.addObject(jsExports.env.ldexec(spasm.objects[ctx], cLen, cOff, cCtx, cPtr, errCtx, errPtr, false));
     },
     ldexec_string__Handle: (strLen, strOff, cLen, cOff, cCtx, cPtr, errCtx, errPtr, evalInit) => {
-      return spasm.addObject(jsExports.env.ldexec(decoder.string(strLen, strOff), cLen, cOff, cCtx, cPtr, errCtx, errPtr, evalInit));
+      
+      memory.heapi32u = new Uint32Array(spasm.memory.buffer)
+      return spasm.addObject(jsExports.env.ldexec(decoder.string(strLen, strOff, memory.heapi32u), cLen, cOff, cCtx, cPtr, errCtx, errPtr, evalInit));
     },
     ldexec_string__long: (strLen, strOff, cLen, cOff, cCtx, cPtr, errCtx, errPtr, evalInit) => {
-      return BigInt(jsExports.env.ldexec(decoder.string(strLen, strOff), cLen, cOff, cCtx, cPtr, errCtx, errPtr, evalInit));
+      
+      memory.heapi32u = new Uint32Array(spasm.memory.buffer)
+      return BigInt(jsExports.env.ldexec(decoder.string(strLen, strOff, memory.heapi32u), cLen, cOff, cCtx, cPtr, errCtx, errPtr, evalInit));
+    },
+    ldexec_string__double: (strLen, strOff, cLen, cOff, cCtx, cPtr, errCtx, errPtr, evalInit) => {
+      
+      memory.heapi32u = new Uint32Array(spasm.memory.buffer)
+      return jsExports.env.ldexec(decoder.string(strLen, strOff, memory.heapi32u), cLen, cOff, cCtx, cPtr, errCtx, errPtr, evalInit);
     },
     ldexec_string__string: (rawResult, strLen, strOff, cLen, cOff, cCtx, cPtr, errCtx, errPtr, evalInit) => {
-      const ret = jsExports.env.ldexec(decoder.string(strLen, strOff), cLen, cOff, cCtx, cPtr, errCtx, errPtr, evalInit);
-      encoder.string(rawResult, ret);
+      memory.heapi32u = new Uint32Array(spasm.memory.buffer) 
+      const ret = jsExports.env.ldexec(decoder.string(strLen, strOff, memory.heapi32u), cLen, cOff, cCtx, cPtr, errCtx, errPtr, evalInit);
+      encoder.string(rawResult, ret, memory.heapi32u);
     },
     ldexec_long__string: (rawResult, num, cLen, cOff, cCtx, cPtr, errCtx, errPtr) => {
+      
+      memory.heapi32u = new Uint32Array(spasm.memory.buffer)
       const ret = jsExports.env.ldexec(num, cLen, cOff, cCtx, cPtr, errCtx, errPtr, false);
-      encoder.string(rawResult, ret);
+      encoder.string(rawResult, ret, memory.heapi32u);
     },
     ldexec_long__long: (num, cLen, cOff, cCtx, cPtr, errCtx, errPtr) => {
       return BigInt(jsExports.env.ldexec(num, cLen, cOff, cCtx, cPtr, errCtx, errPtr, false));
+    },
+    ldexec_long__double: (num, cLen, cOff, cCtx, cPtr, errCtx, errPtr) => {
+      return jsExports.env.ldexec(num, cLen, cOff, cCtx, cPtr, errCtx, errPtr, false);
     },
     ldexec_long__Handle: (num, cLen, cOff, cCtx, cPtr, errCtx, errPtr) => {
       return spasm.addObject(jsExports.env.ldexec(num, cLen, cOff, cCtx, cPtr, errCtx, errPtr, false));

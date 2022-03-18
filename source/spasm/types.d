@@ -91,13 +91,16 @@ version (unittest) {
 
     string ldexec_Handle__string(Handle, string, bool delegate(), void delegate(Handle));
     long ldexec_Handle__long(Handle, string, bool delegate(), void delegate(Handle));
+    double ldexec_Handle__double(Handle, string, bool delegate(), void delegate(Handle));
     Handle ldexec_Handle__Handle(Handle, string, bool delegate(), void delegate(Handle));
     
     string ldexec_string__string(string, string, bool delegate(), void delegate(Handle), bool);
     long ldexec_string__long(string, string, bool delegate(), void delegate(Handle), bool);
+    double ldexec_string__double(string, string, bool delegate(), void delegate(Handle), bool);
     Handle ldexec_string__Handle(string, string, bool delegate(), void delegate(Handle), bool);
     
     long ldexec_long__long(long, string, bool delegate(), void delegate(Handle));
+    double ldexec_long__double(long, string, bool delegate(), void delegate(Handle));
     string ldexec_long__string(long, string, bool delegate(), void delegate(Handle));
     Handle ldexec_long__Handle(long, string, bool delegate(), void delegate(Handle));
     

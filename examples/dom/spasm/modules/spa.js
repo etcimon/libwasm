@@ -2,7 +2,15 @@
 import {spasm as spa, decoders as decoder, encoders as encoder} from './spasm.js';
 
 let spasm = spa;
-
+const eventHandler = (event) => {
+    const handlers = event.currentTarget.wasmEvents[event.type];
+    const cbs = handlers.cbs;
+    
+    cbs.forEach(cb=>{
+        let idx = spasm.addObject(event);
+        spasm.instance.exports.domEvent(cb.ctx, cb.fun, idx);
+    });
+};
 export let jsExports = {
     env: {
         KeyboardEvent_key_Get: (rawResult, ctx) => {
@@ -73,6 +81,9 @@ export let jsExports = {
             const value = decoder.string(valueLen,valueOffset);
             spasm.objects[node].setAttribute(attr, value);
         },
+        getTimeStamp: () => {
+            return BigInt(window._.now());
+        },
         addEventListener: (nodePtr, listenerType, ctx, fun, eventType) => {
             let events = ['click','change','input','keydown','keyup','dblclick','blur','mousemove','mouseup','mousedown','keypress'];
             console.log("Add event listener");
@@ -88,16 +99,7 @@ export let jsExports = {
                 nodeEvents[listenerTypeStr].cbs.push({ctx:ctx,fun:fun});
             } else {
                 nodeEvents[listenerTypeStr] = {cbs:[{ctx: ctx, fun: fun}], eventType: eventType};
-                node.addEventListener(listenerTypeStr, (event) => {
-                    const handlers = event.currentTarget.wasmEvents[event.type];
-                    const cbs = handlers.cbs;
-                    requestAnimationFrame(()=>{
-                        cbs.forEach(cb=>{
-                            let idx = spasm.addObject(event);
-                            spasm.instance.exports.domEvent(cb.ctx, cb.fun, idx);
-                        });
-                    });
-                });
+                node.addEventListener(listenerTypeStr, eventHandler);
             }
         },
         removeEventListener: (nodePtr, listenerType, ctx, fun, eventType) => {

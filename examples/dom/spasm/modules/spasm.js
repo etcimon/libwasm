@@ -51,6 +51,12 @@ const spasm = {
             var tmp = {};
             modules.map(m=>m.jsExports).filter(a=>!!a).map(e=>Object.entries(e).forEach(e=>tmp[e[0]] = Object.assign.apply(null,[tmp[e[0]] || {}, e[1]])));
             spasm.exports = tmp;
+
+            // for lodash
+            window.sifg = (ptr)=>spasm.instance.exports.__indirect_function_table.get(ptr),
+            window.ao = spasm.addObject;
+            window.es = encoders.string;
+            window.nodes = spasm.objects;
         }
         if ('undefined' === typeof WebAssembly.instantiateStreaming) {
             fetch('dom')
@@ -58,7 +64,7 @@ const spasm = {
                 .then(bytes => WebAssembly.compile(bytes))
                 .then(module => {
                     let instance = new WebAssembly.Instance(module, spasm.exports);
-                    spasm.instance = instance
+                    spasm.instance = instance;
                     setupMemory(instance.exports.memory);
                     instance.exports._start(instance.exports.__heap_base);
                 });
@@ -81,7 +87,10 @@ const spasm = {
 
 let encoders = {
     string: (ptr, val, heapi32u = null, is_ret_arr = false) => {
-        if (typeof(val) !== "string") val = val.toString();
+        if (typeof(val) !== "string") {
+            if (val !== undefined) val = val.toString();
+            else val = "undefined";
+        }
         const encodedString = utf8Encoder.encode(val);
         const wasmPtr = spasm.instance.exports.allocString(encodedString.length);
         const asBytes = new Uint8Array(spasm.memory.buffer, wasmPtr, encodedString.length);
@@ -142,8 +151,8 @@ let jsExports = {
         },
         spasm_get__int: getObject,
         spasm_get__uint: getObject,
-        spasm_get__long: getObject,
-        spasm_get__ulong: getObject,
+        spasm_get__long: (ptr)=>BigInt(getObject(ptr)),
+        spasm_get__ulong: (ptr)=>BigInt(getObject(ptr)),
         spasm_get__short: getObject,
         spasm_get__ushort: getObject,
         spasm_get__float: getObject,
