@@ -3,9 +3,9 @@ pragma(LDC_no_typeinfo);
 
 import ldc.attributes;
 
-import spasm.types;
-import spasm.spa;
-import spasm.dom;
+import libwasm.types;
+import libwasm.spa;
+import libwasm.dom;
 import game.math;
 import game.terminal;
 import game.renderer;
@@ -34,7 +34,7 @@ struct App {
     terminal_run_intro(terminal);
     document.addEventListener("click", &onClick);
   }
-  void onClick(spasm.bindings.dom.Event event) {
+  void onClick(libwasm.bindings.dom.Event event) {
     document.removeEventListener("onClick", &onClick);
     gameStart();
   }

@@ -1,14 +1,14 @@
-build: build-spasm build-webidl build-examples
+build: build-libwasm build-webidl build-examples
 
-test: test-spasm test-webidl
+test: test-libwasm test-webidl
 
-test-spasm:
+test-libwasm:
 	dub test --registry=https://dub.bytecraft.nl
 
 test-webidl:
 	cd webidl && dub test --compiler=ldc2 --registry=https://dub.bytecraft.nl
 
-build-spasm:
+build-libwasm:
 	dub build --compiler=ldc2 --build=release --build-mode=allAtOnce --registry=https://dub.bytecraft.nl
 
 build-webidl:

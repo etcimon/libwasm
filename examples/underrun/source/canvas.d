@@ -1,8 +1,8 @@
 module canvas;
 
-import spasm.types;
-import spasm.spa;
-import spasm.dom;
+import libwasm.types;
+import libwasm.spa;
+import libwasm.dom;
 
 nothrow:
 @safe:

@@ -1,7 +1,7 @@
-module spasm.webgl;
+module libwasm.webgl;
 
 public {
-  import spasm.webgl.constants;
-  import spasm.webgl.types;
-  import spasm.webgl.functions;
+  import libwasm.webgl.constants;
+  import libwasm.webgl.types;
+  import libwasm.webgl.functions;
 }

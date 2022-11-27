@@ -1,9 +1,9 @@
 module game.terminal;
 
-import spasm.types;
-import spasm.spa;
-import spasm.rt.memory;
-import spasm.rt.array : text;
+import libwasm.types;
+import libwasm.spa;
+import libwasm.rt.memory;
+import libwasm.rt.array : text;
 import game.math;
 import game.audio;
 
@@ -48,15 +48,15 @@ struct Terminal {
   }
   void show() {
     clearTimeout(hideTimeoutId);
-    spasm.dom.update!transparent(this,false);
-    spasm.dom.update!hidden(this,false);
+    libwasm.dom.update!transparent(this,false);
+    libwasm.dom.update!hidden(this,false);
   }
   void hide() {
-    spasm.dom.update!transparent(this,true);
+    libwasm.dom.update!transparent(this,true);
     hideTimeoutId = setTimeout(&setHidden, 1000);
   }
   void setHidden() {
-    spasm.dom.update!hidden(this,true);
+    libwasm.dom.update!hidden(this,true);
   }
   void add(string line) @trusted {
     add(allocator.make!(Line)(line));

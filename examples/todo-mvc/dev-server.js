@@ -39,7 +39,7 @@ const wss = new WebSocket.Server({ port: 3001 });
     let lastModified = 0;
     function isModified() {
         try {
-            const stat = fs.statSync('todo-mvc-spasm-example');
+            const stat = fs.statSync('todo-mvc-libwasm-example');
             if (lastModified == stat.mtimeMs)
                 return false;
             lastModified = stat.mtimeMs;
@@ -50,14 +50,14 @@ const wss = new WebSocket.Server({ port: 3001 });
     }
     function doWatch() {
         try {
-            let watcher = fs.watch('todo-mvc-spasm-example', (event, filename)=>{
+            let watcher = fs.watch('todo-mvc-libwasm-example', (event, filename)=>{
                 if (event == 'change') {
                     if (isModified()) {
                         notifyClients();
                     }
                 }
                 else if (event == 'rename') {
-                    if (exists('todo-mvc-spasm-example')) {
+                    if (exists('todo-mvc-libwasm-example')) {
                         if (isModified())
                             notifyClients();
                     } else {

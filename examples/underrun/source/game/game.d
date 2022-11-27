@@ -3,10 +3,10 @@ module game.game;
 import game.renderer;
 import game.level;
 import game.terminal;
-import spasm.types;
-import spasm.event;
-import spasm.dom;
-import spasm.rt.memory;
+import libwasm.types;
+import libwasm.event;
+import libwasm.dom;
+import libwasm.rt.memory;
 import game.audio;
 import canvas;
 
@@ -18,7 +18,7 @@ extern(C) void load_level(uint id, ubyte[] level, uint ctx, uint fun);
 extern(C) void scheduleFrame(uint ctx, uint fun);
 
 struct Game {
-  import spasm.bindings.webgl;
+  import libwasm.bindings.webgl;
   nothrow:
   Renderer renderer;
   Level level;

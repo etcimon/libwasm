@@ -17,6 +17,8 @@ enum is32Bit = true;
 enum dKeywords = ["abstract","alias","align","asm","assert","auto","body","bool","break","byte","case","cast","catch","cdouble","cent","cfloat","char","class","const","continue","creal","dchar","debug","default","delegate","delete","deprecated","do","double","else","enum","export","extern","false","final","finally","float","for","foreach","foreach_reverse","function","goto","idouble","if","ifloat","immutable","import","in","inout","int","interface","invariant","ireal","is","lazy","long","macro","mixin","module","new","nothrow","null","out","override","package","pragma","private","protected","public","pure","real","ref","return","scope","shared","short","static","struct","super","switch","synchronized","template","this","throw","true","try","typedef","typeid","typeof","ubyte","ucent","uint","ulong","union","unittest","ushort","version","void","wchar","while","with","__FILE__","__FILE_FULL_PATH__","__MODULE__","__LINE__","__FUNCTION__","__PRETTY_FUNCTION__","__gshared","__traits","__vector","__parameters","__DATE__","__EOF__","__TIME__","__TIMESTAMP__","__VENDOR__","__VERSION__"];
 
 enum jsKeywords = ["default", "arguments"];
+
+enum nativeTypes = ["AudioParam", "ReadableStream", "ArrayBufferView", "nsIVariant", "nsISupports", "MIDIOutput", "MIDIInput", "BufferSource", "JSON", "JsObject", "ArrayPair", "Record", "Iterator", "FrozenArray", "InputStream", "ArrayBuffer", "DataView", "Uint8ClampedArray", "Float64Array", "Float32Array", "Uint32Array", "Uint16Array", "Uint8Array", "Int32Array", "Int16Array", "Int8Array", "TypedArray", "Sequence", "JsPromise", "Any"];
 mixin(registerMethods);
 
 enum FunctionType { Function = 1, Attribute = 2, Static = 4, OpIndex = 8, OpIndexAssign = 16, OpDispatch = 32, Getter = 64, Setter = 128, Deleter = 256, Includes = 512, Partial = 1024, DictionaryConstructor = 2048, ExposedConstructor = 4096 };
@@ -197,7 +199,7 @@ void toDImport(virtual!Node node, StructNode parent, Semantics semantics, Indent
     if (p is null) {
       writeln("Error: Cannot find definition of type ", node.baseType.matches[0], ".");
     } else {
-      a.put(["spasm.bindings.", p.module_.name, "."]);
+      a.put(["libwasm.bindings.", p.module_.name, "."]);
     }
     a.put(node.baseType.matches[0].friendlyName);
     a.putLn(" _parent;");
@@ -550,13 +552,13 @@ void dumpJsArgument(Appender)(ref Semantics semantics, Argument arg, ref Appende
     auto argument = Argument(arg.name, aliased.stripNullable);
     semantics.dumpJsArgument(argument, a);
   } else if (semantics.isUnion(arg.type) || semantics.isEnum(arg.type)) {
-    a.put("spasm_decode_");
+    a.put("libwasm_decode_");
     arg.type.mangleTypeJsImpl(a, semantics, MangleTypeJsContext(true));
     a.put("(");
     a.put(arg.name.friendlyJsName);
     a.put(")");
   } else if (semantics.isStringType(arg.type)) {
-    a.put(["spasm_decode_string(",arg.name.friendlyJsName,"Len, ",arg.name.friendlyJsName,"Ptr)"]);
+    a.put(["libwasm_decode_string(",arg.name.friendlyJsName,"Len, ",arg.name.friendlyJsName,"Ptr)"]);
   } else if (semantics.isCallback(arg.type)){
     auto signature = getTypeName(arg.type) in semantics.types;
     auto argList = semantics.getArgumentList(signature.tree);
@@ -571,7 +573,7 @@ void dumpJsArgument(Appender)(ref Semantics semantics, Argument arg, ref Appende
         auto type = t.value[1];
         if (semantics.isStringType(type) || semantics.isUnion(type)
             || semantics.isNullable(type) || semantics.isEnum(type)) {
-          a.put(["spasm_encode_"]);
+          a.put(["libwasm_encode_"]);
           if (type.name == "WebIDL.TypeWithExtendedAttributes")
             type.children[1].mangleTypeJs(a, semantics);
           else
@@ -591,7 +593,7 @@ void dumpJsArgument(Appender)(ref Semantics semantics, Argument arg, ref Appende
     if (hasResult && !resultIsPassedViaFirstArgument)
       a.put("return ");
 
-    a.put(["spasm_indirect_function_get(", base, "Ptr)("]);
+    a.put(["libwasm_indirect_function_get(", base, "Ptr)("]);
     if (resultIsPassedViaFirstArgument)
       a.put([resultPtr.to!string, ", "]);
     a.put([base, "Ctx"]);
@@ -613,11 +615,11 @@ void dumpJsArgument(Appender)(ref Semantics semantics, Argument arg, ref Appende
     if (resultIsPassedViaFirstArgument) {
       a.put("; return ");
       if (semantics.isUnion(result) || semantics.isEnum(result) || semantics.isNullable(result)) {
-        a.put("spasm_decode_");
+        a.put("libwasm_decode_");
         result.mangleTypeJsImpl(a, semantics, MangleTypeJsContext(true));
         a.put(["(", resultPtr.to!string, ")"]);
       } else if (semantics.isAny(result)) {
-        a.put(["spasm_decode_Handle(", resultPtr.to!string, ")"]);
+        a.put(["libwasm_decode_Handle(", resultPtr.to!string, ")"]);
       }
     }
     a.put("}");
@@ -676,7 +678,7 @@ void dump(Appender)(ref Context context, JsExportFunction item, ref Appender a) 
     if (!rawResult)
       a.put("return ");
     if (semantics.isStringType(item.result) || semantics.isUnion(item.result) || semantics.isNullable(item.result) || semantics.isEnum(item.result)) {
-      a.put("spasm_encode_");
+      a.put("libwasm_encode_");
       if (item.result.name == "WebIDL.TypeWithExtendedAttributes")
         item.result.children[1].mangleTypeJs(a, semantics);
       else
@@ -784,17 +786,17 @@ string generateJsGlobalBindings(IR ir, string[] jsExportFilters, ref IndentedStr
         return "void";
       else if (mangled[0] == 'E') {
         auto info = getSymbolInfo(mangled);
-        return "spasm_decode_" ~ info.name;
+        return "libwasm_decode_" ~ info.name;
       } else {
         if (mangled.startsWith("S8optional")) {
-          throw new Error("Promise!T.then is not yet implemented for Optional!T.");
+          throw new Error("JsPromise!T.then is not yet implemented for Optional!T.");
         }
         auto info = getSymbolInfo(mangled);
         if (ir.semantics.isTypedef(info.name)) {
-          throw new Error("Promise!T.then is not yet implemented for Typedefs.");
+          throw new Error("JsPromise!T.then is not yet implemented for Typedefs.");
         }
         if (mangled.canFind("sumtype")) {
-          throw new Error("Promise!T.then is not yet implemented for SumType!Ts.");
+          throw new Error("JsPromise!T.then is not yet implemented for SumType!Ts.");
         }
       }
       return "";
@@ -808,17 +810,17 @@ string generateJsGlobalBindings(IR ir, string[] jsExportFilters, ref IndentedStr
         return "void";
       else if (mangled[0] == 'E') {
         auto info = getSymbolInfo(mangled);
-        return "spasm_encode_" ~ info.name;
+        return "libwasm_encode_" ~ info.name;
       } else {
         if (mangled.startsWith("S8optional")) {
-          throw new Error("Promise!T.then is not yet implemented for Optional!T.");
+          throw new Error("JsPromise!T.then is not yet implemented for Optional!T.");
         }
         auto info = getSymbolInfo(mangled);
         if (ir.semantics.isTypedef(info.name)) {
-          throw new Error("Promise!T.then is not yet implemented for Typedefs.");
+          throw new Error("JsPromise!T.then is not yet implemented for Typedefs.");
         }
         if (mangled.canFind("sumtype")) {
-          throw new Error("Promise!T.then is not yet implemented for SumType!Ts.");
+          throw new Error("JsPromise!T.then is not yet implemented for SumType!Ts.");
         }
       }
       return "";
@@ -836,7 +838,7 @@ string generateJsGlobalBindings(IR ir, string[] jsExportFilters, ref IndentedStr
     app.indent();
     if (argEncoder != "" && argEncoder != "void")
       app.putLn([argEncoder, "(0,r);"]);
-    app.put("spasm_indirect_function_get(ptr)(");
+    app.put("libwasm_indirect_function_get(ptr)(");
     if (returns) {
       app.put("512, ");
     }
@@ -871,9 +873,10 @@ void dump(Appender)(ref Semantics semantics, DBindingFunction item, ref Appender
   // } else
   //   a.put("void ");
   if (item.type & FunctionType.DictionaryConstructor) {
+    // 
     a.putLn("static auto create() {");
     a.indent();
-    a.putLn(["return ", item.parentTypeName, "(spasm_add__object());"]);
+    a.putLn(["return ", item.parentTypeName, "(libwasm_add__object());"]);
     a.undent();
     a.putLn("}");
     return;
@@ -913,6 +916,7 @@ void dump(Appender)(ref Semantics semantics, DBindingFunction item, ref Appender
   auto anyOrOptArgs = item.args.enumerate.filter!(a => semantics.isAny(a.value.type) || semantics.isNullable(a.value.type)).array();
   auto anys = anyOrOptArgs.filter!(a => semantics.isAny(a.value.type)).array();
   auto optArgs = anyOrOptArgs.filter!(a => semantics.isNullable(a.value.type)).array();
+  bool has_template_args = true;
   if (templArgs.length > 0) {
     assert(anys.length == 0);
     a.put("(");
@@ -927,6 +931,7 @@ void dump(Appender)(ref Semantics semantics, DBindingFunction item, ref Appender
     a.put(getTemplatedTypeName(anyOrOptArgs[$-1].index));
     a.put(")");
   } else {
+    has_template_args = false;
     a.put("()");
   }
   a.put("(");
@@ -986,7 +991,7 @@ void dump(Appender)(ref Semantics semantics, DBindingFunction item, ref Appender
       a.put("auto result = ");
     else
       a.put("return ");
-    if (!semantics.isPrimitive(item.result) && !semantics.isUnion(item.result) && !semantics.isNullable(item.result)) {
+    if (!semantics.isPrimitive(item.result) && !semantics.isUnion(item.result)) {
       if (item.type == FunctionType.ExposedConstructor)
         a.put([".",item.name]);
       else
@@ -1008,27 +1013,296 @@ struct DBindingFunction {
 }*/
 
 // optional 1856
-  void dumpCallArgs(AppenderObj)(ref AppenderObj app, string generic_member) 
+  void dumpCallArgs(AppenderObj)(ref AppenderObj app, string generic_member, string static_name = null) 
   {
     app.put("(");
-    if (!(item.type & FunctionType.Static)) {
+    if (!static_name) {
       app.put("this.");
       app.put(item.handle);
-      if (generic_member) {
-        app.put(", \"");
-        app.put(generic_member);
-        app.put("\"");
-      }
-      if (item.args.length > 0)
-        app.put(", ");
+    } else {     
+      app.put("\"");
+      app.put(static_name);
+      app.put("\"");
     }
+    if (generic_member) {        
+      app.put(", \"");
+      app.put(generic_member);
+      app.put("\"");
+    }
+    if (item.args.length > 0)
+      app.put(", ");
     semantics.dumpDJsArguments(item.args, app);
     
   }
+
+  void dumpCallVarArgs(AppenderObj)(ref AppenderObj app, string generic_member) 
+  {
+    app.put("(");
+    app.put("this.");
+    app.put(item.handle);
+    if (generic_member) {
+      app.put(", \"");
+      app.put(generic_member);
+      app.put("\"");
+    }
+    if (runArgs.length == 0) {
+      app.put(", \"\", tuple()");
+      return;
+    }
+    app.put(", ");
+  
+    app.put("\"");
+
+    void addType(T)(T arg) {
+      auto type_name = arg.type.getTypeName();
+      bool is_native_type = false;
+      foreach (native_type; nativeTypes) {
+        
+        if (type_name == native_type || type_name == "."~native_type || type_name.startsWith(native_type ~ "!")) {
+          is_native_type = true;
+          break;
+        }
+      }
+      if ((is_native_type || (!semantics.isPrimitive(arg.type) && !semantics.isUnion(arg.type))) && !semantics.isNullable(arg.type)) {
+        app.put("Handle");
+      } else if ((is_native_type || (!semantics.isPrimitive(arg.type) && !semantics.isUnion(arg.type))) && semantics.isNullable(arg.type)) {        
+        app.put("Optional!Handle");
+      } else if (semantics.isUnion(arg.type)) {
+        string[] children_;
+        bool optional = (semantics.isNullable(arg.type) || arg.type.children[$-1].name == "WebIDL.Null" && arg.type.children[$-1].matches[0] == "?");
+        if (optional) {
+          app.put("Optional!");
+          children_ = getChildrenOfSumType(arg.type, semantics, locals);
+        }
+        else  children_ = getChildrenOfSumType(arg.type, semantics, locals);
+        app.put("SumType!(");
+        
+        void generateSumTypes(string[] children) {
+          foreach (i, child; children) {
+            
+            if (i > 0) app.put(",");
+            auto p = child in semantics.types;
+            import std.string : replace;
+            if (!p) p = child.replace(".","") in semantics.types;
+            // enum ?
+            if (p) {
+              //writeln("Got Type: ", p.tree.name, " for ", child);
+
+              if (p.tree.name == "WebIDL.Enum"){
+                // todo: How to see if it's optional?
+                app.put("int");
+              }
+              else if (p.tree.name == "WebIDL.Typedef") {
+
+
+                auto baseType = semantics.getAliasedType(child);
+                if ((is_native_type || (!semantics.isPrimitive(baseType) && !semantics.isUnion(baseType))) && !semantics.isNullable(baseType)) {
+                  app.put("Handle");
+                } else if ((is_native_type || (!semantics.isPrimitive(baseType) && !semantics.isUnion(baseType))) && semantics.isNullable(baseType)) {        
+                  app.put("Optional!Handle");
+                } else if (semantics.isEnum(baseType)) {
+                  if (semantics.isNullable(baseType))
+                    app.put("Optional!");
+                  app.put("int");
+                  
+                } else if (semantics.isTypedef(baseType)) {
+                  writeln("Typedef redirected to other Typedef: ", child, " => ", getTypeName(baseType));
+                } else if (semantics.isUnion(baseType)) {
+                  // flatten
+                  string[] subchildren = getChildrenOfSumType(baseType, semantics, locals);
+                  generateSumTypes(subchildren);
+                
+                } else {
+                  app.put(generateDType(baseType, Context(semantics).withLocals(locals)));
+                }
+              }
+              else app.put("Handle");
+              
+              
+            } else {
+              bool found = false;
+              foreach (native_type; nativeTypes) {
+                if (child == native_type || child == "."~native_type || child.startsWith(native_type ~ "!")) {
+                  app.put("Handle");
+                  found = true;
+                  break;
+                }
+              }
+              if (!found)
+                app.put(child);
+            }
+          } 
+        }
+        generateSumTypes(children_);
+
+        app.put(")");
+
+      } else if (semantics.isEnum(arg.type)) {
+        if (semantics.isNullable(arg.type))
+          app.put("Optional!");
+        app ~= "Enum";
+      } else
+        app ~= generateDType(arg.type, Context(semantics).withLocals(locals));
+    }
+  
+    foreach(arg; runArgs[0 .. $-1]) {
+      addType(arg);
+      app.put(";");
+    }
+    
+    addType(runArgs[$-1]);
+    app.put("\", ");
+
+    app.put("tuple(");
+    semantics.dumpDJsArguments(item.args, app, true, locals);
+    app.put(")");    
+  }
+
+  string findVarArgMangle(){
+    static import std.array;
+    std.array.Appender!string app;
+
+    // we ignore static (console.log)
+    if (item.type & FunctionType.Static) return null;
+
+    // we ignore callbacks
+    foreach (arg; runArgs) {
+      if (isCallback(semantics, arg.type) || (!isPrimitive(semantics, arg.type) && arg.name.friendlyName == "listener" || arg.name.friendlyName == "handler")) return null;
+    }
+
+    auto context = Context(semantics).withLocals(locals);
+
+    if (!returns) {
+      // setter // caller
+      // generics that return void
+      app ~= "Serialize_Object_VarArgCall!void";
+      dumpCallVarArgs(app, item.name);
+    } else {
+      auto tree = item.result;
+
+      bool optional = !context.skipOptional && (semantics.isNullable(tree) || tree.children[$-1].name == "WebIDL.Null" && tree.children[$-1].matches[0] == "?");
+
+      // skip optional returns for now
+      //if (optional) return null;
+
+      if (semantics.isAny(tree) || (!semantics.isNullable(tree) && !semantics.isPrimitive(tree) && !context.sumType && !(context.returnType && tree.children[0].name == "WebIDL.SequenceType")))
+      {
+        app ~= "Serialize_Object_VarArgCall!Handle";
+        dumpCallVarArgs(app, item.name);
+      }
+      else if (optional && !semantics.isCallback(tree)) 
+      {
+        // generics that return Optional!(T)
+        auto baseType = tree.stripNullable;
+
+        // T = baseType
+        // sub member
+        
+        if (semantics.isPrimitive(baseType) && !semantics.isCallback(baseType) && !semantics.isUnion(baseType)) {
+          // Optional! string, int, float, etc          
+          auto retSubType = generateDType(baseType, context);
+
+          switch (retSubType){
+            case "string":
+              app ~= "Serialize_Object_VarArgCall!(Optional!string)";
+              dumpCallVarArgs(app, item.name);
+              break;
+            case "u32":
+            case "uint":
+              app ~= "Serialize_Object_VarArgCall!(Optional!uint)";
+              dumpCallVarArgs(app, item.name);
+
+              break;
+            case "double":
+              app ~= "Serialize_Object_VarArgCall!(Optional!double)";
+              dumpCallVarArgs(app, item.name);
+              break;
+            case "bool":
+              app ~= "Serialize_Object_VarArgCall!(Optional!bool)";
+              dumpCallVarArgs(app, item.name);
+              break;
+            default: 
+              //writeln("Ignored Optional!~", retSubType);
+            break;
+          }
+        }
+        else if (!semantics.isPrimitive(baseType) && !semantics.isCallback(baseType) && !semantics.isUnion(baseType))
+        {
+          // Optional!Handle / Objects that resolve to a handle
+          app ~= "Serialize_Object_VarArgCall!(Optional!Handle)";
+          dumpCallVarArgs(app, item.name);
+        }
+      }
+      else if (semantics.isEnum(tree) || (context.isPrimitive(tree) && !semantics.isCallback(tree))) 
+      {
+
+        auto retSubType = generateDType(tree, context);
+        import std.string : indexOf;
+        assert(retSubType.indexOf("!") == -1);
+        switch (retSubType) {
+          case "string":
+            app ~= "Serialize_Object_VarArgCall!string";
+            dumpCallVarArgs(app, item.name);
+            break;
+          case "int":
+            app ~= "Serialize_Object_VarArgCall!int";
+            dumpCallVarArgs(app, item.name);
+            break;
+          case "u32":
+          case "uint":
+            app ~= "Serialize_Object_VarArgCall!uint";
+            dumpCallVarArgs(app, item.name);
+            break;
+          case "ushort":
+            app ~= "Serialize_Object_VarArgCall!ushort";
+            dumpCallVarArgs(app, item.name);
+            break;
+          case "short":
+            app ~= "Serialize_Object_VarArgCall!short";
+            dumpCallVarArgs(app, item.name);
+            break;
+          case "bool":
+            app ~= "Serialize_Object_VarArgCall!bool";
+            dumpCallVarArgs(app, item.name);
+            break;
+          case "float":
+            app ~= "Serialize_Object_VarArgCall!float";
+            dumpCallVarArgs(app, item.name);
+            break;
+          case "double":
+            app ~= "Serialize_Object_VarArgCall!double";
+            dumpCallVarArgs(app, item.name);
+            break;
+          case "long":
+            app ~= "Serialize_Object_VarArgCall!long";
+            dumpCallVarArgs(app, item.name);
+            break;
+          case "ulong":
+            app ~= "Serialize_Object_VarArgCall!ulong";
+            dumpCallVarArgs(app, item.name);
+            break;
+          default:
+            if (semantics.isEnum(tree)) {                
+              app ~= "Serialize_Object_VarArgCall!int";
+              dumpCallVarArgs(app, item.name);
+              break;
+            } else {
+              //writeln("Ignored Primitive ", retSubType);
+              break;
+            }
+        }
+
+      }
+    }
+    return app.data;
+
+  }
+
   string findGenericMangle() {
     static import std.array;
     std.array.Appender!string app;
-    
+    bool static_func = !!(item.type & FunctionType.Static);
+    string static_name = item.parentTypeName;
     auto context = Context(semantics).withLocals(locals);
     if (!returns) {
       // setter // caller
@@ -1036,57 +1310,61 @@ struct DBindingFunction {
       // generics that return void
       switch (item.args.length) {
         case 0:              
-            app ~= "Object_Call__void";
-            dumpCallArgs(app, item.name);
+            app ~= (static_func ? "Static" : "Object") ~ "_Call__void";
+            dumpCallArgs(app, item.name, static_func ? static_name : null);
             break;              
         case 1:
-          switch (item.args[0].type.generateDType(context)) {
+          string arg0type = item.args[0].type.generateDType(context);
+          if (semantics.isEnum(item.args[0].type))
+            arg0type = "int";
+          switch (arg0type) {
             case "string":
-              app ~= "Object_Call_string__void";
-              dumpCallArgs(app, item.name);
+              app ~= (static_func ? "Static" : "Object") ~ "_Call_string__void";
+              dumpCallArgs(app, item.name, static_func ? static_name : null);
               break;
+            case "u32":
             case "uint":
-              app ~= "Object_Call_uint__void";
-              dumpCallArgs(app, item.name);
+              app ~= (static_func ? "Static" : "Object") ~ "_Call_uint__void";
+              dumpCallArgs(app, item.name, static_func ? static_name : null);
               break;
             case "int":
-              app ~= "Object_Call_int__void";
-              dumpCallArgs(app, item.name);
+              app ~= (static_func ? "Static" : "Object") ~ "_Call_int__void";
+              dumpCallArgs(app, item.name, static_func ? static_name : null);
               break;
             case "bool":
-              app ~= "Object_Call_bool__void";
-              dumpCallArgs(app, item.name);
+              app ~= (static_func ? "Static" : "Object") ~ "_Call_bool__void";
+              dumpCallArgs(app, item.name, static_func ? static_name : null);
               break;
             case "double":
-              app ~= "Object_Call_double__void";
-              dumpCallArgs(app, item.name);
+              app ~= (static_func ? "Static" : "Object") ~ "_Call_double__void";
+              dumpCallArgs(app, item.name, static_func ? static_name : null);
               break;
             case "float":
-              app ~= "Object_Call_float__void";
-              dumpCallArgs(app, item.name);
+              app ~= (static_func ? "Static" : "Object") ~ "_Call_float__void";
+              dumpCallArgs(app, item.name, static_func ? static_name : null);
               break;
             case "EventHandler":
-              app ~= "Object_Call_EventHandler__void";
-              dumpCallArgs(app, item.name);
+              app ~= (static_func ? "Static" : "Object") ~ "_Call_EventHandler__void";
+              dumpCallArgs(app, item.name, static_func ? static_name : null);
               break;
             case "Any":
             case "Handle":
-              app ~= "Object_Call_Handle__void";
-              dumpCallArgs(app, item.name);
+              app ~= (static_func ? "Static" : "Object") ~ "_Call_Handle__void";
+              dumpCallArgs(app, item.name, static_func ? static_name : null);
               break;
             default:
               if (!semantics.isNullable(item.args[0].type) && !semantics.isPrimitive(item.args[0].type) && !semantics.isUnion(item.args[0].type) && !semantics.isCallback(item.args[0].type))
               {
                 // may have a handle?
-                app ~= "Object_Call_Handle__void";
-                dumpCallArgs(app, item.name);
+                app ~= (static_func ? "Static" : "Object") ~ "_Call_Handle__void";
+                dumpCallArgs(app, item.name, static_func ? static_name : null);
               } else if (semantics.isNullable(item.args[0].type) && !semantics.isUnion(item.args[0].type)) {
                 auto baseType = item.args[0].type.stripNullable;
                 auto argSubType = generateDType(baseType, context);
                 switch(argSubType) {
                   case "EventHandler":
-                    app ~= "Object_Call_OptionalEventHandler__void";
-                    dumpCallArgs(app, item.name);
+                    app ~= (static_func ? "Static" : "Object") ~ "_Call_OptionalEventHandler__void";
+                    dumpCallArgs(app, item.name, static_func ? static_name : null);
                     break;
                   default: break;
 
@@ -1098,20 +1376,20 @@ struct DBindingFunction {
         case 2:
           if (item.args[0].type.generateDType(context) == "string"
           && item.args[1].type.generateDType(context) == "string") {
-              app ~= "Object_Call_string_string__void";
-              dumpCallArgs(app, item.name);
+              app ~= (static_func ? "Static" : "Object") ~ "_Call_string_string__void";
+              dumpCallArgs(app, item.name, static_func ? static_name : null);
               break;
           }
           if (item.args[0].type.generateDType(context) == "string"
-          && item.args[1].type.generateDType(context) == "uint") {
-              app ~= "Object_Call_string_uint__void";
-              dumpCallArgs(app, item.name);
+          && (item.args[1].type.generateDType(context) == "uint" || item.args[1].type.generateDType(context) == "u32")) {
+              app ~= (static_func ? "Static" : "Object") ~ "_Call_string_uint__void";
+              dumpCallArgs(app, item.name, static_func ? static_name : null);
               break;
           }
           if (item.args[0].type.generateDType(context) == "double"
           && item.args[1].type.generateDType(context) == "double") {
-              app ~= "Object_Call_double_double__void";
-              dumpCallArgs(app, item.name);
+              app ~= (static_func ? "Static" : "Object") ~ "_Call_double_double__void";
+              dumpCallArgs(app, item.name, static_func ? static_name : null);
               break;
           }
           break;
@@ -1136,39 +1414,43 @@ struct DBindingFunction {
           
           switch (item.args.length) {
             case 0:              
-                app ~= "Object_Getter__Handle";
-                dumpCallArgs(app, item.name);
+                app ~= (static_func ? "Static" : "Object") ~ "_Getter__Handle";
+                dumpCallArgs(app, item.name, static_func ? static_name : null);
                 break;              
             case 1:
-              switch (item.args[0].type.generateDType(context)) {
+              string arg0type = item.args[0].type.generateDType(context);
+              if (semantics.isEnum(item.args[0].type))
+                arg0type = "int";
+              switch (arg0type) {
                 case "string":
-                  app ~= "Object_Call_string__Handle";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Call_string__Handle";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
+                case "u32":
                 case "uint":
-                  app ~= "Object_Call_uint__Handle";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Call_uint__Handle";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
                 case "int":
-                  app ~= "Object_Call_int__Handle";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Call_int__Handle";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
                 case "bool":
-                  app ~= "Object_Call_bool__Handle";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Call_bool__Handle";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
                 case "Any":
                 case "Handle":
-                  app ~= "Object_Call_Handle__Handle";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Call_Handle__Handle";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
                 default: 
                 
                   if (!semantics.isNullable(item.args[0].type) && !semantics.isPrimitive(item.args[0].type) && !semantics.isUnion(item.args[0].type) && !semantics.isCallback(item.args[0].type))
                   {
                     // may have a handle?
-                    app ~= "Object_Call_Handle__Handle";
-                    dumpCallArgs(app, item.name);
+                    app ~= (static_func ? "Static" : "Object") ~ "_Call_Handle__Handle";
+                    dumpCallArgs(app, item.name, static_func ? static_name : null);
 
                   }
                 break;
@@ -1177,14 +1459,14 @@ struct DBindingFunction {
             case 2:
               if (item.args[0].type.generateDType(context) == "string"
               && item.args[1].type.generateDType(context) == "string") {
-                  app ~= "Object_Call_string_string__Handle";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Call_string_string__Handle";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
               }
               if (item.args[0].type.generateDType(context) == "string"
-              && item.args[1].type.generateDType(context) == "uint") {
-                  app ~= "Object_Call_string_uint__Handle";
-                  dumpCallArgs(app, item.name);
+              && (item.args[1].type.generateDType(context) == "uint" || item.args[1].type.generateDType(context) == "u32" )) {
+                  app ~= (static_func ? "Static" : "Object") ~ "_Call_string_uint__Handle";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
               }
               break;
@@ -1206,34 +1488,35 @@ struct DBindingFunction {
             case 0:              
               switch (retSubType){
                 case "string":
-                  app ~= "Object_Getter__OptionalString";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Getter__OptionalString";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
+                case "u32":
                 case "uint":
-                  app ~= "Object_Getter__OptionalUint";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Getter__OptionalUint";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
                 case "double":
-                  app ~= "Object_Getter__OptionalDouble";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Getter__OptionalDouble";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
                 case "bool":
-                  app ~= "Object_Getter__OptionalBool";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Getter__OptionalBool";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
                 default: 
-                  writeln("Ignored Optional!~", retSubType);
+                  //writeln("Ignored Optional!~", retSubType);
                 break;
               }
               break;
             case 1:
               if (retSubType == "string") switch (item.args[0].type.generateDType(context)){
                 case "string":
-                  app ~= "Object_Call_string__OptionalString";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Call_string__OptionalString";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
                  default:
-                  writeln("Ignored Optional!~", retSubType);
+                  //writeln("Ignored Optional!~", retSubType);
                  break;
               }
               break;
@@ -1255,29 +1538,30 @@ struct DBindingFunction {
           
           switch (item.args.length) {
             case 0:              
-                app ~= "Object_Getter__OptionalHandle";
-                dumpCallArgs(app, item.name);
+                app ~= (static_func ? "Static" : "Object") ~ "_Getter__OptionalHandle";
+                dumpCallArgs(app, item.name, static_func ? static_name : null);
                 break;              
             case 1:
               switch (item.args[0].type.generateDType(context)) {
                 case "string":
-                  app ~= "Object_Call_string__OptionalHandle";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Call_string__OptionalHandle";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
+                case "u32":
                 case "uint":
-                  app ~= "Object_Call_uint__OptionalHandle";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Call_uint__OptionalHandle";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
                 case "int":
-                  app ~= "Object_Call_int__OptionalHandle";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Call_int__OptionalHandle";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
                 case "bool":
-                  app ~= "Object_Call_bool__OptionalHandle";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Call_bool__OptionalHandle";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
                 default: 
-                  writeln("Ignored Optional!~", retSubType);
+                  //writeln("Ignored Optional!~", retSubType);
                 break;
               }
               break;
@@ -1294,39 +1578,43 @@ struct DBindingFunction {
           auto retSubType = generateDType(tree, context);
           import std.string : indexOf;
           assert(retSubType.indexOf("!") == -1);
+          
+          if (semantics.isEnum(tree))
+            retSubType = "int";
           switch (item.args.length) {
             case 0:
               switch (retSubType) {
                 case "string":
-                  app ~= "Object_Getter__string";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Getter__string";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
                 case "int":
-                  app ~= "Object_Getter__int";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Getter__int";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
+                case "u32":
                 case "uint":
-                  app ~= "Object_Getter__uint";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Getter__uint";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
                 case "ushort":
-                  app ~= "Object_Getter__ushort";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Getter__ushort";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
                 case "bool":
-                  app ~= "Object_Getter__bool";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Getter__bool";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
                 case "float":
-                  app ~= "Object_Getter__float";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Getter__float";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
                 case "double":
-                  app ~= "Object_Getter__double";
-                  dumpCallArgs(app, item.name);
+                  app ~= (static_func ? "Static" : "Object") ~ "_Getter__double";
+                  dumpCallArgs(app, item.name, static_func ? static_name : null);
                   break;
                 default:
-                  writeln("Ignored Primitive ", retSubType);
+                  //writeln("Ignored Primitive ", retSubType);
                   break;
               }
               break;  
@@ -1335,23 +1623,24 @@ struct DBindingFunction {
                 case "string":
                   switch(retSubType) {
                     case "bool":                      
-                      app ~= "Object_Call_string__bool";
-                      dumpCallArgs(app, item.name);
+                      app ~= (static_func ? "Static" : "Object") ~ "_Call_string__bool";
+                      dumpCallArgs(app, item.name, static_func ? static_name : null);
                       break;
                     case "string":
-                      app ~= "Object_Call_string__string";
-                      dumpCallArgs(app, item.name);
+                      app ~= (static_func ? "Static" : "Object") ~ "_Call_string__string";
+                      dumpCallArgs(app, item.name, static_func ? static_name : null);
                       break;
                     default:                      
-                      writeln("Ignored Primitive1 ", retSubType);
+                      //writeln("Ignored Primitive1 ", retSubType);
                     break;
                   }
                   break;
+                case "u32":
                 case "uint":
                   switch (retSubType) {
                     case "string":
-                      app ~= "Object_Call_uint__string";
-                      dumpCallArgs(app, item.name);
+                      app ~= (static_func ? "Static" : "Object") ~ "_Call_uint__string";
+                      dumpCallArgs(app, item.name, static_func ? static_name : null);
                       break;
                     default: break;
                   }
@@ -1362,12 +1651,14 @@ struct DBindingFunction {
             case 2:
                 switch (item.args[0].type.generateDType(context)) {
                   case "uint":
+                  case "u32":
                     switch (item.args[1].type.generateDType(context)) {
                       case "uint":
+                      case "u32":
                         switch (retSubType) {
                           case "string":
-                            app ~= "Object_Call_uint_uint__string";
-                            dumpCallArgs(app, item.name);
+                            app ~= (static_func ? "Static" : "Object") ~ "_Call_uint_uint__string";
+                            dumpCallArgs(app, item.name, static_func ? static_name : null);
                             break;
                           default: break;
                         }
@@ -1387,8 +1678,8 @@ struct DBindingFunction {
       // returns EventHandler
       auto retSubType = generateDType(item.result, context);
       if (item.args.length == 0 && retSubType == "EventHandler") {
-        app ~= "Object_Getter__EventHandler";
-        dumpCallArgs(app, item.name);
+        app ~= (static_func ? "Static" : "Object") ~ "_Getter__EventHandler";
+        dumpCallArgs(app, item.name, static_func ? static_name : null);
       }
     }
 
@@ -1399,16 +1690,35 @@ struct DBindingFunction {
   //// AccessibleNode_roleDescription_Set => Object_setter_String__void("roleDescription", Handle, Value)
   //// AccessibleNode_roleDescription_Get => Object_getter__String("roleDescription", Handle)
   string generic_call = findGenericMangle();
-  if (generic_call && !(item.type & FunctionType.Static)) {
+  string vararg_call;
+  if (!generic_call) vararg_call = findVarArgMangle();
+
+  if (generic_call) {
     isGeneric[mangleName(item.parentTypeName, item.customName.length > 0 ? item.customName : item.name,item.manglePostfix)] = true;
     a.put(generic_call);
   }
+  else if (vararg_call && !vararg_call.canFind("%Error%")) {
+    isGeneric[mangleName(item.parentTypeName, item.customName.length > 0 ? item.customName : item.name,item.manglePostfix)] = true;
+    
+    a.put(vararg_call);
+
+  }
+  ///// if no generic available we check for varargs
+  /*
+    import libwasm.rt.allocator;
+    import fast.json;
+    import std.typecons: tuple;
+    char[] buf = cast(char[]) ThreadMemAllocator.allocate(serializationLength(tuple(btoa)));
+    scope(exit) ThreadMemAllocator.deallocate(buf);
+    auto args = serializeJSON(buf, tuple(btoa));
+    return Object_VarArgCall__string(this._parent, "btoa", "string", cast(string)args);
+  */
   else {
     a.put(mangleName(item.parentTypeName, item.customName.length > 0 ? item.customName : item.name,item.manglePostfix));
     dumpCallArgs(a, null);
   }
   if (returns) {
-    if (!semantics.isPrimitive(item.result) && !semantics.isUnion(item.result) && !semantics.isNullable(item.result)) {
+    if (!semantics.isPrimitive(item.result) && !semantics.isUnion(item.result)) {
       a.put(")");
     }
   }
@@ -1467,38 +1777,221 @@ void dumpDParameter(Appender)(ref Semantics semantics, Argument arg, ref Appende
   }
 }
 
-void dumpDJsArguments(Appender)(ref Semantics semantics, Argument[] args, ref Appender a) {
+void dumpDJsArguments(Appender)(ref Semantics semantics, Argument[] args, ref Appender a, bool varargs = false, string[] locals = null) {
   if (args.length == 0)
     return;
   foreach(arg; args[0..$-1]) {
-    semantics.dumpDJsArgument(arg, a);
+    semantics.dumpDJsArgument(arg, a, varargs);
     a.put(", ");
   }
-  semantics.dumpDJsArgument(args[$-1], a);
+  semantics.dumpDJsArgument(args[$-1], a, varargs);
 }
 
-void dumpDJsArgument(Appender)(ref Semantics semantics, Argument arg, ref Appender a) {
+string[] getChildrenOfSumType(T)(T baseType, ref Semantics semantics, string[] locals) {
+  import std.regex;
+  string typeName = baseType.getTypeName();
+  import std.string : split;
+  string children_str;
+  if (semantics.isTypedef(typeName))
+    children_str = generateDType(semantics.getAliasedType(typeName).children[1], Context(semantics).withLocals(locals));
+  else
+    children_str = generateDType(baseType, Context(semantics).withLocals(locals));
+    
+  if (children_str.startsWith("Optional!")) {
+    children_str = children_str["Optional!(SumType!(".length .. $-2];
+  }
+  else {      
+    children_str = children_str["SumType!(".length .. $-1];
+  }
+  if (children_str.canFind("SumType!")) {
+    writeln("%ERROR%");
+    return ["%ERRROR"];
+  }
+  return replaceAll(children_str, r"!\((?:[^)(]+|\((?:[^)(]+|\([^)(]*\))*\))*\)".regex, "").split(", ");
+}
+
+void dumpDJsArgument(Appender)(ref Semantics semantics, Argument arg, ref Appender a, bool varargs = false, string[] locals = null) {
+
+  
   if (semantics.isAny(arg.type)) {
     a.put("_handle_");
     a.put(arg.name.friendlyName);
     return;
   }
   bool optional = semantics.isNullable(arg.type);
+  
+  void dumpUnion() {
+
+    // todo: also add the type as a string first
+    
+
+    bool comma_needed1 = false;
+    import std.string : split;
+    string[] children = getChildrenOfSumType(arg.type, semantics, locals);
+    string[] flattenChildren(string[] children_) {
+      string[] flattened_children;
+      foreach (child; children_) {
+        bool has_subchildren = false;
+        auto p = child in semantics.types;
+        import std.string : replace;
+        if (!p) p = child.replace(".","") in semantics.types;
+        // enum ?
+        if (p) {
+          if (p.tree.name == "WebIDL.Typedef") {
+            auto baseType = semantics.getAliasedType(child);
+            if (semantics.isUnion(baseType)) {
+              // flatten
+              string[] subchildren = getChildrenOfSumType(baseType, semantics, locals);
+              flattened_children ~= flattenChildren(subchildren);
+              has_subchildren = true;
+            }
+          }
+        }
+
+        if (!has_subchildren) flattened_children ~= child;
+        
+      }
+      return flattened_children;
+    }
+    children = flattenChildren(children);
+
+    bool childIsHandle(string child) {
+      bool is_handle;
+      auto p = child in semantics.types;
+      import std.string : replace;
+      if (!p) p = child.replace(".","") in semantics.types;
+      if (p) {      
+        if (p.tree.name != "WebIDL.Enum" && p.tree.name != "WebIDL.Typedef")
+        {
+         is_handle = true;
+        } else if (p.tree.name == "WebIDL.Typedef") {
+          auto baseType = semantics.getAliasedType(child);
+          if (!semantics.isPrimitive(baseType) && !semantics.isUnion(baseType) && !semantics.isNullable(baseType)) {
+            is_handle = true;
+          }
+        }
+      } else {
+        
+          bool is_native_type = false;
+          foreach (native_type; nativeTypes) {
+            
+            if (child == native_type || child == "."~native_type || child.startsWith(native_type ~ "!")) {
+              is_native_type = true;
+              break;
+            }
+          }
+          if (is_native_type) {
+            is_handle = true;
+          }          
+      }
+      return is_handle;
+
+    }
+
+    a.put("libwasm.sumtype.match!(");
+
+    foreach(i, child; children) {     
+      if (comma_needed1) 
+        a.put("),");
+      comma_needed1 = true;     
+      a.put("((");
+      if (childIsHandle(child)){
+        
+          a.put("ref ");
+          a.put(arg.name.friendlyName);
+          a.put(".Types[");
+          a.put(i.to!string);
+          a.put("]");
+      }
+      else a.put(child);
+      a.put(" v) => ");
+      a.put(i.to!string);
+    }
+    
+    a.put("))(");
+    
+    a.put(arg.name.friendlyName);
+    a.put("),tuple(");
+    comma_needed1 = false;
+
+    foreach(i, child; children) {
+      
+      if (comma_needed1) {        
+        a.put(")(");
+        a.put(arg.name.friendlyName);
+        a.put("),"); 
+      }
+      comma_needed1 = true;
+      
+      a.put("libwasm.sumtype.match!(");
+      string match_type = child;
+      bool comma_needed2 = false;
+      bool is_main_type_handle = childIsHandle(child);
+      foreach(j, child2; children) {   
+        bool is_handle = childIsHandle(child2);
+        if (comma_needed2) 
+          a.put("),");
+        comma_needed2 = true;     
+        string type_name = child2;
+        a.put("((");
+        if (is_handle) {
+          a.put("ref ");
+          a.put(arg.name.friendlyName);
+          a.put(".Types[");
+          a.put(j.to!string);
+          a.put("]");
+        } else a.put(type_name);
+        if (type_name == match_type)
+          if (is_handle) a.put(" v) => cast(Handle)v.handle");
+          else a.put(" v) => v");
+        else {
+          a.put(" v) => ");
+          if (is_main_type_handle) {
+            a.put("Handle");
+          } 
+          else a.put(match_type);
+          a.put(".init");
+        }
+      }
+    
+      a.put(")");  
+
+    }
+    a.put(")(");
+    a.put(arg.name.friendlyName);
+    a.put("))"); 
+  }
   if (optional)
     a.put("!");
+    
+  if (!optional && !semantics.isPrimitive(arg.type) && !semantics.isUnion(arg.type) && varargs) a.put("cast(Handle)");
+
+  if (varargs && !optional && semantics.isUnion(arg.type)){
+    dumpUnion();
+    return;
+  }
+
   a.put(arg.name.friendlyName);
   if (optional) {
     if (!semantics.isUnion(arg.type)) {
       a.put(".empty, ");
+      if (!semantics.isPrimitive(arg.type) && !semantics.isUnion(arg.type) && varargs) a.put("cast(Handle)");
       a.put(arg.name.friendlyName);
       a.put(".front");
     } else {
-      a.put(".empty, *");
-      a.put(arg.name.friendlyName);
-      a.put(".frontRef");
+      a.put(".empty, ");
+      if (varargs) {
+        dumpUnion();
+      } else {
+        if (!semantics.isPrimitive(arg.type) && !semantics.isUnion(arg.type) && varargs) a.put("cast(Handle)");
+        a.put("*");
+        a.put(arg.name.friendlyName);
+        a.put(".frontRef");
+      }   
     }
-  }
+  } 
   if (!semantics.isPrimitive(arg.type) && !semantics.isUnion(arg.type)) {
+
     auto s = arg.type.matches[0] in semantics.types;
     if (s !is null) {
       if (s.tree.children[1].matches.length > 1)
@@ -2039,7 +2532,8 @@ auto getType(ref Context context, string name) {
 auto getMatchingPartials(ref Semantics semantics, string name) {
   auto isInterface = (Type p) => p.tree.children[0].children[0].name == "WebIDL.PartialInterfaceOrPartialMixin";
   auto matches = (Type p) => p.tree.children[0].children[0].children[0].children[0].matches[0] == name;
-  return semantics.partials.filter!(p => isInterface(p) && matches(p)).map!(t => t.tree).array();
+  auto matches2 = (Type p) => p.tree.children[0].children[0].children[0].matches[0] == name;
+  return semantics.partials.filter!(p => (isInterface(p) && matches(p)) || matches2(p) ).map!(t => t.tree).array();
 }
 
 auto getMatchingPartials(ref Context context, string name) {
@@ -2433,7 +2927,7 @@ void generateDImports(Appender)(ParseTree tree, ref Appender a, Context context)
   case "WebIDL.Partial":
     break;
   case "WebIDL.PromiseType":
-    a.put("Promise!(");
+    a.put("JsPromise!(");
     tree.children[0].generateDImports(a, context);
     a.put(")");
     break;
@@ -2478,7 +2972,7 @@ IR toIr(ref Semantics semantics) {
 void toIr(Appender)(ParseTree tree, ref Appender a, Context context) {
   switch (tree.name) {
   case "WebIDL.Namespace":
-    // TODO: get matching partials
+    // TODO: get matching partials    
     auto app = appender!(Node[]);
     tree.children[1..$].each!(c => toIr(c, app, context));
     a.put(new StructNode(tree.children[0].matches[0], ParseTree.init, app.data, Yes.isStatic));
@@ -2701,8 +3195,11 @@ void toIr(Appender)(ParseTree tree, ref Appender a, Context context) {
       auto baseType = context.getType(context.typeName);
       if (baseType.name == "WebIDL.MixinRest")
         return;
-    } else if (tree.children[0].children[0].name == "WebIDL.PartialDictionary")
+    } else if (tree.children[0].children[0].name == "WebIDL.PartialDictionary") {
       context.typeName = tree.children[0].children[0].children[0].matches[0];
+    } else if (tree.children[0].children[0].name == "WebIDL.Namespace") {
+      context.typeName = tree.children[0].children[0].children[0].matches[0];
+    }
     tree.children[0].toIr(a, context);
     break;
   case "WebIDL.PartialInterfaceRest":
@@ -2834,7 +3331,7 @@ auto stripNullable(const ParseTree tree) {
 }
 
 void generateJsDecoder(Decoder)(Decoder decoder, ref IndentedStringAppender a, ref Semantics semantics, bool isVar) {
-  a.put("spasm_decode_");
+  a.put("libwasm_decode_");
   a.put(decoder.mangled);
   if (isVar) {
     a.put(" = ");
@@ -2870,21 +3367,21 @@ void generateJsDecoder(Decoder)(Decoder decoder, ref IndentedStringAppender a, r
     a.putLn(["if (getBool(ptr+", structSize.to!string, ")) {"]);
     a.indent();
     auto typedefMangled = aliasedType.mangleTypeJs(semantics);
-    a.putLn(["return spasm_decode_",typedefMangled,"(ptr);"]);
+    a.putLn(["return libwasm_decode_",typedefMangled,"(ptr);"]);
     a.undent();
     a.putLn("}");
   } else if (semantics.isTypedef(decoder.tree)) {
     string typeName = decoder.tree.getTypeName();
     auto aliasedType = semantics.getAliasedType(typeName);
     auto typedefMangled = aliasedType.mangleTypeJs(semantics);
-    a.putLn(["return spasm_decode_",typedefMangled,"(ptr);"]);
+    a.putLn(["return libwasm_decode_",typedefMangled,"(ptr);"]);
   } else if (semantics.isNullable(decoder.tree)) {
     auto baseType = decoder.tree.stripNullable;
     uint structSize = semantics.getSizeOf(baseType);
     a.putLn(["if (getBool(ptr+", structSize.to!string, ")) {"]);
     a.indent();
     auto typedefMangled = baseType.mangleTypeJs(semantics);
-    a.putLn(["return spasm_decode_",typedefMangled,"(ptr);"]);
+    a.putLn(["return libwasm_decode_",typedefMangled,"(ptr);"]);
     a.undent();
     a.putLn("}");
   } else if (semantics.isEnum(decoder.tree)) {
@@ -2896,7 +3393,7 @@ void generateJsDecoder(Decoder)(Decoder decoder, ref IndentedStringAppender a, r
     void outputChild(Child)(Child c, ref Semantics semantics) {
       a.putLn(["if (getUInt(ptr) == ", c.index.to!string, ") {"]);
       a.indent();
-      a.putLn(["return spasm_decode_",c.value.mangleTypeJs(semantics),"(ptr+4);"]);
+      a.putLn(["return libwasm_decode_",c.value.mangleTypeJs(semantics),"(ptr+4);"]);
       a.undent();
       a.put("}");
     }
@@ -2937,7 +3434,7 @@ void generateJsDecoder(Decoder)(Decoder decoder, ref IndentedStringAppender a, r
   a.put("}");
 }
 void generateJsEncoder(Encoder)(Encoder encoder, ref IndentedStringAppender a, ref Semantics semantics, bool isVar) {
-  a.put("spasm_encode_");
+  a.put("libwasm_encode_");
   a.put(encoder.mangled);
   if (isVar) {
     a.put(" = ");
@@ -2973,21 +3470,21 @@ void generateJsEncoder(Encoder)(Encoder encoder, ref IndentedStringAppender a, r
     a.putLn(["if (setBool(ptr+", structSize.to!string, ", isDefined(val))) {"]);
     a.indent();
     auto typedefMangled = aliasedType.mangleTypeJs(semantics);
-    a.putLn(["spasm_encode_",typedefMangled,"(ptr, val);"]);
+    a.putLn(["libwasm_encode_",typedefMangled,"(ptr, val);"]);
     a.undent();
     a.putLn("}");
   } else if (semantics.isTypedef(encoder.tree)) {
     string typeName = encoder.tree.getTypeName();
     auto aliasedType = semantics.getAliasedType(typeName);
     auto typedefMangled = aliasedType.mangleTypeJs(semantics);
-    a.putLn(["spasm_encode_",typedefMangled,"(ptr, val);"]);
+    a.putLn(["libwasm_encode_",typedefMangled,"(ptr, val);"]);
   } else if (semantics.isNullable(encoder.tree)) {
     auto baseType = encoder.tree.stripNullable;
     uint structSize = semantics.getSizeOf(baseType);
     a.putLn(["if (setBool(ptr+", structSize.to!string, ", isDefined(val))) {"]);
     a.indent();
     auto typedefMangled = baseType.mangleTypeJs(semantics);
-    a.putLn(["spasm_encode_",typedefMangled,"(ptr, val);"]);
+    a.putLn(["libwasm_encode_",typedefMangled,"(ptr, val);"]);
     a.undent();
     a.putLn("}");
   } else if (semantics.isEnum(encoder.tree)) {
@@ -3000,7 +3497,7 @@ void generateJsEncoder(Encoder)(Encoder encoder, ref IndentedStringAppender a, r
         a.putLn(["if (val instanceof ",c.value.getTypeName,") {"]);
         a.indent();
         a.putLn(["setUInt(ptr, ",c.index.to!string ,");"]);
-        a.putLn(["spasm_encode_",c.value.mangleTypeJs(semantics),"(ptr+4, val);"]);
+        a.putLn(["libwasm_encode_",c.value.mangleTypeJs(semantics),"(ptr+4, val);"]);
         a.undent();
         a.put("}");
     }
@@ -3216,7 +3713,7 @@ auto getImports(IR ir, Module module_) {
       }
       app.put(tuple!("type","name")(*p, name));
     } else {
-      writeln("Cannot find ", name);
+      //writeln("Cannot find ", name);
     }
   }
   void recurse(Node node) {
@@ -3249,8 +3746,8 @@ auto getImports(IR ir, Module module_) {
   ir.nodes.filter!(n => n.module_ is module_).each!((node){
       node.children.each!(c => recurse(c));
     });
-  return app.data.filter!(t => t.type.module_ !is module_).map!(t => t.type.module_.name).map!(n => format("import spasm.bindings.%s;",n)).array.sort.uniq.array;
-  // return app.data.schwartzSort!(a => a.name).uniq!((a,b){return a.name == b.name;}).filter!(t => t.type.module_ !is module_).map!(t => format("import spasm.bindings.%s : %s;", t.type.module_.name,t.name)).array;
+  return app.data.filter!(t => t.type.module_ !is module_).map!(t => t.type.module_.name).map!(n => format("import libwasm.bindings.%s;",n)).array.sort.uniq.array;
+  // return app.data.schwartzSort!(a => a.name).uniq!((a,b){return a.name == b.name;}).filter!(t => t.type.module_ !is module_).map!(t => format("import libwasm.bindings.%s : %s;", t.type.module_.name,t.name)).array;
 }
 
 class IR {
@@ -3374,14 +3871,14 @@ string generateSingleJsBinding(IR ir, string[] filtered = []) {
   import std.typecons : tuple;
   auto semantics = ir.semantics;
   auto app = IndentedStringAppender();
-  app.putLn("// File is autogenerated with `dub spasm:webidl -- --bindgen`");
-  app.putLn("import {spasm as spa, encoders as encoder, decoders as decoder} from '../modules/spasm.js';");
-  app.putLn("let spasm = spa;");
+  app.putLn("// File is autogenerated with `dub libwasm:webidl -- --bindgen`");
+  app.putLn("import {libwasm as spa, encoders as encoder, decoders as decoder} from '../modules/libwasm.js';");
+  app.putLn("let libwasm = spa;");
   app.putLn("let memory = {};");
-  app.putLn("const objects = spasm.objects;");
-  app.putLn("const addObject = spasm.addObject;");
+  app.putLn("const objects = libwasm.objects;");
+  app.putLn("const addObject = libwasm.addObject;");
   app.putLn("const setupMemory = () => {");
-  app.putLn("    let buffer = spasm.memory.buffer;");
+  app.putLn("    let buffer = libwasm.memory.buffer;");
   app.putLn("    if (memory.buffer == buffer)");
   app.putLn("        return;");
   app.putLn("    memory.buffer = buffer;");
@@ -3418,9 +3915,9 @@ string generateSingleJsBinding(IR ir, string[] filtered = []) {
   app.putLn("      isDefined = (val) => (val != undefined && val != null),");
   app.putLn("      encode_handle = (ptr, val) => { setUInt(ptr, addObject(val)); },");
   app.putLn("      decode_handle = (ptr) => { return objects[getUInt(ptr)]; },");
-  app.putLn("      spasm_encode_string = encoder.string,");
-  app.putLn("      spasm_decode_string = decoder.string,");
-  app.put("      spasm_indirect_function_get = (ptr)=>spasm.instance.exports.__indirect_function_table.get(ptr)");
+  app.putLn("      libwasm_encode_string = encoder.string,");
+  app.putLn("      libwasm_decode_string = decoder.string,");
+  app.put("      libwasm_indirect_function_get = (ptr)=>libwasm.instance.exports.__indirect_function_table.get(ptr)");
   app.indent();
   foreach(encoder; encodedTypes.filter!(e => e.mangled != "string")) {
     app.putLn(",");
@@ -3720,7 +4217,7 @@ void generateDType(Appender)(ParseTree tree, ref Appender a, Context context) {
     a.put(")");
     break;
   case "WebIDL.PromiseType":
-    a.put("Promise!(");
+    a.put("JsPromise!(");
     tree.children[0].generateDType(a, context);
     a.put(")");
     break;

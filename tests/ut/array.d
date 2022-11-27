@@ -3,10 +3,10 @@ module ut.array;
 version (unittest):
 
 import unit_threaded;
-import spasm.dom;
-import spasm.spa;
-import spasm.types;
-import spasm.rt.array;
+import libwasm.dom;
+import libwasm.spa;
+import libwasm.types;
+import libwasm.rt.array;
 
 @safe:
 

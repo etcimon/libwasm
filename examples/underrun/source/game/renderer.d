@@ -1,8 +1,8 @@
 module game.renderer;
 
-import spasm.webgl;
-import spasm.types;
-import spasm.rt.memory;
+import libwasm.webgl;
+import libwasm.types;
+import libwasm.rt.memory;
 import game.entity;
 import game.math;
 import std.range : only;

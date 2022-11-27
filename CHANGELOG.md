@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - JsHandle now has unique semantics. This means JS resources are freed deterministically (when the JsHandle goes out of scope), without the cost of reference counting. It also means the JsHandle is non-copyable and it requires dip1000 with `scope ref` to get it to pass safely to other functions. **Breaking change**
 - The JS glue code now has a freelist to reuse handles.
-- Handle growable memory. The base allocator in Spasm first queries the break point before growing memory. This allows other code to call the grow memory intrinsic (e.g C code compiled with WASI).
+- Handle growable memory. The base allocator in libwasm first queries the break point before growing memory. This allows other code to call the grow memory intrinsic (e.g C code compiled with WASI).
 - The `make` template function used to allocate memory now keeps a separate allocation list for each type. This is required to quickly call a type's destructor (if any) when the memory is freed by the GC. 
 - `markMemory` and `freeUnmarked` GC functions are introduced. Currently they are not scheduled and can only be called from JS. The GC requires explicit adding of root pointer. **Experimental** 
 - Call destructors when GC is freeing garbage
@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rename `NamedJsHandle` to `NamedNode`
 - Fix CSS extended style set extraction
 - Create css static table for enums
-- add a SPASM_GC_DEBUG version to include code for rendering allocation pools
+- add a libwasm_GC_DEBUG version to include code for rendering allocation pools
 - Basic hot module reloading
 - add spa unittests
 - add css unittests

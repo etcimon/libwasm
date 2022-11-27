@@ -4,13 +4,13 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
 
 module.exports = {
-    entry: './spasm/entry.js',
+    entry: './libwasm/entry.js',
     mode: "production",
     plugins: [
         new HtmlWebpackPlugin({
-            title: 'Spasm',
+            title: 'libwasm',
             inlineSource: '.(js|css)$',
-            template: './spasm/index.template.html'
+            template: './libwasm/index.template.html'
         }),
         new HtmlWebpackInlineSourcePlugin(),
     ],

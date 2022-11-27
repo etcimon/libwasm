@@ -1,11 +1,11 @@
 # DOM
 
-This is a spasm example to show how to call the browser's DOM api.
+This is a libwasm example to show how to call the browser's DOM api.
 
 ```d
-import spasm.bindings;
-import spasm.dom;
-import spasm.types;
+import libwasm.bindings;
+import libwasm.dom;
+import libwasm.types;
 
 @safe:
 

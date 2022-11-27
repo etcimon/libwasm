@@ -1,8 +1,8 @@
 import ldc.attributes;
 
-import spasm.types;
-import spasm.spa;
-import spasm.rt.array;
+import libwasm.types;
+import libwasm.spa;
+import libwasm.rt.array;
 
 @safe:
 nothrow:
@@ -44,10 +44,10 @@ struct App {
     updateItems();
   }
   @trusted @connect!"header.field.enter" void enter() {
-    import spasm.rt.memory;
+    import libwasm.rt.memory;
     Item* item = allocator.make!Item;
     item.textContent = header.field.value;
-    (*item).setPointers();
+    (*item).compile();
     header.field.update.value = "";
     main.items.put(item);
     updateItems();

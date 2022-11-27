@@ -1,6 +1,6 @@
-import spasm.bindings;
-import spasm.dom;
-import spasm.types;
+import libwasm.bindings;
+import libwasm.dom;
+import libwasm.types;
 
 nothrow:
 @safe:

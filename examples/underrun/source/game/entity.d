@@ -4,7 +4,7 @@ import game.level;
 import game.renderer;
 import game.math;
 import game.terminal;
-import spasm.rt.memory;
+import libwasm.rt.memory;
 import game.audio;
 import std.range : only;
 

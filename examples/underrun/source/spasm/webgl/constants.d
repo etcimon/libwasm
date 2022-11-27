@@ -1,4 +1,4 @@
-module spasm.webgl.constants;
+module libwasm.webgl.constants;
 
 nothrow:
 @safe:

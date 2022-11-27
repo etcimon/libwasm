@@ -1,6 +1,6 @@
-module spasm.webgl.functions;
+module libwasm.webgl.functions;
 
-import spasm.webgl.types;
+import libwasm.webgl.types;
 
 nothrow:
 @safe:

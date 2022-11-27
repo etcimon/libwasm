@@ -1,5 +1,5 @@
 name "bootstrap-webpack"
-description "Webpack bootstrapper for developing spasm applications ."
+description "Webpack bootstrapper for developing libwasm applications ."
 authors "Sebastiaan Koppe"
 copyright "Copyright © 2018, Sebastiaan Koppe"
 license "MIT"

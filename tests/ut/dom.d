@@ -3,9 +3,9 @@ module ut.dom;
 version (unittest):
 
 import unit_threaded;
-import spasm.dom;
-import spasm.spa;
-import spasm.types;
+import libwasm.dom;
+import libwasm.spa;
+import libwasm.types;
 
 @safe:
 

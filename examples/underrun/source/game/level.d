@@ -5,10 +5,10 @@ import game.entity;
 import game.math;
 import game.terminal;
 import game.game;
-import spasm.rt.array;
-import spasm.array;
+import libwasm.rt.array;
+import libwasm.array;
 import std.range : only;
-import spasm.rt.memory;
+import libwasm.rt.memory;
 import game.chain;
 
 nothrow:

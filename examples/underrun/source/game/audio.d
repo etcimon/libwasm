@@ -1,7 +1,7 @@
 module game.audio;
 
 import game.math;
-import spasm.rt.memory;
+import libwasm.rt.memory;
 import std.algorithm : move;
 
 nothrow:
@@ -95,7 +95,7 @@ auto applyDelay(Buffer chnBuf, uint waveSamples, immutable Instrument* instr, ui
 	}
 }
 
-import spasm.types;
+import libwasm.types;
 
 struct BaseAudioContext {
   nothrow:

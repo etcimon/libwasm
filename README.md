@@ -1,8 +1,8 @@
-# Spasm
+# libwasm
 
-<img src="https://github.com/skoppe/spasm/workflows/build/badge.svg"/>&nbsp;<img src="https://img.shields.io/badge/ldc%201.17%20--%201.20%20-supported-brightgreen"/>
+<img src="https://github.com/skoppe/libwasm/workflows/build/badge.svg"/>&nbsp;<img src="https://img.shields.io/badge/ldc%201.17%20--%201.20%20-supported-brightgreen"/>
 
-Spasm is a library to develop single page applications in D that compile to webassembly.
+libwasm is a library to develop single page applications in D that compile to webassembly.
 
 It contains bindings to the most commonly used web apis, including the dom, fetch, audio, and webgl.
 
@@ -10,7 +10,7 @@ As well as a small but powerful SPA framework, which includes CSS. Yes. CSS-in-w
 
 <details><summary>Table Of Contents</summary>
 
-- [Spasm](#Spasm)
+- [libwasm](#libwasm)
   - [Web Bindings](#Web-Bindings)
   - [SPA framework](#SPA-framework)
   - [Examples](#Examples)
@@ -39,32 +39,32 @@ Until Webassembly gets host bindings it is still necessary to generate JS glue c
 
 It uses D's compile time feature to generate optimized rendering code specific for your application.
 
-Not only are your applications fast, they are also small. The [todo-mvc example](https://skoppe.github.io/spasm/examples/todo-mvc/) project is only 5797 (wasm) + 2199 (html+js) bytes when gzipped.
+Not only are your applications fast, they are also small. The [todo-mvc example](https://skoppe.github.io/libwasm/examples/todo-mvc/) project is only 5797 (wasm) + 2199 (html+js) bytes when gzipped.
 
 ## Examples
 
-- [fetch](https://github.com/skoppe/spasm/tree/master/examples/fetch). Shows how to use the fetch api and access returned json. [Demo](https://skoppe.github.io/spasm/examples/fetch/index.html).
-- [dom](https://github.com/skoppe/spasm/tree/master/examples/dom). Shows how to manipulate the DOM. [Demo](https://skoppe.github.io/spasm/examples/dom/index.html).
-- [canvas](https://github.com/skoppe/spasm/tree/master/examples/canvas). Shows how to draw text on the Canvas. [Demo](https://skoppe.github.io/spasm/examples/canvas/index.html).
+- [fetch](https://github.com/skoppe/libwasm/tree/master/examples/fetch). Shows how to use the fetch api and access returned json. [Demo](https://skoppe.github.io/libwasm/examples/fetch/index.html).
+- [dom](https://github.com/skoppe/libwasm/tree/master/examples/dom). Shows how to manipulate the DOM. [Demo](https://skoppe.github.io/libwasm/examples/dom/index.html).
+- [canvas](https://github.com/skoppe/libwasm/tree/master/examples/canvas). Shows how to draw text on the Canvas. [Demo](https://skoppe.github.io/libwasm/examples/canvas/index.html).
 - todo-mvc. Uses the SPA framework to implement the famous [todo mvc application](http://todomvc.com).
-- underun. A D port of a js13k competition game written by Dominic Szablewski. You can play the D version [here](https://skoppe.github.io/spasm/examples/underrun/).
+- underun. A D port of a js13k competition game written by Dominic Szablewski. You can play the D version [here](https://skoppe.github.io/libwasm/examples/underrun/).
 
 ## How to start
 
 Make sure to have at least ldc 1.17.0 installed.
 
-- run `dub init <my-project> spasm`, this will create a folder named `<my-project>` with a dub file and the latest spasm added as dependency
+- run `dub init <my-project> libwasm`, this will create a folder named `<my-project>` with a dub file and the latest libwasm added as dependency
 - add `dflags "-betterC"` to your dub.sdl or add `"dflags": ["-betterC"]` to your dub.json
-- run `dub upgrade && dub run spasm:bootstrap-webpack` to generate the webpack/dev-server boilerplate
+- run `dub upgrade && dub run libwasm:bootstrap-webpack` to generate the webpack/dev-server boilerplate
 - start writing!
 
 You can add any extra css/js you'll need to the `index.template.html`, or you can use any of the myriad features of webpack to include what you need.
 
 ## Using the web bindings
 
-The `spasm.bindings` module defines most web apis. You probably need to import `spasm.dom` and `spasm.types` too as well.
+The `libwasm.bindings` module defines most web apis. You probably need to import `libwasm.dom` and `libwasm.types` too as well.
 
-Make sure to run `dub run spasm:webidl -- --bindgen` after compiling to ensure all required js glue code is generated.
+Make sure to run `dub run libwasm:webidl -- --bindgen` after compiling to ensure all required js glue code is generated.
 
 ## How to compile your application
 
@@ -95,7 +95,7 @@ In case you want to write a custom js function, the first step is writing a func
 extern(C) export int myFunc(uint index);
 ```
 
-After that you write a spasm module in javascript. Simply put a file in the `./spasm/modules/` folder and export a jsExports object.
+After that you write a libwasm module in javascript. Simply put a file in the `./libwasm/modules/` folder and export a jsExports object.
 
 ```js
 export let jsExports = {
@@ -105,9 +105,9 @@ export let jsExports = {
 };
 ```
 
-Manually put the file in the `./spasm/modules/index.js` or just run `dub run spasm:webidl -- --bindgen` to automatically include it.
+Manually put the file in the `./libwasm/modules/index.js` or just run `dub run libwasm:webidl -- --bindgen` to automatically include it.
 
-The `./spasm/entry.js` and the `./spasm/modules/spasm.js` file will combine all exports and use them during the WebAssembly initialization.
+The `./libwasm/entry.js` and the `./libwasm/modules/libwasm.js` file will combine all exports and use them during the WebAssembly initialization.
 
 Working with strings (arrays) and aggregates requires a bit more work. You can study the generated `bindings.js` file in the examples to see how it works.
 
@@ -140,11 +140,11 @@ This project uses betterC, which means there is no D runtime. This also means th
 
 ## Hot module reloading
 
-The spa framework in Spasm has basic support for hot module reloading. Style changes are reloaded correctly as well as basic attributes (`@prop`, `@attr`, `@visible`, etc.) Anything more complex (like lists/arrays) will just revert to their init state.
+The spa framework in libwasm has basic support for hot module reloading. Style changes are reloaded correctly as well as basic attributes (`@prop`, `@attr`, `@visible`, etc.) Anything more complex (like lists/arrays) will just revert to their init state.
 
 ### Enabling hmr for new projects
 
-Make sure you use spasm `v0.2.0-beta.6` and add the following to your `dub.sdl`:
+Make sure you use libwasm `v0.2.0-beta.6` and add the following to your `dub.sdl`:
 
 ```
 configuration "hmr" {
@@ -168,7 +168,7 @@ And compile with `dub build --build=release --config=hmr`
 
 ### Enabling hmr for existing projects
 
-Update to `>=0.2.x` and add the same configuration mentioned above but also rerun `dub run spasm:bootstrap-webpack` in your projects root folder. This will update your dev-server.js and your spa.js and spasm.js modules.
+Update to `>=0.2.x` and add the same configuration mentioned above but also rerun `dub run libwasm:bootstrap-webpack` in your projects root folder. This will update your dev-server.js and your spa.js and libwasm.js modules.
 
 ### How it works
 
@@ -300,7 +300,7 @@ mixin Spa!App;
 
 The result is when the button is clicked the text is changed into "Clicked!".
 
-We have inserted a `string innerText` field into App, and made the one in Button a pointer. When a struct is rendered for the first time, spasm will assign any pointers to the equivalent member of their parent. This approach is chosen due to its low performance impact (just a extra pointer to store) and simplicity (no need to pass prop structs between components).
+We have inserted a `string innerText` field into App, and made the one in Button a pointer. When a struct is rendered for the first time, libwasm will assign any pointers to the equivalent member of their parent. This approach is chosen due to its low performance impact (just a extra pointer to store) and simplicity (no need to pass prop structs between components).
 
 The second piece is the `update` template function, this function uses static introspection to determine exactly what to update. This is almost always inlined in the resulting wasm code. Here we deviate the most from traditional virtual-dom approaches. Instead of completely rendering the App component and diffing the result, the `update` template function knows exactly what to update.
 

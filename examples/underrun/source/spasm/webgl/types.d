@@ -1,4 +1,4 @@
-module spasm.webgl.types;
+module libwasm.webgl.types;
 
 nothrow:
 @safe:

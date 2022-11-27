@@ -11,15 +11,15 @@
  * liability, trademark and document use rules apply.
  */
 
+// http://dev.w3.org/csswg/cssom/#the-css.escape%28%29-method
+partial namespace CSS {
+  DOMString escape(DOMString ident);
+};
+
 namespace CSS {
   [Throws]
   boolean supports(DOMString property, DOMString value);
 
   [Throws]
   boolean supports(DOMString conditionText);
-};
-
-// http://dev.w3.org/csswg/cssom/#the-css.escape%28%29-method
-partial namespace CSS {
-  DOMString escape(DOMString ident);
 };

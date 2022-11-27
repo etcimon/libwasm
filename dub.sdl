@@ -1,9 +1,10 @@
-name "spasm"
-description "A framework for writing single page applications"
-authors "Sebastiaan Koppe"
-copyright "Copyright © 2018, Sebastiaan Koppe"
+name "libwasm"
+description "A framework for writing webassembly single page applications"
+authors "Sebastiaan Koppe" "Etienne Cimon"
+copyright "Copyright © 2018-2022, Sebastiaan Koppe, Etienne Cimon"
 license "MIT"
-dependency "stdx-allocator" version="~>3.1.0-beta.2"
+dependency "memutils" path="./memutils"
+dependency "fast" path="./fast"
 dependency "optional" version="~>0.16.0"
 #target "library"
 subPackage "bootstrap-webpack"
@@ -18,7 +19,6 @@ configuration "library" {
               dflags "-mtriple=wasm32-unknown-unknown-wasm" "-betterC" "-fvisibility=hidden"
               lflags "-allow-undefined" "--export-table" "--export=domEvent" "--export=allocString" "-export=__heap_base"
               importPaths "source" "includes"
-              subConfiguration "stdx-allocator" "wasm"
 }
 
 configuration "unittest" {
@@ -30,7 +30,7 @@ configuration "unittest" {
               mainSourceFile "tests/ut/test_main.d"
 }
 
-# this configuration only exists to compile spasm on dmd nightly, so to get warnings about druntime breaking changes early on
+# this configuration only exists to compile libwasm on dmd nightly, so to get warnings about druntime breaking changes early on
 configuration "dmd" {
               dflags "-betterC"
               targetType "library"
