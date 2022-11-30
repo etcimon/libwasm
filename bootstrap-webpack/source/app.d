@@ -26,6 +26,7 @@ void main(string[] args)
   import sdlang;
   import std.array : replace;
   immutable string libwasmjs = import("./libwasm/modules/libwasm.js");
+  immutable string bindingsjs = import("./libwasm/modules/bindings.js");
   immutable string spajs = import("./libwasm/modules/spa.js");
   immutable string entryjs = import("./libwasm/entry.js");
   immutable string indexhtml = import("./libwasm/index.template.html");
@@ -56,6 +57,7 @@ void main(string[] args)
   write("libwasm/modules/libwasm.js", libwasmjs.replace("@@targetProjectName@@", name));
   writeIndexJsFile("libwasm/modules");
   write("libwasm/modules/spa.js", spajs);
+  write("libwasm/modules/bindings.js", bindingsjs);
   if (exists("index.template.html"))
     rename("index.template.html","libwasm/index.template.html");
   else if (!exists("libwasm/index.template.html"))
