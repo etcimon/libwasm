@@ -93,7 +93,7 @@ struct Main {
     auto date = moment().format();
     console.log(date);
     JSON parsed = JSON.parse("[56542654262544562,452345435345423,34352435245254,243253254352435,1345242534543254,23452345342543243425430]");
-    window.setTimeout((Any any) { console.log("setTimeout called"); console.log(any); return Any.init; }, 10000, null);
+    setTimeout(() { console.log("setTimeout called"); }, 10000);
     console.log("Returned from setTimeout");
     import libwasm.rt.allocator : ThreadMemAllocator;
     // used only for debugging memutils (for now)
@@ -182,15 +182,11 @@ console.log(valadd);
     console.log(sections);
     
     
-    JSON parsed = JSON.parse("[56542654262544562,452345435345423,34352435245254,243253254352435,1345242534543254,23452345342543243425430]");
     */
+    JSON parsed = JSON.parse("[56542654262544562,452345435345423,34352435245254,243253254352435,1345242534543254,23452345342543243425430]");
     auto ld = parsed.lodash();
-    
-    auto start = getTimeStamp();
-    long valadd = 0;
-    long keyadd = 0;
     for(int i = 0; i < 10000; i++) {
-      JSON same_json = ld.onError((reason) @safe => console.log(reason)).forEach(delegate(long val, long key) { valadd += val; keyadd += key; return true; }).execute!JSON();
+      JSON same_json = ld.forEach(delegate(long val, long key) { valadd += val; keyadd += key; return true; }).execute!JSON();
     }
     
     auto end = getTimeStamp();

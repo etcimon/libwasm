@@ -641,7 +641,6 @@ export let jsExports = {
         const commands_str = decoder.string(commandsLen, commandsOffset, memory.heapi32u);
         const commands = JSON.parse(commands_str);
         //
-        console.log(commands_str);
         // find locals
         for(let idx in commands) {
           if (commands[idx]['local'] !== undefined) {

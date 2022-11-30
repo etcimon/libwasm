@@ -196,10 +196,11 @@ void jsCallback0(uint ctx, uint fun) @trusted {
 
 Vector!char format(string fmt, ARGS...)(ARGS args) @trusted {		
     import fast.format : formattedWrite, decCharsVal;
+    import std.traits : isIntegral, isSomeString, isFloatingPoint;
     size_t size_estimate = fmt.length + 16;
 
     foreach (arg; args) {
-      static if (is(typeof(arg) : char[])) {
+      static if (isSomeString!(typeof(arg))) {
         size_estimate += arg.length;
       }
       else static if (isIntegral!(typeof(arg))) {
@@ -212,7 +213,7 @@ Vector!char format(string fmt, ARGS...)(ARGS args) @trusted {
     }
 
     Vector!char vec = Vector!char(size_estimate);
-    char* buf = vec[];
+    char* buf = vec.ptr;
     char[] ret = formattedWrite!fmt(buf, args);
     vec.length = ret.length;
     
