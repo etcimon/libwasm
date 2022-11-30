@@ -1,16 +1,23 @@
 module libwasm.router;
 
+import memutils.hashmap;
+import libwasm.promise;
+import memutils.vector;
+import optional;
+
 // Match setup in compile
+
+@safe nothrow:
 
 enum Direction {
     Entering, Leaving, Always
 }
 
 struct RouterEvent {
-    Router* router;
+    URLRouter* router;
     HashMap!(string, string) parameters;
     string prevURL;
-    string currentURL;
+    string newURL;
 }
 /*
 @enter!"/this/path/:id/" Promise!Any routeHandler(RouterEvent ev) {
@@ -28,10 +35,12 @@ https://github.com/CyberShadow/ae/blob/master/utils/promise/package.d
 private enum maxRouteParameters = 64;
 
 private struct Route {
+    @safe nothrow: 
+
 	string pattern;
-	Optional!(Promise!void) delegate(RouterEvent ev) entering_cb;
-	Optional!(Promise!void) delegate(RouterEvent ev) leaving_cb;
-	Optional!(Promise!void) delegate(RouterEvent ev) always_cb;
+	Optional!(Promise!void) delegate(ref RouterEvent ev) entering_cb;
+	Optional!(Promise!void) delegate(ref RouterEvent ev) leaving_cb;
+	Optional!(Promise!void) delegate(ref RouterEvent ev) always_cb;
 
 	bool matches(string url, ref HashMap!(string, string) params)
 	const {
@@ -93,31 +102,34 @@ private struct Route {
 
 		return false;
 	}
+
+    static:
+    private string skipPathNode(string str, ref size_t idx)
+    {
+        size_t start = idx;
+        while( idx < str.length && str[idx] != '/' ) idx++;
+        return str[start .. idx];
+    }
+
+    private string skipPathNode(ref string str)
+    {
+        size_t idx = 0;
+        auto ret = skipPathNode(str, idx);
+        str = str[idx .. $];
+        return ret;
+    }
 }
 
 
-private string skipPathNode(string str, ref size_t idx)
-{
-	size_t start = idx;
-	while( idx < str.length && str[idx] != '/' ) idx++;
-	return str[start .. idx];
-}
-
-private string skipPathNode(ref string str)
-{
-	size_t idx = 0;
-	auto ret = skipPathNode(str, idx);
-	str = str[idx .. $];
-	return ret;
-}
 
 struct URLRouter {
-    
+    @safe nothrow:
+
 	private {
 		Vector!Route m_routes;
         // Vector!Route m_routesForAlways;
 
-        Vector!Router m_activeRoutes;
+        Vector!Route m_activeRoutes;
         string m_currentURL;
 		string m_prefix;
 
@@ -128,8 +140,11 @@ struct URLRouter {
 	}
 
     struct PromiseIterator {
-        Vector!Router leaving_candidates;
-        Vector!Router entering_candidates;
+        @safe nothrow:
+
+        Vector!Route leaving_candidates;
+        Vector!Route entering_candidates;
+        string newPath;
 
         URLRouter* parent;
 
@@ -138,11 +153,15 @@ struct URLRouter {
             if (!leaving_candidates.empty) {
                 auto r = leaving_candidates.back;
                 leaving_candidates.removeBack();
-                if (!r.matches(path)) {
-                    Optional!(Promise!void) promise = r.leaving_cb();
+                if (!r.matches(newPath)) {
+                    RouterEvent ev;
+                    ev.newURL = newPath;
+                    ev.prevURL = parent.m_currentURL;
+                    ev.router = parent;
+                    Optional!(Promise!void) promise = r.leaving_cb(ev);
                     // remove from activeRoutes
                     if (!promise.empty) {
-                        promise.then(&iterate);   
+                        promise.front.then(&iterate);
                         still_busy = true;             
                     } 
                 } 
@@ -151,11 +170,17 @@ struct URLRouter {
                 RouterEvent ev;
                 auto r = entering_candidates.front;
                 entering_candidates.removeFront();
-                if (!m_activeRoutes.canFind(r) && r.matches(path, ev.parameters))  {
+
+                import std.algorithm : canFind;
+                if (!parent.m_activeRoutes[].canFind(r) && r.matches(newPath, ev.parameters))  {
+                    ev.newURL = newPath;
+                    ev.prevURL = parent.m_currentURL;
+                    ev.router = parent;
+
                     Optional!(Promise!void) promise = r.entering_cb(ev);
                     parent.m_activeRoutes ~= r;
                     if (!promise.empty) {
-                        promise.then(&iterate);
+                        promise.front.then(&iterate);
                     } 
                 }
             }
@@ -176,7 +201,7 @@ struct URLRouter {
         }
     }
 
-	this(string prefix = null)
+	this(string prefix)
 	{
 		m_prefix = prefix;
 	}
@@ -184,10 +209,10 @@ struct URLRouter {
 	@property string prefix() const { return m_prefix; }
     
 	/// Adds a new route for requests matching the specified HTTP method and pattern.
-	void register(string path, Optional!(Promise!void) delegate(RouterEvent ev) cb, Direction direction)
+	void register(string path)(Optional!(Promise!void) delegate(RouterEvent ev) cb, Direction direction)
 	{
-		import std.algorithm : countUntil;
-		assert(count(path, ':') <= maxRouteParameters, "Too many route parameters");
+		import std.algorithm : count;
+		static assert(path.count(':') <= maxRouteParameters, "Too many route parameters");
         if (auto idx = m_routes.countUntil!((a,b)=> a.pattern == b.pattern)()) {
             switch (direction) 
             {
@@ -228,7 +253,6 @@ struct URLRouter {
         // queue path changes due to promises
 		auto path = new_url;
 
-		mixin(Trace);
 		if (path.length < m_prefix.length || path[0 .. m_prefix.length] != m_prefix) return;
 		path = path[m_prefix.length .. $];
 
@@ -238,10 +262,7 @@ struct URLRouter {
         }
 
         m_busy = true;
-        m_promiseIterator = PromiseIterator.init();
-        m_promiseIterator.parent = &this;
-        m_promiseIterator.entering_candidates[] = m_routes[];
-        m_promiseIterator.leaving_candidates[] = m_activeRoutes[]; 
+        m_promiseIterator = PromiseIterator(Vector!Route(m_activeRoutes[]), Vector!Route(m_routes[]), new_url, &this);
         m_promiseIterator.iterate();
         
 	}
