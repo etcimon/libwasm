@@ -1,0 +1,13 @@
+name "diet-ng"
+description "Next generation Diet template compiler."
+authors "Sönke Ludwig"
+copyright "Copyright © 2015-2016 Sönke Ludwig"
+license "MIT"
+dependency "memutils" path="../memutils"
+dependency "fast" path="../fast"
+
+x:ddoxFilterArgs "--ex" "diet.internal."
+dflags "-mtriple=wasm32-unknown-unknown-wasm" "-betterC" "--vv" "--vtemplates" "--vcolumns" "--v-cg" "--verrors-context" #"--verrors-spec" #"-Oz" "-fvisibility=hidden" "-dip1000"
+
+targetType "library"
+subPackage "makepot"
