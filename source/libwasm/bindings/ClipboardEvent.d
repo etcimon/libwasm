@@ -17,7 +17,7 @@ struct ClipboardEvent {
     _parent = .Event(h);
   }
   auto clipboardData()() {
-    return Optional!(DataTransfer)(Object_Getter__OptionalHandle(this._parent, "clipboardData"));
+    return recastOpt!(DataTransfer)(Object_Getter__OptionalHandle(this._parent, "clipboardData"));
   }
 }
 struct ClipboardEventInit {

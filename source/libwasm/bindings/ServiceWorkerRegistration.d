@@ -20,13 +20,13 @@ struct ServiceWorkerRegistration {
     _parent = .EventTarget(h);
   }
   auto installing()() {
-    return Optional!(ServiceWorker)(Object_Getter__OptionalHandle(this._parent, "installing"));
+    return recastOpt!(ServiceWorker)(Object_Getter__OptionalHandle(this._parent, "installing"));
   }
   auto waiting()() {
-    return Optional!(ServiceWorker)(Object_Getter__OptionalHandle(this._parent, "waiting"));
+    return recastOpt!(ServiceWorker)(Object_Getter__OptionalHandle(this._parent, "waiting"));
   }
   auto active()() {
-    return Optional!(ServiceWorker)(Object_Getter__OptionalHandle(this._parent, "active"));
+    return recastOpt!(ServiceWorker)(Object_Getter__OptionalHandle(this._parent, "active"));
   }
   string scope_()() {
     return Object_Getter__string(this._parent, "scope");
@@ -40,7 +40,7 @@ struct ServiceWorkerRegistration {
   auto unregister()() {
     return JsPromise!(bool)(Object_Getter__Handle(this._parent, "unregister"));
   }
-  void onupdatefound(T0)(scope auto ref Optional!(T0) onupdatefound) if (isTOrPointer!(T0, EventHandler)) {
+  void onupdatefound(T0)(scope auto ref Optional!(T0) onupdatefound) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onupdatefound", !onupdatefound.empty, onupdatefound.front);
   }
   EventHandler onupdatefound()() {

@@ -18,12 +18,12 @@ struct IDBFileRequest {
     _parent = .DOMRequest(h);
   }
   auto fileHandle()() {
-    return Optional!(IDBFileHandle)(Object_Getter__OptionalHandle(this._parent, "fileHandle"));
+    return recastOpt!(IDBFileHandle)(Object_Getter__OptionalHandle(this._parent, "fileHandle"));
   }
   auto lockedFile()() {
-    return Optional!(IDBFileHandle)(Object_Getter__OptionalHandle(this._parent, "lockedFile"));
+    return recastOpt!(IDBFileHandle)(Object_Getter__OptionalHandle(this._parent, "lockedFile"));
   }
-  void onprogress(T0)(scope auto ref Optional!(T0) onprogress) if (isTOrPointer!(T0, EventHandler)) {
+  void onprogress(T0)(scope auto ref Optional!(T0) onprogress) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onprogress", !onprogress.empty, onprogress.front);
   }
   EventHandler onprogress()() {

@@ -32,49 +32,49 @@ struct OfflineResourceList {
   void swapCache()() {
     Object_Call__void(this._parent, "swapCache");
   }
-  void onchecking(T0)(scope auto ref Optional!(T0) onchecking) if (isTOrPointer!(T0, EventHandler)) {
+  void onchecking(T0)(scope auto ref Optional!(T0) onchecking) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onchecking", !onchecking.empty, onchecking.front);
   }
   EventHandler onchecking()() {
     return Object_Getter__EventHandler(this._parent, "onchecking");
   }
-  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onerror", !onerror.empty, onerror.front);
   }
   EventHandler onerror()() {
     return Object_Getter__EventHandler(this._parent, "onerror");
   }
-  void onnoupdate(T0)(scope auto ref Optional!(T0) onnoupdate) if (isTOrPointer!(T0, EventHandler)) {
+  void onnoupdate(T0)(scope auto ref Optional!(T0) onnoupdate) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onnoupdate", !onnoupdate.empty, onnoupdate.front);
   }
   EventHandler onnoupdate()() {
     return Object_Getter__EventHandler(this._parent, "onnoupdate");
   }
-  void ondownloading(T0)(scope auto ref Optional!(T0) ondownloading) if (isTOrPointer!(T0, EventHandler)) {
+  void ondownloading(T0)(scope auto ref Optional!(T0) ondownloading) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "ondownloading", !ondownloading.empty, ondownloading.front);
   }
   EventHandler ondownloading()() {
     return Object_Getter__EventHandler(this._parent, "ondownloading");
   }
-  void onprogress(T0)(scope auto ref Optional!(T0) onprogress) if (isTOrPointer!(T0, EventHandler)) {
+  void onprogress(T0)(scope auto ref Optional!(T0) onprogress) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onprogress", !onprogress.empty, onprogress.front);
   }
   EventHandler onprogress()() {
     return Object_Getter__EventHandler(this._parent, "onprogress");
   }
-  void onupdateready(T0)(scope auto ref Optional!(T0) onupdateready) if (isTOrPointer!(T0, EventHandler)) {
+  void onupdateready(T0)(scope auto ref Optional!(T0) onupdateready) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onupdateready", !onupdateready.empty, onupdateready.front);
   }
   EventHandler onupdateready()() {
     return Object_Getter__EventHandler(this._parent, "onupdateready");
   }
-  void oncached(T0)(scope auto ref Optional!(T0) oncached) if (isTOrPointer!(T0, EventHandler)) {
+  void oncached(T0)(scope auto ref Optional!(T0) oncached) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "oncached", !oncached.empty, oncached.front);
   }
   EventHandler oncached()() {
     return Object_Getter__EventHandler(this._parent, "oncached");
   }
-  void onobsolete(T0)(scope auto ref Optional!(T0) onobsolete) if (isTOrPointer!(T0, EventHandler)) {
+  void onobsolete(T0)(scope auto ref Optional!(T0) onobsolete) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onobsolete", !onobsolete.empty, onobsolete.front);
   }
   EventHandler onobsolete()() {

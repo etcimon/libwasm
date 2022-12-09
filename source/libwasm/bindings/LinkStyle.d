@@ -16,7 +16,7 @@ struct LinkStyle {
     this.handle = JsHandle(h);
   }
   auto sheet()() {
-    return Optional!(StyleSheet)(Object_Getter__OptionalHandle(this.handle, "sheet"));
+    return recastOpt!(StyleSheet)(Object_Getter__OptionalHandle(this.handle, "sheet"));
   }
 }
 

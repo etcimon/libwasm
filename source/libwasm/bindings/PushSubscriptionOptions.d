@@ -14,7 +14,7 @@ struct PushSubscriptionOptions {
     this.handle = JsHandle(h);
   }
   auto applicationServerKey()() {
-    return Optional!(ArrayBuffer)(Object_Getter__OptionalHandle(this.handle, "applicationServerKey"));
+    return recastOpt!(ArrayBuffer)(Object_Getter__OptionalHandle(this.handle, "applicationServerKey"));
   }
 }
 

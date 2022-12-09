@@ -51,25 +51,25 @@ struct Notification {
   auto get()() {
     return JsPromise!(Sequence!(Notification))(Object_Getter__Handle(this._parent, "get"));
   }
-  void onclick(T0)(scope auto ref Optional!(T0) onclick) if (isTOrPointer!(T0, EventHandler)) {
+  void onclick(T0)(scope auto ref Optional!(T0) onclick) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onclick", !onclick.empty, onclick.front);
   }
   EventHandler onclick()() {
     return Object_Getter__EventHandler(this._parent, "onclick");
   }
-  void onshow(T0)(scope auto ref Optional!(T0) onshow) if (isTOrPointer!(T0, EventHandler)) {
+  void onshow(T0)(scope auto ref Optional!(T0) onshow) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onshow", !onshow.empty, onshow.front);
   }
   EventHandler onshow()() {
     return Object_Getter__EventHandler(this._parent, "onshow");
   }
-  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onerror", !onerror.empty, onerror.front);
   }
   EventHandler onerror()() {
     return Object_Getter__EventHandler(this._parent, "onerror");
   }
-  void onclose(T0)(scope auto ref Optional!(T0) onclose) if (isTOrPointer!(T0, EventHandler)) {
+  void onclose(T0)(scope auto ref Optional!(T0) onclose) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onclose", !onclose.empty, onclose.front);
   }
   EventHandler onclose()() {

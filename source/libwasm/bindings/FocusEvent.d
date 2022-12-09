@@ -17,7 +17,7 @@ struct FocusEvent {
     _parent = .UIEvent(h);
   }
   auto relatedTarget()() {
-    return Optional!(EventTarget)(Object_Getter__OptionalHandle(this._parent, "relatedTarget"));
+    return recastOpt!(EventTarget)(Object_Getter__OptionalHandle(this._parent, "relatedTarget"));
   }
 }
 struct FocusEventInit {
@@ -34,7 +34,7 @@ struct FocusEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "relatedTarget", "Optional!Handle", tuple(!relatedTarget.empty, cast(Handle)relatedTarget.front.handle));
   }
   auto relatedTarget()() {
-    return Optional!(EventTarget)(Object_Getter__OptionalHandle(this._parent, "relatedTarget"));
+    return recastOpt!(EventTarget)(Object_Getter__OptionalHandle(this._parent, "relatedTarget"));
   }
 }
 

@@ -19,7 +19,7 @@ struct MediaDevices {
   this(Handle h) {
     _parent = .EventTarget(h);
   }
-  void ondevicechange(T0)(scope auto ref Optional!(T0) ondevicechange) if (isTOrPointer!(T0, EventHandler)) {
+  void ondevicechange(T0)(scope auto ref Optional!(T0) ondevicechange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "ondevicechange", !ondevicechange.empty, ondevicechange.front);
   }
   EventHandler ondevicechange()() {

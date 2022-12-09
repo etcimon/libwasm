@@ -24,7 +24,7 @@ struct MIDIAccess {
   auto outputs()() {
     return MIDIOutputMap(Object_Getter__Handle(this._parent, "outputs"));
   }
-  void onstatechange(T0)(scope auto ref Optional!(T0) onstatechange) if (isTOrPointer!(T0, EventHandler)) {
+  void onstatechange(T0)(scope auto ref Optional!(T0) onstatechange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onstatechange", !onstatechange.empty, onstatechange.front);
   }
   EventHandler onstatechange()() {

@@ -21,10 +21,10 @@ struct DocumentFragment {
     _parent = .Node(h);
   }
   auto getElementById()(string elementId) {
-    return Optional!(Element)(Object_Call_string__OptionalHandle(this._parent, "getElementById", elementId));
+    return recastOpt!(Element)(Object_Call_string__OptionalHandle(this._parent, "getElementById", elementId));
   }
   auto querySelector()(string selectors) {
-    return Optional!(Element)(Object_Call_string__OptionalHandle(this._parent, "querySelector", selectors));
+    return recastOpt!(Element)(Object_Call_string__OptionalHandle(this._parent, "querySelector", selectors));
   }
   auto querySelectorAll()(string selectors) {
     return NodeList(Object_Call_string__Handle(this._parent, "querySelectorAll", selectors));
@@ -33,10 +33,10 @@ struct DocumentFragment {
     return HTMLCollection(Object_Getter__Handle(this._parent, "children"));
   }
   auto firstElementChild()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this._parent, "firstElementChild"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this._parent, "firstElementChild"));
   }
   auto lastElementChild()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this._parent, "lastElementChild"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this._parent, "lastElementChild"));
   }
   uint childElementCount()() {
     return Object_Getter__uint(this._parent, "childElementCount");

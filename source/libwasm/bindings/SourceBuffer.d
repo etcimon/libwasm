@@ -47,31 +47,31 @@ struct SourceBuffer {
   double appendWindowEnd()() {
     return Object_Getter__double(this._parent, "appendWindowEnd");
   }
-  void onupdatestart(T0)(scope auto ref Optional!(T0) onupdatestart) if (isTOrPointer!(T0, EventHandler)) {
+  void onupdatestart(T0)(scope auto ref Optional!(T0) onupdatestart) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onupdatestart", !onupdatestart.empty, onupdatestart.front);
   }
   EventHandler onupdatestart()() {
     return Object_Getter__EventHandler(this._parent, "onupdatestart");
   }
-  void onupdate(T0)(scope auto ref Optional!(T0) onupdate) if (isTOrPointer!(T0, EventHandler)) {
+  void onupdate(T0)(scope auto ref Optional!(T0) onupdate) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onupdate", !onupdate.empty, onupdate.front);
   }
   EventHandler onupdate()() {
     return Object_Getter__EventHandler(this._parent, "onupdate");
   }
-  void onupdateend(T0)(scope auto ref Optional!(T0) onupdateend) if (isTOrPointer!(T0, EventHandler)) {
+  void onupdateend(T0)(scope auto ref Optional!(T0) onupdateend) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onupdateend", !onupdateend.empty, onupdateend.front);
   }
   EventHandler onupdateend()() {
     return Object_Getter__EventHandler(this._parent, "onupdateend");
   }
-  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onerror", !onerror.empty, onerror.front);
   }
   EventHandler onerror()() {
     return Object_Getter__EventHandler(this._parent, "onerror");
   }
-  void onabort(T0)(scope auto ref Optional!(T0) onabort) if (isTOrPointer!(T0, EventHandler)) {
+  void onabort(T0)(scope auto ref Optional!(T0) onabort) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onabort", !onabort.empty, onabort.front);
   }
   EventHandler onabort()() {

@@ -22,7 +22,7 @@ struct HTMLTableElement {
     Serialize_Object_VarArgCall!void(this._parent, "caption", "Optional!Handle", tuple(!caption.empty, cast(Handle)caption.front.handle));
   }
   auto caption()() {
-    return Optional!(HTMLTableCaptionElement)(Object_Getter__OptionalHandle(this._parent, "caption"));
+    return recastOpt!(HTMLTableCaptionElement)(Object_Getter__OptionalHandle(this._parent, "caption"));
   }
   auto createCaption()() {
     return HTMLElement(Object_Getter__Handle(this._parent, "createCaption"));
@@ -34,7 +34,7 @@ struct HTMLTableElement {
     Serialize_Object_VarArgCall!void(this._parent, "tHead", "Optional!Handle", tuple(!tHead.empty, cast(Handle)tHead.front.handle));
   }
   auto tHead()() {
-    return Optional!(HTMLTableSectionElement)(Object_Getter__OptionalHandle(this._parent, "tHead"));
+    return recastOpt!(HTMLTableSectionElement)(Object_Getter__OptionalHandle(this._parent, "tHead"));
   }
   auto createTHead()() {
     return HTMLElement(Object_Getter__Handle(this._parent, "createTHead"));
@@ -46,7 +46,7 @@ struct HTMLTableElement {
     Serialize_Object_VarArgCall!void(this._parent, "tFoot", "Optional!Handle", tuple(!tFoot.empty, cast(Handle)tFoot.front.handle));
   }
   auto tFoot()() {
-    return Optional!(HTMLTableSectionElement)(Object_Getter__OptionalHandle(this._parent, "tFoot"));
+    return recastOpt!(HTMLTableSectionElement)(Object_Getter__OptionalHandle(this._parent, "tFoot"));
   }
   auto createTFoot()() {
     return HTMLElement(Object_Getter__Handle(this._parent, "createTFoot"));

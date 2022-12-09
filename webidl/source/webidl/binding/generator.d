@@ -949,7 +949,9 @@ void dump(Appender)(ref Semantics semantics, DBindingFunction item, ref Appender
       a.put("isTOrPointer!(");
       a.put(getTemplatedTypeName(opt.index));
       a.put(", ");
-      opt.value.type.stripNullable.generateDType(a, Context(semantics).withLocals(locals));
+      import std.string : replace;
+      auto real_type_name = opt.value.type.stripNullable.generateDType(Context(semantics).withLocals(locals)).replace("EventHandler", "EventHandlerNonNull"); // todo: make this work with aliases
+      a.put(real_type_name);
       a.put(")");
       if (idx+1 < optArgs.length)
         a.put(" && ");
@@ -991,8 +993,13 @@ void dump(Appender)(ref Semantics semantics, DBindingFunction item, ref Appender
       a.put("auto result = ");
     else
       a.put("return ");
+      
     if (!semantics.isPrimitive(item.result) && !semantics.isUnion(item.result)) {
-      if (item.type == FunctionType.ExposedConstructor)
+      import std.string : replace;
+      bool optional = (semantics.isNullable(item.result) || item.result.children[$-1].name == "WebIDL.Null" && item.result.children[$-1].matches[0] == "?");
+      if (optional) 
+        a.put(item.result.generateDType(Context(semantics).withLocals(locals)).replace("Optional", "recastOpt"));
+      else if (item.type == FunctionType.ExposedConstructor)
         a.put([".",item.name]);
       else
         item.result.generateDType(a, Context(semantics).withLocals(locals));
@@ -1358,17 +1365,6 @@ struct DBindingFunction {
                 // may have a handle?
                 app ~= (static_func ? "Static" : "Object") ~ "_Call_Handle__void";
                 dumpCallArgs(app, item.name, static_func ? static_name : null);
-              } else if (semantics.isNullable(item.args[0].type) && !semantics.isUnion(item.args[0].type)) {
-                auto baseType = item.args[0].type.stripNullable;
-                auto argSubType = generateDType(baseType, context);
-                switch(argSubType) {
-                  case "EventHandler":
-                    app ~= (static_func ? "Static" : "Object") ~ "_Call_OptionalEventHandler__void";
-                    dumpCallArgs(app, item.name, static_func ? static_name : null);
-                    break;
-                  default: break;
-
-                }
               }
             break;
           }

@@ -37,7 +37,7 @@ struct HTMLMenuElement {
     Object_Call__void(this._parent, "sendShowEvent");
   }
   auto createBuilder()() {
-    return Optional!(MenuBuilder)(Object_Getter__OptionalHandle(this._parent, "createBuilder"));
+    return recastOpt!(MenuBuilder)(Object_Getter__OptionalHandle(this._parent, "createBuilder"));
   }
   void build()(scope ref MenuBuilder aBuilder) {
     Object_Call_Handle__void(this._parent, "build", aBuilder.handle);

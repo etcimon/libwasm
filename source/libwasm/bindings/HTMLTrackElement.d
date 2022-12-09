@@ -54,7 +54,7 @@ struct HTMLTrackElement {
     return Object_Getter__ushort(this._parent, "readyState");
   }
   auto track()() {
-    return Optional!(TextTrack)(Object_Getter__OptionalHandle(this._parent, "track"));
+    return recastOpt!(TextTrack)(Object_Getter__OptionalHandle(this._parent, "track"));
   }
 }
 

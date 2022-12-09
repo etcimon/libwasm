@@ -25,7 +25,7 @@ struct TextTrackCueList {
     return VTTCue(Object_Call_uint__Handle(this.handle, "getter", index));
   }
   auto getCueById()(string id) {
-    return Optional!(VTTCue)(Object_Call_string__OptionalHandle(this.handle, "getCueById", id));
+    return recastOpt!(VTTCue)(Object_Call_string__OptionalHandle(this.handle, "getCueById", id));
   }
 }
 

@@ -19,7 +19,7 @@ struct StyleSheetList {
     return Object_Getter__uint(this.handle, "length");
   }
   auto item()(uint index) {
-    return Optional!(StyleSheet)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
+    return recastOpt!(StyleSheet)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
   }
 }
 

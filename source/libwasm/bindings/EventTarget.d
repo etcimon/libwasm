@@ -87,14 +87,14 @@ struct EventTarget {
   bool dispatchEvent()(scope ref Event event) {
     return Serialize_Object_VarArgCall!bool(this.handle, "dispatchEvent", "Handle", tuple(cast(Handle)event.handle));
   }
-  void setEventHandler(T1)(string type, scope auto ref Optional!(T1) handler) if (isTOrPointer!(T1, EventHandler)) {
+  void setEventHandler(T1)(string type, scope auto ref Optional!(T1) handler) if (isTOrPointer!(T1, EventHandlerNonNull)) {
     EventTarget_setEventHandler(this.handle, type, !handler.empty, handler.front);
   }
   EventHandler getEventHandler()(string type) {
     return EventTarget_getEventHandler(this.handle, type);
   }
   auto ownerGlobal()() {
-    return Optional!(WindowProxy)(Object_Getter__OptionalHandle(this.handle, "ownerGlobal"));
+    return recastOpt!(WindowProxy)(Object_Getter__OptionalHandle(this.handle, "ownerGlobal"));
   }
 }
 

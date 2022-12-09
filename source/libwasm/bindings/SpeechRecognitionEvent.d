@@ -21,13 +21,13 @@ struct SpeechRecognitionEvent {
     return Object_Getter__uint(this._parent, "resultIndex");
   }
   auto results()() {
-    return Optional!(SpeechRecognitionResultList)(Object_Getter__OptionalHandle(this._parent, "results"));
+    return recastOpt!(SpeechRecognitionResultList)(Object_Getter__OptionalHandle(this._parent, "results"));
   }
   auto interpretation()() {
     return Any(Object_Getter__Handle(this._parent, "interpretation"));
   }
   auto emma()() {
-    return Optional!(Document)(Object_Getter__OptionalHandle(this._parent, "emma"));
+    return recastOpt!(Document)(Object_Getter__OptionalHandle(this._parent, "emma"));
   }
 }
 struct SpeechRecognitionEventInit {
@@ -50,7 +50,7 @@ struct SpeechRecognitionEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "results", "Optional!Handle", tuple(!results.empty, cast(Handle)results.front.handle));
   }
   auto results()() {
-    return Optional!(SpeechRecognitionResultList)(Object_Getter__OptionalHandle(this._parent, "results"));
+    return recastOpt!(SpeechRecognitionResultList)(Object_Getter__OptionalHandle(this._parent, "results"));
   }
   void interpretation(T0)(scope auto ref T0 interpretation) {
     import std.traits : isNumeric, isFloatingPoint, isSomeString;
@@ -76,7 +76,7 @@ struct SpeechRecognitionEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "emma", "Optional!Handle", tuple(!emma.empty, cast(Handle)emma.front._parent));
   }
   auto emma()() {
-    return Optional!(Document)(Object_Getter__OptionalHandle(this._parent, "emma"));
+    return recastOpt!(Document)(Object_Getter__OptionalHandle(this._parent, "emma"));
   }
 }
 

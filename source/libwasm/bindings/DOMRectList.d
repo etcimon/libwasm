@@ -19,7 +19,7 @@ struct DOMRectList {
     return Object_Getter__uint(this.handle, "length");
   }
   auto item()(uint index) {
-    return Optional!(DOMRect)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
+    return recastOpt!(DOMRect)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
   }
 }
 

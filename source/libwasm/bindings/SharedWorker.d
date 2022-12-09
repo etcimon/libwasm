@@ -29,7 +29,7 @@ struct SharedWorker {
   auto port()() {
     return MessagePort(Object_Getter__Handle(this._parent, "port"));
   }
-  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onerror", !onerror.empty, onerror.front);
   }
   EventHandler onerror()() {

@@ -37,13 +37,13 @@ struct VisualViewport {
   double scale()() {
     return Object_Getter__double(this._parent, "scale");
   }
-  void onresize(T0)(scope auto ref Optional!(T0) onresize) if (isTOrPointer!(T0, EventHandler)) {
+  void onresize(T0)(scope auto ref Optional!(T0) onresize) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onresize", !onresize.empty, onresize.front);
   }
   EventHandler onresize()() {
     return Object_Getter__EventHandler(this._parent, "onresize");
   }
-  void onscroll(T0)(scope auto ref Optional!(T0) onscroll) if (isTOrPointer!(T0, EventHandler)) {
+  void onscroll(T0)(scope auto ref Optional!(T0) onscroll) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onscroll", !onscroll.empty, onscroll.front);
   }
   EventHandler onscroll()() {

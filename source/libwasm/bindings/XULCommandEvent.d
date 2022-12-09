@@ -33,7 +33,7 @@ struct XULCommandEvent {
     return Object_Getter__ushort(this._parent, "inputSource");
   }
   auto sourceEvent()() {
-    return Optional!(Event)(Object_Getter__OptionalHandle(this._parent, "sourceEvent"));
+    return recastOpt!(Event)(Object_Getter__OptionalHandle(this._parent, "sourceEvent"));
   }
   void initCommandEvent(T3, T9)(string type, bool canBubble /* = false */, bool cancelable /* = false */, scope auto ref Optional!(T3) view /* = no!(Window) */, int detail /* = 0 */, bool ctrlKey /* = false */, bool altKey /* = false */, bool shiftKey /* = false */, bool metaKey /* = false */, scope auto ref Optional!(T9) sourceEvent /* = no!(Event) */, ushort inputSource /* = 0 */) if (isTOrPointer!(T3, Window) && isTOrPointer!(T9, Event)) {
     Serialize_Object_VarArgCall!void(this._parent, "initCommandEvent", "string;bool;bool;Optional!Handle;int;bool;bool;bool;bool;Optional!Handle;ushort", tuple(type, canBubble, cancelable, !view.empty, cast(Handle)view.front._parent, detail, ctrlKey, altKey, shiftKey, metaKey, !sourceEvent.empty, cast(Handle)sourceEvent.front.handle, inputSource));

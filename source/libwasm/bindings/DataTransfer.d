@@ -55,7 +55,7 @@ struct DataTransfer {
     Object_Call__void(this.handle, "clearData");
   }
   auto files()() {
-    return Optional!(FileList)(Object_Getter__OptionalHandle(this.handle, "files"));
+    return recastOpt!(FileList)(Object_Getter__OptionalHandle(this.handle, "files"));
   }
   auto getFilesAndDirectories()() {
     return JsPromise!(Sequence!(SumType!(File, Directory)))(Object_Getter__Handle(this.handle, "getFilesAndDirectories"));
@@ -100,7 +100,7 @@ struct DataTransfer {
     return Object_Getter__bool(this.handle, "mozUserCancelled");
   }
   auto mozSourceNode()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "mozSourceNode"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "mozSourceNode"));
   }
   string mozTriggeringPrincipalURISpec()() {
     return Object_Getter__string(this.handle, "mozTriggeringPrincipalURISpec");

@@ -20,22 +20,22 @@ struct GamepadPose {
     return Object_Getter__bool(this.handle, "hasPosition");
   }
   auto position()() {
-    return Optional!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "position"));
+    return recastOpt!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "position"));
   }
   auto linearVelocity()() {
-    return Optional!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "linearVelocity"));
+    return recastOpt!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "linearVelocity"));
   }
   auto linearAcceleration()() {
-    return Optional!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "linearAcceleration"));
+    return recastOpt!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "linearAcceleration"));
   }
   auto orientation()() {
-    return Optional!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "orientation"));
+    return recastOpt!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "orientation"));
   }
   auto angularVelocity()() {
-    return Optional!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "angularVelocity"));
+    return recastOpt!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "angularVelocity"));
   }
   auto angularAcceleration()() {
-    return Optional!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "angularAcceleration"));
+    return recastOpt!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "angularAcceleration"));
   }
 }
 

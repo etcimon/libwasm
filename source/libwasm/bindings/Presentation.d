@@ -20,10 +20,10 @@ struct Presentation {
     Serialize_Object_VarArgCall!void(this.handle, "defaultRequest", "Optional!Handle", tuple(!defaultRequest.empty, cast(Handle)defaultRequest.front.handle));
   }
   auto defaultRequest()() {
-    return Optional!(PresentationRequest)(Object_Getter__OptionalHandle(this.handle, "defaultRequest"));
+    return recastOpt!(PresentationRequest)(Object_Getter__OptionalHandle(this.handle, "defaultRequest"));
   }
   auto receiver()() {
-    return Optional!(PresentationReceiver)(Object_Getter__OptionalHandle(this.handle, "receiver"));
+    return recastOpt!(PresentationReceiver)(Object_Getter__OptionalHandle(this.handle, "receiver"));
   }
 }
 

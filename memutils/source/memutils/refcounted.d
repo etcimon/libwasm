@@ -4,13 +4,13 @@ import memutils.allocators;
 import memutils.helpers;
 import memutils.utils;
 import std.traits : hasMember;
-
+pragma(LDC_no_typeinfo):
 struct RefCounted(T, ALLOC = ThreadMem)
 {
 	
+pragma(LDC_no_typeinfo):
 nothrow:
 @trusted:
-	static assert(hasMember!(ALLOC, "ident"));
 	mixin Embed!(m_object, false);
 	enum NOGC = true;
 	enum isRefCounted = true;
@@ -26,9 +26,17 @@ nothrow:
 		//logTrace("RefCounted opCall");
 		//try { 
 			RefCounted!(T, ALLOC) ret;
-			if (!ret.m_object)
-				ret.m_object = ObjectAllocator!(T, ALLOC)().alloc(args);
-			ret.m_refCount = ObjectAllocator!(ulong, ALLOC)().alloc();
+			if (__ctfe) {
+				if (!ret.m_object)
+					ret.m_object = ObjectAllocator!(T, CTFE)().alloc(args);
+				ret.m_refCount = ObjectAllocator!(ulong, CTFE)().alloc();
+
+			} else {
+				if (!ret.m_object)
+					ret.m_object = ObjectAllocator!(T, ALLOC)().alloc(args);
+				ret.m_refCount = ObjectAllocator!(ulong, ALLOC)().alloc();
+
+			}
 			(*ret.m_refCount) = 1;
 			return ret;
 		//} catch (Throwable e) { assert(false, "RefCounted.opCall(args) Throw: " ~ e.toString()); }
@@ -181,11 +189,19 @@ nothrow:
 		TR obj_ptr = m_object;
 		//static if (!isPointer!T) // call destructors but not for indirections...
 		//	.destroy(m_object);
-		
-		if (obj_ptr !is null)
-			ObjectAllocator!(T, ALLOC)().free(obj_ptr);
-		
-		ObjectAllocator!(ulong, ALLOC)().free(m_refCount);
+		if (__ctfe) {
+			
+			if (obj_ptr !is null)
+				ObjectAllocator!(T, CTFE)().free(obj_ptr);
+			
+			ObjectAllocator!(ulong, CTFE)().free(m_refCount);
+		} else {
+			if (obj_ptr !is null)
+				ObjectAllocator!(T, ALLOC)().free(obj_ptr);
+			
+			ObjectAllocator!(ulong, ALLOC)().free(m_refCount);
+
+		}
 		m_refCount = null;
 		m_object = null;
 	}

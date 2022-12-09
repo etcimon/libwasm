@@ -28,19 +28,19 @@ struct EventSource {
   ushort readyState()() {
     return Object_Getter__ushort(this._parent, "readyState");
   }
-  void onopen(T0)(scope auto ref Optional!(T0) onopen) if (isTOrPointer!(T0, EventHandler)) {
+  void onopen(T0)(scope auto ref Optional!(T0) onopen) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onopen", !onopen.empty, onopen.front);
   }
   EventHandler onopen()() {
     return Object_Getter__EventHandler(this._parent, "onopen");
   }
-  void onmessage(T0)(scope auto ref Optional!(T0) onmessage) if (isTOrPointer!(T0, EventHandler)) {
+  void onmessage(T0)(scope auto ref Optional!(T0) onmessage) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onmessage", !onmessage.empty, onmessage.front);
   }
   EventHandler onmessage()() {
     return Object_Getter__EventHandler(this._parent, "onmessage");
   }
-  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onerror", !onerror.empty, onerror.front);
   }
   EventHandler onerror()() {

@@ -107,7 +107,7 @@ struct UIEvent {
     _parent = .Event(h);
   }
   auto view()() {
-    return Optional!(WindowProxy)(Object_Getter__OptionalHandle(this._parent, "view"));
+    return recastOpt!(WindowProxy)(Object_Getter__OptionalHandle(this._parent, "view"));
   }
   int detail()() {
     return Object_Getter__int(this._parent, "detail");
@@ -143,7 +143,7 @@ struct UIEvent {
     return Object_Getter__uint(this._parent, "which");
   }
   auto rangeParent()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this._parent, "rangeParent"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this._parent, "rangeParent"));
   }
   int rangeOffset()() {
     return Object_Getter__int(this._parent, "rangeOffset");
@@ -163,7 +163,7 @@ struct UIEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "view", "Optional!Handle", tuple(!view.empty, cast(Handle)view.front._parent));
   }
   auto view()() {
-    return Optional!(Window)(Object_Getter__OptionalHandle(this._parent, "view"));
+    return recastOpt!(Window)(Object_Getter__OptionalHandle(this._parent, "view"));
   }
   void detail()(int detail) {
     Object_Call_int__void(this._parent, "detail", detail);

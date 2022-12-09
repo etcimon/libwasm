@@ -36,7 +36,7 @@ struct PaymentResponse {
     return JsObject(Object_Getter__Handle(this._parent, "details"));
   }
   auto shippingAddress()() {
-    return Optional!(PaymentAddress)(Object_Getter__OptionalHandle(this._parent, "shippingAddress"));
+    return recastOpt!(PaymentAddress)(Object_Getter__OptionalHandle(this._parent, "shippingAddress"));
   }
   Optional!(string) shippingOption()() {
     return Object_Getter__OptionalString(this._parent, "shippingOption");
@@ -62,7 +62,7 @@ struct PaymentResponse {
   auto retry()() {
     return JsPromise!(void)(Object_Getter__Handle(this._parent, "retry"));
   }
-  void onpayerdetailchange(T0)(scope auto ref Optional!(T0) onpayerdetailchange) if (isTOrPointer!(T0, EventHandler)) {
+  void onpayerdetailchange(T0)(scope auto ref Optional!(T0) onpayerdetailchange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onpayerdetailchange", !onpayerdetailchange.empty, onpayerdetailchange.front);
   }
   EventHandler onpayerdetailchange()() {

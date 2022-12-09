@@ -9,6 +9,7 @@ import memutils.helpers;
 import memutils.utils;
 import memutils.refcounted;
 
+pragma(LDC_no_typeinfo):
 @trusted:
 template isImplicitlyConvertibleLegacy(From, To)
 {
@@ -22,7 +23,7 @@ template isImplicitlyConvertibleLegacy(From, To)
 }
 
 
-template Array(T, ALLOC = void) 
+template Array(T, ALLOC = ThreadMem) 
 {
 	alias Array = RefCounted!(Vector!(T, ALLOC), ALLOC);
 }
@@ -30,7 +31,8 @@ template Array(T, ALLOC = void)
 // TODO: Remove implicit string casting for Vector!ubyte! Encourage use of Vector!char [].idup instead.
 
 /// An array that uses a custom allocator.
-struct Vector(T, ALLOC = void)
+
+struct Vector(T, ALLOC = ThreadMem)
 {	
 nothrow:
 	enum NOGC = true;
@@ -83,7 +85,11 @@ nothrow:
 				if (_capacity == 0 || _payload.ptr is null)
 					return;
 				T[] data = cast(T[]) _payload.ptr[0 .. _capacity];
-				freeArray!(T, ALLOC)(data, _payload.length); // calls destructors and frees memory
+				if (__ctfe) {
+					freeArray!(T, CTFE)(data, _payload.length); // calls destructors and frees memory
+				} else {
+					freeArray!(T, ALLOC)(data, _payload.length); // calls destructors and frees memory
+				}
 			//} 
 			//catch (Throwable e) { assert(false, "Vector.~this Exception: " ~ e.toString()); }
 		}
@@ -166,10 +172,16 @@ nothrow:
 			if (_capacity > 0) {
 				size_t len = _payload.length;
 				_payload = _payload.ptr[0 .. _capacity];
+				if (__ctfe) {
+					_payload = reallocArray!(T, CTFE)(_payload, elements)[0 .. len];
+				} else
 				_payload = reallocArray!(T, ALLOC)(_payload, elements)[0 .. len];
 			}
 			else if (elements > 0) {
-				_payload = allocArray!(T, ALLOC)(elements)[0 .. _payload.length];
+				if (__ctfe) {
+					_payload = allocArray!(T, CTFE)(elements)[0 .. _payload.length];
+				}
+				else _payload = allocArray!(T, ALLOC)(elements)[0 .. _payload.length];
 			}
 			_capacity = elements;
 		}
@@ -401,12 +413,12 @@ nothrow:
 
         Complexity: $(BIGOH 1)
      */
-	auto opSlice() inout
+	auto opSlice() inout @trusted
 	{
-		//static if (is(T[] == ubyte[]))
-		//	return cast(string) _data._payload;
-		//else
-		return _data._payload;
+		static if (is(T[] == char[]))
+			return cast(string) _data._payload;
+		else
+			return _data._payload;
 	}
 	
 	/**
@@ -485,7 +497,7 @@ nothrow:
 				_data._payload[i] = item;
 			}
 		}
-		else static if (is(T[] == UnConst!Stuff) || isImplicitlyConvertibleLegacy!(T, ElementType!Stuff)) {
+		else static if (is(T[] == UnConst!Stuff) || isImplicitlyConvertibleLegacy!(T, ElementType!Stuff) || (is(T == char) && is(Stuff == string))) {
 			_data.length = value.length;
 			
 			foreach (i, ref item; cast(T[])value){

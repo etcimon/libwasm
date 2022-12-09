@@ -21,10 +21,10 @@ struct Event {
     return Object_Getter__string(this.handle, "type");
   }
   auto target()() {
-    return Optional!(EventTarget)(Object_Getter__OptionalHandle(this.handle, "target"));
+    return recastOpt!(EventTarget)(Object_Getter__OptionalHandle(this.handle, "target"));
   }
   auto currentTarget()() {
-    return Optional!(EventTarget)(Object_Getter__OptionalHandle(this.handle, "currentTarget"));
+    return recastOpt!(EventTarget)(Object_Getter__OptionalHandle(this.handle, "currentTarget"));
   }
   auto composedPath()() {
     return Sequence!(EventTarget)(Object_Getter__Handle(this.handle, "composedPath"));
@@ -91,13 +91,13 @@ struct Event {
     return Object_Getter__bool(this.handle, "cancelBubble");
   }
   auto originalTarget()() {
-    return Optional!(EventTarget)(Object_Getter__OptionalHandle(this.handle, "originalTarget"));
+    return recastOpt!(EventTarget)(Object_Getter__OptionalHandle(this.handle, "originalTarget"));
   }
   auto explicitOriginalTarget()() {
-    return Optional!(EventTarget)(Object_Getter__OptionalHandle(this.handle, "explicitOriginalTarget"));
+    return recastOpt!(EventTarget)(Object_Getter__OptionalHandle(this.handle, "explicitOriginalTarget"));
   }
   auto composedTarget()() {
-    return Optional!(EventTarget)(Object_Getter__OptionalHandle(this.handle, "composedTarget"));
+    return recastOpt!(EventTarget)(Object_Getter__OptionalHandle(this.handle, "composedTarget"));
   }
   void preventMultipleActions()() {
     Object_Call__void(this.handle, "preventMultipleActions");

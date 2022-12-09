@@ -19,7 +19,7 @@ struct MediaEncryptedEvent {
     return Object_Getter__string(this._parent, "initDataType");
   }
   auto initData()() {
-    return Optional!(ArrayBuffer)(Object_Getter__OptionalHandle(this._parent, "initData"));
+    return recastOpt!(ArrayBuffer)(Object_Getter__OptionalHandle(this._parent, "initData"));
   }
 }
 struct MediaKeyNeededEventInit {
@@ -42,7 +42,7 @@ struct MediaKeyNeededEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "initData", "Optional!Handle", tuple(!initData.empty, cast(Handle)initData.front.handle));
   }
   auto initData()() {
-    return Optional!(ArrayBuffer)(Object_Getter__OptionalHandle(this._parent, "initData"));
+    return recastOpt!(ArrayBuffer)(Object_Getter__OptionalHandle(this._parent, "initData"));
   }
 }
 

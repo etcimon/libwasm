@@ -20,7 +20,7 @@ struct PresentationConnectionList {
   auto connections()() {
     return Sequence!(PresentationConnection)(Object_Getter__Handle(this._parent, "connections"));
   }
-  void onconnectionavailable(T0)(scope auto ref Optional!(T0) onconnectionavailable) if (isTOrPointer!(T0, EventHandler)) {
+  void onconnectionavailable(T0)(scope auto ref Optional!(T0) onconnectionavailable) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onconnectionavailable", !onconnectionavailable.empty, onconnectionavailable.front);
   }
   EventHandler onconnectionavailable()() {

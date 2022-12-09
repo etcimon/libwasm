@@ -17,7 +17,7 @@ struct BlobEvent {
     _parent = .Event(h);
   }
   auto data()() {
-    return Optional!(Blob)(Object_Getter__OptionalHandle(this._parent, "data"));
+    return recastOpt!(Blob)(Object_Getter__OptionalHandle(this._parent, "data"));
   }
 }
 struct BlobEventInit {
@@ -34,7 +34,7 @@ struct BlobEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "data", "Optional!Handle", tuple(!data.empty, cast(Handle)data.front.handle));
   }
   auto data()() {
-    return Optional!(Blob)(Object_Getter__OptionalHandle(this._parent, "data"));
+    return recastOpt!(Blob)(Object_Getter__OptionalHandle(this._parent, "data"));
   }
 }
 

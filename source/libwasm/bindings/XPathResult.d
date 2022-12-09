@@ -38,7 +38,7 @@ struct XPathResult {
     return Object_Getter__bool(this.handle, "booleanValue");
   }
   auto singleNodeValue()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "singleNodeValue"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "singleNodeValue"));
   }
   bool invalidIteratorState()() {
     return Object_Getter__bool(this.handle, "invalidIteratorState");
@@ -47,10 +47,10 @@ struct XPathResult {
     return Object_Getter__uint(this.handle, "snapshotLength");
   }
   auto iterateNext()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "iterateNext"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "iterateNext"));
   }
   auto snapshotItem()(uint index) {
-    return Optional!(Node)(Object_Call_uint__OptionalHandle(this.handle, "snapshotItem", index));
+    return recastOpt!(Node)(Object_Call_uint__OptionalHandle(this.handle, "snapshotItem", index));
   }
 }
 

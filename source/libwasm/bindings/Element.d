@@ -104,7 +104,7 @@ struct Element {
     return Object_Getter__bool(this._parent, "hasAttributes");
   }
   auto closest()(string selector) {
-    return Optional!(Element)(Object_Call_string__OptionalHandle(this._parent, "closest", selector));
+    return recastOpt!(Element)(Object_Call_string__OptionalHandle(this._parent, "closest", selector));
   }
   bool matches()(string selector) {
     return Object_Call_string__bool(this._parent, "matches", selector);
@@ -122,7 +122,7 @@ struct Element {
     return HTMLCollection(Object_Call_string__Handle(this._parent, "getElementsByClassName", classNames));
   }
   auto insertAdjacentElement()(string where, scope ref Element element) {
-    return Optional!(Element)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "insertAdjacentElement", "string;Handle", tuple(where, cast(Handle)element._parent)));
+    return recastOpt!(Element)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "insertAdjacentElement", "string;Handle", tuple(where, cast(Handle)element._parent)));
   }
   void insertAdjacentText()(string where, string data) {
     Object_Call_string_string__void(this._parent, "insertAdjacentText", where, data);
@@ -158,19 +158,19 @@ struct Element {
     Object_Call__void(this._parent, "setCaptureAlways");
   }
   auto getAttributeNode()(string name) {
-    return Optional!(Attr)(Object_Call_string__OptionalHandle(this._parent, "getAttributeNode", name));
+    return recastOpt!(Attr)(Object_Call_string__OptionalHandle(this._parent, "getAttributeNode", name));
   }
   auto setAttributeNode()(scope ref Attr newAttr) {
-    return Optional!(Attr)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "setAttributeNode", "Handle", tuple(cast(Handle)newAttr._parent)));
+    return recastOpt!(Attr)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "setAttributeNode", "Handle", tuple(cast(Handle)newAttr._parent)));
   }
   auto removeAttributeNode()(scope ref Attr oldAttr) {
-    return Optional!(Attr)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "removeAttributeNode", "Handle", tuple(cast(Handle)oldAttr._parent)));
+    return recastOpt!(Attr)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "removeAttributeNode", "Handle", tuple(cast(Handle)oldAttr._parent)));
   }
   auto getAttributeNodeNS(T0)(scope auto ref Optional!(T0) namespaceURI, string localName) if (isTOrPointer!(T0, string)) {
-    return Optional!(Attr)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "getAttributeNodeNS", "Optional!(string);string", tuple(!namespaceURI.empty, namespaceURI.front, localName)));
+    return recastOpt!(Attr)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "getAttributeNodeNS", "Optional!(string);string", tuple(!namespaceURI.empty, namespaceURI.front, localName)));
   }
   auto setAttributeNodeNS()(scope ref Attr newAttr) {
-    return Optional!(Attr)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "setAttributeNodeNS", "Handle", tuple(cast(Handle)newAttr._parent)));
+    return recastOpt!(Attr)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "setAttributeNodeNS", "Handle", tuple(cast(Handle)newAttr._parent)));
   }
   auto getTransformToAncestor()(scope ref Element ancestor) {
     return DOMMatrixReadOnly(Object_Call_Handle__Handle(this._parent, "getTransformToAncestor", ancestor._parent));
@@ -281,7 +281,7 @@ struct Element {
     Object_Call_string_string__void(this._parent, "insertAdjacentHTML", position, text);
   }
   auto querySelector()(string selectors) {
-    return Optional!(Element)(Object_Call_string__OptionalHandle(this._parent, "querySelector", selectors));
+    return recastOpt!(Element)(Object_Call_string__OptionalHandle(this._parent, "querySelector", selectors));
   }
   auto querySelectorAll()(string selectors) {
     return NodeList(Object_Call_string__Handle(this._parent, "querySelectorAll", selectors));
@@ -290,16 +290,16 @@ struct Element {
     return ShadowRoot(Object_Call_Handle__Handle(this._parent, "attachShadow", shadowRootInitDict.handle));
   }
   auto shadowRoot()() {
-    return Optional!(ShadowRoot)(Object_Getter__OptionalHandle(this._parent, "shadowRoot"));
+    return recastOpt!(ShadowRoot)(Object_Getter__OptionalHandle(this._parent, "shadowRoot"));
   }
   auto openOrClosedShadowRoot()() {
-    return Optional!(ShadowRoot)(Object_Getter__OptionalHandle(this._parent, "openOrClosedShadowRoot"));
+    return recastOpt!(ShadowRoot)(Object_Getter__OptionalHandle(this._parent, "openOrClosedShadowRoot"));
   }
   auto assignedSlot()() {
-    return Optional!(HTMLSlotElement)(Object_Getter__OptionalHandle(this._parent, "assignedSlot"));
+    return recastOpt!(HTMLSlotElement)(Object_Getter__OptionalHandle(this._parent, "assignedSlot"));
   }
   auto openOrClosedAssignedSlot()() {
-    return Optional!(HTMLSlotElement)(Object_Getter__OptionalHandle(this._parent, "openOrClosedAssignedSlot"));
+    return recastOpt!(HTMLSlotElement)(Object_Getter__OptionalHandle(this._parent, "openOrClosedAssignedSlot"));
   }
   void slot()(string slot) {
     Object_Call_string__void(this._parent, "slot", slot);
@@ -313,13 +313,13 @@ struct Element {
   auto mozRequestFullScreen()() {
     return JsPromise!(void)(Object_Getter__Handle(this._parent, "mozRequestFullScreen"));
   }
-  void onfullscreenchange(T0)(scope auto ref Optional!(T0) onfullscreenchange) if (isTOrPointer!(T0, EventHandler)) {
+  void onfullscreenchange(T0)(scope auto ref Optional!(T0) onfullscreenchange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onfullscreenchange", !onfullscreenchange.empty, onfullscreenchange.front);
   }
   EventHandler onfullscreenchange()() {
     return Object_Getter__EventHandler(this._parent, "onfullscreenchange");
   }
-  void onfullscreenerror(T0)(scope auto ref Optional!(T0) onfullscreenerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onfullscreenerror(T0)(scope auto ref Optional!(T0) onfullscreenerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onfullscreenerror", !onfullscreenerror.empty, onfullscreenerror.front);
   }
   EventHandler onfullscreenerror()() {
@@ -329,7 +329,7 @@ struct Element {
     Object_Call__void(this._parent, "requestPointerLock");
   }
   auto getAsFlexContainer()() {
-    return Optional!(Flex)(Object_Getter__OptionalHandle(this._parent, "getAsFlexContainer"));
+    return recastOpt!(Flex)(Object_Getter__OptionalHandle(this._parent, "getAsFlexContainer"));
   }
   auto getGridFragments()() {
     return Sequence!(Grid)(Object_Getter__Handle(this._parent, "getGridFragments"));
@@ -350,19 +350,19 @@ struct Element {
     Object_Call__void(this._parent, "remove");
   }
   auto previousElementSibling()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this._parent, "previousElementSibling"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this._parent, "previousElementSibling"));
   }
   auto nextElementSibling()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this._parent, "nextElementSibling"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this._parent, "nextElementSibling"));
   }
   auto children()() {
     return HTMLCollection(Object_Getter__Handle(this._parent, "children"));
   }
   auto firstElementChild()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this._parent, "firstElementChild"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this._parent, "firstElementChild"));
   }
   auto lastElementChild()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this._parent, "lastElementChild"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this._parent, "lastElementChild"));
   }
   uint childElementCount()() {
     return Object_Getter__uint(this._parent, "childElementCount");

@@ -19,10 +19,10 @@ struct HTMLCollection {
     return Object_Getter__uint(this.handle, "length");
   }
   auto item()(uint index) {
-    return Optional!(Element)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
+    return recastOpt!(Element)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
   }
   auto namedItem()(string name) {
-    return Optional!(Element)(Object_Call_string__OptionalHandle(this.handle, "namedItem", name));
+    return recastOpt!(Element)(Object_Call_string__OptionalHandle(this.handle, "namedItem", name));
   }
 }
 

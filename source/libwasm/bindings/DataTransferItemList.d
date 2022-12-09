@@ -26,10 +26,10 @@ struct DataTransferItemList {
     return DataTransferItem(Object_Call_uint__Handle(this.handle, "getter", index));
   }
   auto add()(string data, string type) {
-    return Optional!(DataTransferItem)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "add", "string;string", tuple(data, type)));
+    return recastOpt!(DataTransferItem)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "add", "string;string", tuple(data, type)));
   }
   auto add()(scope ref File data) {
-    return Optional!(DataTransferItem)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "add", "Handle", tuple(cast(Handle)data._parent)));
+    return recastOpt!(DataTransferItem)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "add", "Handle", tuple(cast(Handle)data._parent)));
   }
   void remove()(uint index) {
     Object_Call_uint__void(this.handle, "remove", index);

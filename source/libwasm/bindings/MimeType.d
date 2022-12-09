@@ -19,7 +19,7 @@ struct MimeType {
     return Object_Getter__string(this.handle, "description");
   }
   auto enabledPlugin()() {
-    return Optional!(Plugin)(Object_Getter__OptionalHandle(this.handle, "enabledPlugin"));
+    return recastOpt!(Plugin)(Object_Getter__OptionalHandle(this.handle, "enabledPlugin"));
   }
   string suffixes()() {
     return Object_Getter__string(this.handle, "suffixes");

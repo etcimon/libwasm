@@ -62,13 +62,13 @@ struct DeviceMotionEvent {
     _parent = .Event(h);
   }
   auto acceleration()() {
-    return Optional!(DeviceAcceleration)(Object_Getter__OptionalHandle(this._parent, "acceleration"));
+    return recastOpt!(DeviceAcceleration)(Object_Getter__OptionalHandle(this._parent, "acceleration"));
   }
   auto accelerationIncludingGravity()() {
-    return Optional!(DeviceAcceleration)(Object_Getter__OptionalHandle(this._parent, "accelerationIncludingGravity"));
+    return recastOpt!(DeviceAcceleration)(Object_Getter__OptionalHandle(this._parent, "accelerationIncludingGravity"));
   }
   auto rotationRate()() {
-    return Optional!(DeviceRotationRate)(Object_Getter__OptionalHandle(this._parent, "rotationRate"));
+    return recastOpt!(DeviceRotationRate)(Object_Getter__OptionalHandle(this._parent, "rotationRate"));
   }
   Optional!(double) interval()() {
     return Object_Getter__OptionalDouble(this._parent, "interval");

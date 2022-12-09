@@ -25,7 +25,7 @@ struct AccessibleNode {
     return Sequence!(string)(Object_Getter__Handle(this.handle, "attributes"));
   }
   auto DOMNode()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "DOMNode"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "DOMNode"));
   }
   bool is_()(string states) {
     return Object_Call_string__bool(this.handle, "is", states);
@@ -220,19 +220,19 @@ struct AccessibleNode {
     Serialize_Object_VarArgCall!void(this.handle, "activeDescendant", "Optional!Handle", tuple(!activeDescendant.empty, cast(Handle)activeDescendant.front.handle));
   }
   auto activeDescendant()() {
-    return Optional!(AccessibleNode)(Object_Getter__OptionalHandle(this.handle, "activeDescendant"));
+    return recastOpt!(AccessibleNode)(Object_Getter__OptionalHandle(this.handle, "activeDescendant"));
   }
   void details(T0)(scope auto ref Optional!(T0) details) if (isTOrPointer!(T0, AccessibleNode)) {
     Serialize_Object_VarArgCall!void(this.handle, "details", "Optional!Handle", tuple(!details.empty, cast(Handle)details.front.handle));
   }
   auto details()() {
-    return Optional!(AccessibleNode)(Object_Getter__OptionalHandle(this.handle, "details"));
+    return recastOpt!(AccessibleNode)(Object_Getter__OptionalHandle(this.handle, "details"));
   }
   void errorMessage(T0)(scope auto ref Optional!(T0) errorMessage) if (isTOrPointer!(T0, AccessibleNode)) {
     Serialize_Object_VarArgCall!void(this.handle, "errorMessage", "Optional!Handle", tuple(!errorMessage.empty, cast(Handle)errorMessage.front.handle));
   }
   auto errorMessage()() {
-    return Optional!(AccessibleNode)(Object_Getter__OptionalHandle(this.handle, "errorMessage"));
+    return recastOpt!(AccessibleNode)(Object_Getter__OptionalHandle(this.handle, "errorMessage"));
   }
   void colCount(T0)(scope auto ref Optional!(T0) colCount) if (isTOrPointer!(T0, int)) {
     Serialize_Object_VarArgCall!void(this.handle, "colCount", "Optional!(int)", tuple(!colCount.empty, colCount.front));

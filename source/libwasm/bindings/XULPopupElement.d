@@ -56,7 +56,7 @@ struct OpenPopupOptions {
     Serialize_Object_VarArgCall!void(this.handle, "triggerEvent", "Optional!Handle", tuple(!triggerEvent.empty, cast(Handle)triggerEvent.front.handle));
   }
   auto triggerEvent()() {
-    return Optional!(Event)(Object_Getter__OptionalHandle(this.handle, "triggerEvent"));
+    return recastOpt!(Event)(Object_Getter__OptionalHandle(this.handle, "triggerEvent"));
   }
 }
 alias StringOrOpenPopupOptions = SumType!(string, OpenPopupOptions);
@@ -161,10 +161,10 @@ struct XULPopupElement {
     return Object_Getter__string(this._parent, "state");
   }
   auto triggerNode()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this._parent, "triggerNode"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this._parent, "triggerNode"));
   }
   auto anchorNode()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this._parent, "anchorNode"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this._parent, "anchorNode"));
   }
   auto getOuterScreenRect()() {
     return DOMRect(Object_Getter__Handle(this._parent, "getOuterScreenRect"));

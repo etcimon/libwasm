@@ -40,25 +40,25 @@ struct StreamFilter {
   string error()() {
     return Object_Getter__string(this._parent, "error");
   }
-  void ondata(T0)(scope auto ref Optional!(T0) ondata) if (isTOrPointer!(T0, EventHandler)) {
+  void ondata(T0)(scope auto ref Optional!(T0) ondata) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "ondata", !ondata.empty, ondata.front);
   }
   EventHandler ondata()() {
     return Object_Getter__EventHandler(this._parent, "ondata");
   }
-  void onstart(T0)(scope auto ref Optional!(T0) onstart) if (isTOrPointer!(T0, EventHandler)) {
+  void onstart(T0)(scope auto ref Optional!(T0) onstart) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onstart", !onstart.empty, onstart.front);
   }
   EventHandler onstart()() {
     return Object_Getter__EventHandler(this._parent, "onstart");
   }
-  void onstop(T0)(scope auto ref Optional!(T0) onstop) if (isTOrPointer!(T0, EventHandler)) {
+  void onstop(T0)(scope auto ref Optional!(T0) onstop) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onstop", !onstop.empty, onstop.front);
   }
   EventHandler onstop()() {
     return Object_Getter__EventHandler(this._parent, "onstop");
   }
-  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onerror", !onerror.empty, onerror.front);
   }
   EventHandler onerror()() {

@@ -214,9 +214,9 @@ void fill(Range, Value)(auto ref Range range, auto ref Value value)
     }
     else
     {
-        for ( ; !range.empty; range.popFront() )
+        for (int i = 0 ; i < range.length ; i++ )
         {
-            range.front = value;
+            range[i] = value;
         }
     }
 }
@@ -236,13 +236,13 @@ if (!is(Range == char[]) && !is(Range == wchar[]))
         static if (!__traits(isZeroInit, T))
         {
             auto p = T();
-            for ( ; !range.empty ; range.popFront() )
+            for (int i = 0 ; i < range.length ; i++ )
             {
                 static if (__traits(isStaticArray, T))
                 {
                     // static array initializer only contains initialization
                     // for one element of the static array.
-                    auto elemp = cast(void *) addressOf(range.front);
+                    auto elemp = cast(void *) addressOf(range[i]);
                     auto endp = elemp + T.sizeof;
                     while (elemp < endp)
                     {
@@ -252,7 +252,7 @@ if (!is(Range == char[]) && !is(Range == wchar[]))
                 }
                 else
                 {
-                    memcpy(addressOf(range.front), &p, T.sizeof);
+                    memcpy(addressOf(range[i]), &p, T.sizeof);
                 }
             }
         }
@@ -260,8 +260,8 @@ if (!is(Range == char[]) && !is(Range == wchar[]))
             static if (isDynamicArray!Range)
                 memset(range.ptr, 0, range.length * T.sizeof);
             else
-                for ( ; !range.empty ; range.popFront() )
-                    memset(addressOf(range.front), 0, T.sizeof);
+                for (int i = 0 ; i < range.length ; i++ )
+                    memset(addressOf(range[i]), 0, T.sizeof);
     }
     else
         fill(range, T.init);

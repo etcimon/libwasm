@@ -138,7 +138,7 @@ struct CanvasFillStrokeStyles {
     return CanvasGradient(Serialize_Object_VarArgCall!Handle(this.handle, "createRadialGradient", "double;double;double;double;double;double", tuple(x0, y0, r0, x1, y1, r1)));
   }
   auto createPattern()(scope ref CanvasImageSource image, string repetition) {
-    return Optional!(CanvasPattern)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "createPattern", "SumType!(Handle,Handle,Handle,Handle,Handle);string", tuple(libwasm.sumtype.match!(((ref image.Types[0] v) => 0),((ref image.Types[1] v) => 1),((ref image.Types[2] v) => 2),((ref image.Types[3] v) => 3),((ref image.Types[4] v) => 4))(image),tuple(libwasm.sumtype.match!(((ref image.Types[0] v) => cast(Handle)v.handle),((ref image.Types[1] v) => Handle.init),((ref image.Types[2] v) => Handle.init),((ref image.Types[3] v) => Handle.init),((ref image.Types[4] v) => Handle.init))(image),libwasm.sumtype.match!(((ref image.Types[0] v) => Handle.init),((ref image.Types[1] v) => cast(Handle)v.handle),((ref image.Types[2] v) => Handle.init),((ref image.Types[3] v) => Handle.init),((ref image.Types[4] v) => Handle.init))(image),libwasm.sumtype.match!(((ref image.Types[0] v) => Handle.init),((ref image.Types[1] v) => Handle.init),((ref image.Types[2] v) => cast(Handle)v.handle),((ref image.Types[3] v) => Handle.init),((ref image.Types[4] v) => Handle.init))(image),libwasm.sumtype.match!(((ref image.Types[0] v) => Handle.init),((ref image.Types[1] v) => Handle.init),((ref image.Types[2] v) => Handle.init),((ref image.Types[3] v) => cast(Handle)v.handle),((ref image.Types[4] v) => Handle.init))(image),libwasm.sumtype.match!(((ref image.Types[0] v) => Handle.init),((ref image.Types[1] v) => Handle.init),((ref image.Types[2] v) => Handle.init),((ref image.Types[3] v) => Handle.init),((ref image.Types[4] v) => cast(Handle)v.handle))(image)), repetition)));
+    return recastOpt!(CanvasPattern)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "createPattern", "SumType!(Handle,Handle,Handle,Handle,Handle);string", tuple(libwasm.sumtype.match!(((ref image.Types[0] v) => 0),((ref image.Types[1] v) => 1),((ref image.Types[2] v) => 2),((ref image.Types[3] v) => 3),((ref image.Types[4] v) => 4))(image),tuple(libwasm.sumtype.match!(((ref image.Types[0] v) => cast(Handle)v.handle),((ref image.Types[1] v) => Handle.init),((ref image.Types[2] v) => Handle.init),((ref image.Types[3] v) => Handle.init),((ref image.Types[4] v) => Handle.init))(image),libwasm.sumtype.match!(((ref image.Types[0] v) => Handle.init),((ref image.Types[1] v) => cast(Handle)v.handle),((ref image.Types[2] v) => Handle.init),((ref image.Types[3] v) => Handle.init),((ref image.Types[4] v) => Handle.init))(image),libwasm.sumtype.match!(((ref image.Types[0] v) => Handle.init),((ref image.Types[1] v) => Handle.init),((ref image.Types[2] v) => cast(Handle)v.handle),((ref image.Types[3] v) => Handle.init),((ref image.Types[4] v) => Handle.init))(image),libwasm.sumtype.match!(((ref image.Types[0] v) => Handle.init),((ref image.Types[1] v) => Handle.init),((ref image.Types[2] v) => Handle.init),((ref image.Types[3] v) => cast(Handle)v.handle),((ref image.Types[4] v) => Handle.init))(image),libwasm.sumtype.match!(((ref image.Types[0] v) => Handle.init),((ref image.Types[1] v) => Handle.init),((ref image.Types[2] v) => Handle.init),((ref image.Types[3] v) => Handle.init),((ref image.Types[4] v) => cast(Handle)v.handle))(image)), repetition)));
   }
 }
 struct CanvasFilters {
@@ -345,7 +345,7 @@ struct CanvasRenderingContext2D {
     this.handle = JsHandle(h);
   }
   auto canvas()() {
-    return Optional!(HTMLCanvasElement)(Object_Getter__OptionalHandle(this.handle, "canvas"));
+    return recastOpt!(HTMLCanvasElement)(Object_Getter__OptionalHandle(this.handle, "canvas"));
   }
   void mozCurrentTransform()(scope ref JsObject mozCurrentTransform) {
     Object_Call_Handle__void(this.handle, "mozCurrentTransform", mozCurrentTransform.handle);
@@ -446,7 +446,7 @@ struct CanvasRenderingContext2D {
     return CanvasGradient(Serialize_Object_VarArgCall!Handle(this.handle, "createRadialGradient", "double;double;double;double;double;double", tuple(x0, y0, r0, x1, y1, r1)));
   }
   auto createPattern()(scope ref CanvasImageSource image, string repetition) {
-    return Optional!(CanvasPattern)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "createPattern", "SumType!(Handle,Handle,Handle,Handle,Handle);string", tuple(libwasm.sumtype.match!(((ref image.Types[0] v) => 0),((ref image.Types[1] v) => 1),((ref image.Types[2] v) => 2),((ref image.Types[3] v) => 3),((ref image.Types[4] v) => 4))(image),tuple(libwasm.sumtype.match!(((ref image.Types[0] v) => cast(Handle)v.handle),((ref image.Types[1] v) => Handle.init),((ref image.Types[2] v) => Handle.init),((ref image.Types[3] v) => Handle.init),((ref image.Types[4] v) => Handle.init))(image),libwasm.sumtype.match!(((ref image.Types[0] v) => Handle.init),((ref image.Types[1] v) => cast(Handle)v.handle),((ref image.Types[2] v) => Handle.init),((ref image.Types[3] v) => Handle.init),((ref image.Types[4] v) => Handle.init))(image),libwasm.sumtype.match!(((ref image.Types[0] v) => Handle.init),((ref image.Types[1] v) => Handle.init),((ref image.Types[2] v) => cast(Handle)v.handle),((ref image.Types[3] v) => Handle.init),((ref image.Types[4] v) => Handle.init))(image),libwasm.sumtype.match!(((ref image.Types[0] v) => Handle.init),((ref image.Types[1] v) => Handle.init),((ref image.Types[2] v) => Handle.init),((ref image.Types[3] v) => cast(Handle)v.handle),((ref image.Types[4] v) => Handle.init))(image),libwasm.sumtype.match!(((ref image.Types[0] v) => Handle.init),((ref image.Types[1] v) => Handle.init),((ref image.Types[2] v) => Handle.init),((ref image.Types[3] v) => Handle.init),((ref image.Types[4] v) => cast(Handle)v.handle))(image)), repetition)));
+    return recastOpt!(CanvasPattern)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "createPattern", "SumType!(Handle,Handle,Handle,Handle,Handle);string", tuple(libwasm.sumtype.match!(((ref image.Types[0] v) => 0),((ref image.Types[1] v) => 1),((ref image.Types[2] v) => 2),((ref image.Types[3] v) => 3),((ref image.Types[4] v) => 4))(image),tuple(libwasm.sumtype.match!(((ref image.Types[0] v) => cast(Handle)v.handle),((ref image.Types[1] v) => Handle.init),((ref image.Types[2] v) => Handle.init),((ref image.Types[3] v) => Handle.init),((ref image.Types[4] v) => Handle.init))(image),libwasm.sumtype.match!(((ref image.Types[0] v) => Handle.init),((ref image.Types[1] v) => cast(Handle)v.handle),((ref image.Types[2] v) => Handle.init),((ref image.Types[3] v) => Handle.init),((ref image.Types[4] v) => Handle.init))(image),libwasm.sumtype.match!(((ref image.Types[0] v) => Handle.init),((ref image.Types[1] v) => Handle.init),((ref image.Types[2] v) => cast(Handle)v.handle),((ref image.Types[3] v) => Handle.init),((ref image.Types[4] v) => Handle.init))(image),libwasm.sumtype.match!(((ref image.Types[0] v) => Handle.init),((ref image.Types[1] v) => Handle.init),((ref image.Types[2] v) => Handle.init),((ref image.Types[3] v) => cast(Handle)v.handle),((ref image.Types[4] v) => Handle.init))(image),libwasm.sumtype.match!(((ref image.Types[0] v) => Handle.init),((ref image.Types[1] v) => Handle.init),((ref image.Types[2] v) => Handle.init),((ref image.Types[3] v) => Handle.init),((ref image.Types[4] v) => cast(Handle)v.handle))(image)), repetition)));
   }
   void shadowOffsetX()(double shadowOffsetX) {
     Object_Call_double__void(this.handle, "shadowOffsetX", shadowOffsetX);
@@ -854,7 +854,7 @@ struct HitRegionOptions {
     Serialize_Object_VarArgCall!void(this.handle, "path", "Optional!Handle", tuple(!path.empty, cast(Handle)path.front.handle));
   }
   auto path()() {
-    return Optional!(Path2D)(Object_Getter__OptionalHandle(this.handle, "path"));
+    return recastOpt!(Path2D)(Object_Getter__OptionalHandle(this.handle, "path"));
   }
   void id()(string id) {
     Object_Call_string__void(this.handle, "id", id);
@@ -866,7 +866,7 @@ struct HitRegionOptions {
     Serialize_Object_VarArgCall!void(this.handle, "control", "Optional!Handle", tuple(!control.empty, cast(Handle)control.front._parent));
   }
   auto control()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this.handle, "control"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this.handle, "control"));
   }
 }
 struct Path2D {

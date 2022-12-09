@@ -71,7 +71,7 @@ T* alloc(T, ARGS...)(auto ref ARGS args)
 	T* ret;
 	
 	if (!PoolStack.empty) {
-		ret = ObjectAllocator!(T, PoolStack).alloc(args);
+		ret = ObjectAllocator!(T, PoolStack)().alloc(args);
 		
 		// Add destructor to pool
 		static if (hasElaborateDestructor!T || __traits(hasMember, T, "__xdtor") ) 
@@ -106,6 +106,20 @@ auto realloc(T)(ref T arr, size_t n)
 	}
 }
 
+auto copy(T)(auto ref T arr)
+	if (isArray!T)
+{
+	alias ElType = UnConst!(typeof(arr[0]));
+	enum ElSize = ElType.sizeof;
+	T arr_copy;
+	if (!PoolStack.empty) {
+		arr_copy = cast(T)allocArray!(ElementType!T, PoolStack)(arr.length);
+		registerPoolArray(arr_copy);
+		memcpy(cast(void*)arr_copy.ptr, cast(void*)arr.ptr, arr.length * ElSize);
+	}
+
+	return arr_copy;
+}
 
 struct PoolStack {
 static:

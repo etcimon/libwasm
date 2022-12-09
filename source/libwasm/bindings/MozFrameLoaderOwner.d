@@ -17,7 +17,7 @@ struct MozFrameLoaderOwner {
     this.handle = JsHandle(h);
   }
   auto frameLoader()() {
-    return Optional!(FrameLoader)(Object_Getter__OptionalHandle(this.handle, "frameLoader"));
+    return recastOpt!(FrameLoader)(Object_Getter__OptionalHandle(this.handle, "frameLoader"));
   }
   void presetOpenerWindow(T0)(scope auto ref Optional!(T0) window) if (isTOrPointer!(T0, WindowProxy)) {
     Serialize_Object_VarArgCall!void(this.handle, "presetOpenerWindow", "Optional!Handle", tuple(!window.empty, cast(Handle)window.front.handle));

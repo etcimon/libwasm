@@ -108,7 +108,7 @@ struct RegisteredKey {
     Serialize_Object_VarArgCall!void(this.handle, "transports", "Optional!Handle", tuple(!transports.empty, cast(Handle)transports.front.handle));
   }
   auto transports()() {
-    return Optional!(Transports)(Object_Getter__OptionalHandle(this.handle, "transports"));
+    return recastOpt!(Transports)(Object_Getter__OptionalHandle(this.handle, "transports"));
   }
   void appId(T0)(scope auto ref Optional!(T0) appId) if (isTOrPointer!(T0, string)) {
     Serialize_Object_VarArgCall!void(this.handle, "appId", "Optional!(string)", tuple(!appId.empty, appId.front));

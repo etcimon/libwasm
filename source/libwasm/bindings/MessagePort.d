@@ -51,13 +51,13 @@ struct MessagePort {
   void close()() {
     Object_Call__void(this._parent, "close");
   }
-  void onmessage(T0)(scope auto ref Optional!(T0) onmessage) if (isTOrPointer!(T0, EventHandler)) {
+  void onmessage(T0)(scope auto ref Optional!(T0) onmessage) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onmessage", !onmessage.empty, onmessage.front);
   }
   EventHandler onmessage()() {
     return Object_Getter__EventHandler(this._parent, "onmessage");
   }
-  void onmessageerror(T0)(scope auto ref Optional!(T0) onmessageerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onmessageerror(T0)(scope auto ref Optional!(T0) onmessageerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onmessageerror", !onmessageerror.empty, onmessageerror.front);
   }
   EventHandler onmessageerror()() {

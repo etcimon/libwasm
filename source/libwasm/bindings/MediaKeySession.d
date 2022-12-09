@@ -19,7 +19,7 @@ struct MediaKeySession {
     _parent = .EventTarget(h);
   }
   auto error()() {
-    return Optional!(MediaKeyError)(Object_Getter__OptionalHandle(this._parent, "error"));
+    return recastOpt!(MediaKeyError)(Object_Getter__OptionalHandle(this._parent, "error"));
   }
   string sessionId()() {
     return Object_Getter__string(this._parent, "sessionId");
@@ -33,13 +33,13 @@ struct MediaKeySession {
   auto keyStatuses()() {
     return MediaKeyStatusMap(Object_Getter__Handle(this._parent, "keyStatuses"));
   }
-  void onkeystatuseschange(T0)(scope auto ref Optional!(T0) onkeystatuseschange) if (isTOrPointer!(T0, EventHandler)) {
+  void onkeystatuseschange(T0)(scope auto ref Optional!(T0) onkeystatuseschange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onkeystatuseschange", !onkeystatuseschange.empty, onkeystatuseschange.front);
   }
   EventHandler onkeystatuseschange()() {
     return Object_Getter__EventHandler(this._parent, "onkeystatuseschange");
   }
-  void onmessage(T0)(scope auto ref Optional!(T0) onmessage) if (isTOrPointer!(T0, EventHandler)) {
+  void onmessage(T0)(scope auto ref Optional!(T0) onmessage) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onmessage", !onmessage.empty, onmessage.front);
   }
   EventHandler onmessage()() {

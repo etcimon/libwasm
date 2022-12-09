@@ -17,7 +17,7 @@ struct HTMLLabelElement {
     _parent = .HTMLElement(h);
   }
   auto form()() {
-    return Optional!(HTMLFormElement)(Object_Getter__OptionalHandle(this._parent, "form"));
+    return recastOpt!(HTMLFormElement)(Object_Getter__OptionalHandle(this._parent, "form"));
   }
   void htmlFor()(string htmlFor) {
     Object_Call_string__void(this._parent, "htmlFor", htmlFor);
@@ -26,7 +26,7 @@ struct HTMLLabelElement {
     return Object_Getter__string(this._parent, "htmlFor");
   }
   auto control()() {
-    return Optional!(HTMLElement)(Object_Getter__OptionalHandle(this._parent, "control"));
+    return recastOpt!(HTMLElement)(Object_Getter__OptionalHandle(this._parent, "control"));
   }
 }
 

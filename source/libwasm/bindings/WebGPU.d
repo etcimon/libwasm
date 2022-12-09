@@ -334,7 +334,7 @@ struct WebGPUBuffer {
     this.handle = JsHandle(h);
   }
   auto mapping()() {
-    return Optional!(ArrayBuffer)(Object_Getter__OptionalHandle(this.handle, "mapping"));
+    return recastOpt!(ArrayBuffer)(Object_Getter__OptionalHandle(this.handle, "mapping"));
   }
   void unmap()() {
     Object_Call__void(this.handle, "unmap");

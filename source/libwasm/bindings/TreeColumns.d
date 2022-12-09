@@ -18,7 +18,7 @@ struct TreeColumns {
     this.handle = JsHandle(h);
   }
   auto tree()() {
-    return Optional!(XULTreeElement)(Object_Getter__OptionalHandle(this.handle, "tree"));
+    return recastOpt!(XULTreeElement)(Object_Getter__OptionalHandle(this.handle, "tree"));
   }
   uint count()() {
     return Object_Getter__uint(this.handle, "count");
@@ -27,28 +27,28 @@ struct TreeColumns {
     return Object_Getter__uint(this.handle, "length");
   }
   auto getFirstColumn()() {
-    return Optional!(TreeColumn)(Object_Getter__OptionalHandle(this.handle, "getFirstColumn"));
+    return recastOpt!(TreeColumn)(Object_Getter__OptionalHandle(this.handle, "getFirstColumn"));
   }
   auto getLastColumn()() {
-    return Optional!(TreeColumn)(Object_Getter__OptionalHandle(this.handle, "getLastColumn"));
+    return recastOpt!(TreeColumn)(Object_Getter__OptionalHandle(this.handle, "getLastColumn"));
   }
   auto getPrimaryColumn()() {
-    return Optional!(TreeColumn)(Object_Getter__OptionalHandle(this.handle, "getPrimaryColumn"));
+    return recastOpt!(TreeColumn)(Object_Getter__OptionalHandle(this.handle, "getPrimaryColumn"));
   }
   auto getSortedColumn()() {
-    return Optional!(TreeColumn)(Object_Getter__OptionalHandle(this.handle, "getSortedColumn"));
+    return recastOpt!(TreeColumn)(Object_Getter__OptionalHandle(this.handle, "getSortedColumn"));
   }
   auto getKeyColumn()() {
-    return Optional!(TreeColumn)(Object_Getter__OptionalHandle(this.handle, "getKeyColumn"));
+    return recastOpt!(TreeColumn)(Object_Getter__OptionalHandle(this.handle, "getKeyColumn"));
   }
   auto getColumnFor(T0)(scope auto ref Optional!(T0) element) if (isTOrPointer!(T0, Element)) {
-    return Optional!(TreeColumn)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getColumnFor", "Optional!Handle", tuple(!element.empty, cast(Handle)element.front._parent)));
+    return recastOpt!(TreeColumn)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getColumnFor", "Optional!Handle", tuple(!element.empty, cast(Handle)element.front._parent)));
   }
   auto getNamedColumn()(string name) {
-    return Optional!(TreeColumn)(Object_Call_string__OptionalHandle(this.handle, "getNamedColumn", name));
+    return recastOpt!(TreeColumn)(Object_Call_string__OptionalHandle(this.handle, "getNamedColumn", name));
   }
   auto getColumnAt()(uint index) {
-    return Optional!(TreeColumn)(Object_Call_uint__OptionalHandle(this.handle, "getColumnAt", index));
+    return recastOpt!(TreeColumn)(Object_Call_uint__OptionalHandle(this.handle, "getColumnAt", index));
   }
   void invalidateColumns()() {
     Object_Call__void(this.handle, "invalidateColumns");

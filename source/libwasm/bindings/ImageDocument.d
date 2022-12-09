@@ -22,7 +22,7 @@ struct ImageDocument {
     return Object_Getter__bool(this._parent, "imageIsResized");
   }
   auto imageRequest()() {
-    return Optional!(imgIRequest)(Object_Getter__OptionalHandle(this._parent, "imageRequest"));
+    return recastOpt!(imgIRequest)(Object_Getter__OptionalHandle(this._parent, "imageRequest"));
   }
   void shrinkToFit()() {
     Object_Call__void(this._parent, "shrinkToFit");

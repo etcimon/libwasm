@@ -16,7 +16,7 @@ struct HiddenPluginEvent {
     _parent = .Event(h);
   }
   auto tag()() {
-    return Optional!(PluginTag)(Object_Getter__OptionalHandle(this._parent, "tag"));
+    return recastOpt!(PluginTag)(Object_Getter__OptionalHandle(this._parent, "tag"));
   }
 }
 struct HiddenPluginEventInit {
@@ -33,7 +33,7 @@ struct HiddenPluginEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "tag", "Optional!Handle", tuple(!tag.empty, cast(Handle)tag.front.handle));
   }
   auto tag()() {
-    return Optional!(PluginTag)(Object_Getter__OptionalHandle(this._parent, "tag"));
+    return recastOpt!(PluginTag)(Object_Getter__OptionalHandle(this._parent, "tag"));
   }
 }
 

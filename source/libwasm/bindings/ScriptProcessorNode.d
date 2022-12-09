@@ -16,7 +16,7 @@ struct ScriptProcessorNode {
   this(Handle h) {
     _parent = .AudioNode(h);
   }
-  void onaudioprocess(T0)(scope auto ref Optional!(T0) onaudioprocess) if (isTOrPointer!(T0, EventHandler)) {
+  void onaudioprocess(T0)(scope auto ref Optional!(T0) onaudioprocess) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onaudioprocess", !onaudioprocess.empty, onaudioprocess.front);
   }
   EventHandler onaudioprocess()() {

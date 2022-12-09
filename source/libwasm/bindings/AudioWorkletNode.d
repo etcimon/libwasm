@@ -24,7 +24,7 @@ struct AudioWorkletNode {
   auto port()() {
     return MessagePort(Object_Getter__Handle(this._parent, "port"));
   }
-  void onprocessorerror(T0)(scope auto ref Optional!(T0) onprocessorerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onprocessorerror(T0)(scope auto ref Optional!(T0) onprocessorerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onprocessorerror", !onprocessorerror.empty, onprocessorerror.front);
   }
   EventHandler onprocessorerror()() {
@@ -69,7 +69,7 @@ struct AudioWorkletNodeOptions {
     Serialize_Object_VarArgCall!void(this._parent, "processorOptions", "Optional!Handle", tuple(!processorOptions.empty, cast(Handle)processorOptions.front.handle));
   }
   auto processorOptions()() {
-    return Optional!(JsObject)(Object_Getter__OptionalHandle(this._parent, "processorOptions"));
+    return recastOpt!(JsObject)(Object_Getter__OptionalHandle(this._parent, "processorOptions"));
   }
 }
 

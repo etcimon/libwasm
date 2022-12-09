@@ -26,7 +26,7 @@ struct InputEvent {
     return Object_Getter__OptionalString(this._parent, "data");
   }
   auto dataTransfer()() {
-    return Optional!(DataTransfer)(Object_Getter__OptionalHandle(this._parent, "dataTransfer"));
+    return recastOpt!(DataTransfer)(Object_Getter__OptionalHandle(this._parent, "dataTransfer"));
   }
 }
 struct InputEventInit {

@@ -21,10 +21,10 @@ struct CSSImportRule {
     return Object_Getter__string(this._parent, "href");
   }
   auto media()() {
-    return Optional!(MediaList)(Object_Getter__OptionalHandle(this._parent, "media"));
+    return recastOpt!(MediaList)(Object_Getter__OptionalHandle(this._parent, "media"));
   }
   auto styleSheet()() {
-    return Optional!(CSSStyleSheet)(Object_Getter__OptionalHandle(this._parent, "styleSheet"));
+    return recastOpt!(CSSStyleSheet)(Object_Getter__OptionalHandle(this._parent, "styleSheet"));
   }
 }
 

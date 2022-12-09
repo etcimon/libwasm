@@ -47,19 +47,19 @@ struct FontFaceSet {
   void forEach()(FontFaceSetForEachCallback cb) {
     FontFaceSet_forEach_0(this._parent, cb);
   }
-  void onloading(T0)(scope auto ref Optional!(T0) onloading) if (isTOrPointer!(T0, EventHandler)) {
+  void onloading(T0)(scope auto ref Optional!(T0) onloading) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onloading", !onloading.empty, onloading.front);
   }
   EventHandler onloading()() {
     return Object_Getter__EventHandler(this._parent, "onloading");
   }
-  void onloadingdone(T0)(scope auto ref Optional!(T0) onloadingdone) if (isTOrPointer!(T0, EventHandler)) {
+  void onloadingdone(T0)(scope auto ref Optional!(T0) onloadingdone) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onloadingdone", !onloadingdone.empty, onloadingdone.front);
   }
   EventHandler onloadingdone()() {
     return Object_Getter__EventHandler(this._parent, "onloadingdone");
   }
-  void onloadingerror(T0)(scope auto ref Optional!(T0) onloadingerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onloadingerror(T0)(scope auto ref Optional!(T0) onloadingerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onloadingerror", !onloadingerror.empty, onloadingerror.front);
   }
   EventHandler onloadingerror()() {

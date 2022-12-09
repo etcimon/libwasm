@@ -17,7 +17,7 @@ struct GamepadEvent {
     _parent = .Event(h);
   }
   auto gamepad()() {
-    return Optional!(Gamepad)(Object_Getter__OptionalHandle(this._parent, "gamepad"));
+    return recastOpt!(Gamepad)(Object_Getter__OptionalHandle(this._parent, "gamepad"));
   }
 }
 struct GamepadEventInit {
@@ -34,7 +34,7 @@ struct GamepadEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "gamepad", "Optional!Handle", tuple(!gamepad.empty, cast(Handle)gamepad.front.handle));
   }
   auto gamepad()() {
-    return Optional!(Gamepad)(Object_Getter__OptionalHandle(this._parent, "gamepad"));
+    return recastOpt!(Gamepad)(Object_Getter__OptionalHandle(this._parent, "gamepad"));
   }
 }
 

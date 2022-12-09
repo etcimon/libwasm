@@ -22,7 +22,7 @@ struct AudioBufferSourceNode {
     Serialize_Object_VarArgCall!void(this._parent, "buffer", "Optional!Handle", tuple(!buffer.empty, cast(Handle)buffer.front.handle));
   }
   auto buffer()() {
-    return Optional!(AudioBuffer)(Object_Getter__OptionalHandle(this._parent, "buffer"));
+    return recastOpt!(AudioBuffer)(Object_Getter__OptionalHandle(this._parent, "buffer"));
   }
   auto playbackRate()() {
     return AudioParam(Object_Getter__Handle(this._parent, "playbackRate"));
@@ -81,7 +81,7 @@ struct AudioBufferSourceOptions {
     Serialize_Object_VarArgCall!void(this.handle, "buffer", "Optional!Handle", tuple(!buffer.empty, cast(Handle)buffer.front.handle));
   }
   auto buffer()() {
-    return Optional!(AudioBuffer)(Object_Getter__OptionalHandle(this.handle, "buffer"));
+    return recastOpt!(AudioBuffer)(Object_Getter__OptionalHandle(this.handle, "buffer"));
   }
   void detune()(float detune) {
     Object_Call_float__void(this.handle, "detune", detune);

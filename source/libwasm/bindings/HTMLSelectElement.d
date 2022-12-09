@@ -43,7 +43,7 @@ struct HTMLSelectElement {
     return Object_Getter__bool(this._parent, "disabled");
   }
   auto form()() {
-    return Optional!(HTMLFormElement)(Object_Getter__OptionalHandle(this._parent, "form"));
+    return recastOpt!(HTMLFormElement)(Object_Getter__OptionalHandle(this._parent, "form"));
   }
   void multiple()(bool multiple) {
     Object_Call_bool__void(this._parent, "multiple", multiple);
@@ -82,10 +82,10 @@ struct HTMLSelectElement {
     return Object_Getter__uint(this._parent, "length");
   }
   auto item()(uint index) {
-    return Optional!(Element)(Object_Call_uint__OptionalHandle(this._parent, "item", index));
+    return recastOpt!(Element)(Object_Call_uint__OptionalHandle(this._parent, "item", index));
   }
   auto namedItem()(string name) {
-    return Optional!(HTMLOptionElement)(Object_Call_string__OptionalHandle(this._parent, "namedItem", name));
+    return recastOpt!(HTMLOptionElement)(Object_Call_string__OptionalHandle(this._parent, "namedItem", name));
   }
   void add(T1)(scope ref SumType!(HTMLOptionElement, HTMLOptGroupElement) element, scope auto ref Optional!(T1) before /* = no!(SumType!(HTMLElement, int)) */) if (isTOrPointer!(T1, SumType!(HTMLElement, int))) {
     Serialize_Object_VarArgCall!void(this._parent, "add", "SumType!(Handle,Handle);Optional!SumType!(Handle,int)", tuple(libwasm.sumtype.match!(((ref element.Types[0] v) => 0),((ref element.Types[1] v) => 1))(element),tuple(libwasm.sumtype.match!(((ref element.Types[0] v) => cast(Handle)v.handle),((ref element.Types[1] v) => Handle.init))(element),libwasm.sumtype.match!(((ref element.Types[0] v) => Handle.init),((ref element.Types[1] v) => cast(Handle)v.handle))(element)), !before.empty, libwasm.sumtype.match!(((ref before.Types[0] v) => 0),((int v) => 1))(before),tuple(libwasm.sumtype.match!(((ref before.Types[0] v) => cast(Handle)v.handle),((int v) => Handle.init))(before),libwasm.sumtype.match!(((ref before.Types[0] v) => int.init),((int v) => v))(before))));

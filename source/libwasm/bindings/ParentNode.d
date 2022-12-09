@@ -21,10 +21,10 @@ struct ParentNode {
     return HTMLCollection(Object_Getter__Handle(this.handle, "children"));
   }
   auto firstElementChild()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this.handle, "firstElementChild"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this.handle, "firstElementChild"));
   }
   auto lastElementChild()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this.handle, "lastElementChild"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this.handle, "lastElementChild"));
   }
   uint childElementCount()() {
     return Object_Getter__uint(this.handle, "childElementCount");

@@ -20,7 +20,7 @@ struct TreeContentView {
     this.handle = JsHandle(h);
   }
   auto getItemAtIndex()(int row) {
-    return Optional!(Element)(Object_Call_int__OptionalHandle(this.handle, "getItemAtIndex", row));
+    return recastOpt!(Element)(Object_Call_int__OptionalHandle(this.handle, "getItemAtIndex", row));
   }
   int getIndexOfItem(T0)(scope auto ref Optional!(T0) item) if (isTOrPointer!(T0, Element)) {
     return Serialize_Object_VarArgCall!int(this.handle, "getIndexOfItem", "Optional!Handle", tuple(!item.empty, cast(Handle)item.front._parent));
@@ -32,7 +32,7 @@ struct TreeContentView {
     Serialize_Object_VarArgCall!void(this.handle, "selection", "Optional!Handle", tuple(!selection.empty, cast(Handle)selection.front.handle));
   }
   auto selection()() {
-    return Optional!(nsITreeSelection)(Object_Getter__OptionalHandle(this.handle, "selection"));
+    return recastOpt!(nsITreeSelection)(Object_Getter__OptionalHandle(this.handle, "selection"));
   }
   string getRowProperties()(int row) {
     return Serialize_Object_VarArgCall!string(this.handle, "getRowProperties", "int", tuple(row));

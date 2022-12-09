@@ -16,10 +16,10 @@ struct SVGAnimatedRect {
     this.handle = JsHandle(h);
   }
   auto baseVal()() {
-    return Optional!(SVGRect)(Object_Getter__OptionalHandle(this.handle, "baseVal"));
+    return recastOpt!(SVGRect)(Object_Getter__OptionalHandle(this.handle, "baseVal"));
   }
   auto animVal()() {
-    return Optional!(SVGRect)(Object_Getter__OptionalHandle(this.handle, "animVal"));
+    return recastOpt!(SVGRect)(Object_Getter__OptionalHandle(this.handle, "animVal"));
   }
 }
 

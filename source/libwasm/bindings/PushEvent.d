@@ -17,7 +17,7 @@ struct PushEvent {
     _parent = .ExtendableEvent(h);
   }
   auto data()() {
-    return Optional!(PushMessageData)(Object_Getter__OptionalHandle(this._parent, "data"));
+    return recastOpt!(PushMessageData)(Object_Getter__OptionalHandle(this._parent, "data"));
   }
 }
 struct PushEventInit {

@@ -18,7 +18,7 @@ struct CSSStyleSheet {
     _parent = .StyleSheet(h);
   }
   auto ownerRule()() {
-    return Optional!(CSSRule)(Object_Getter__OptionalHandle(this._parent, "ownerRule"));
+    return recastOpt!(CSSRule)(Object_Getter__OptionalHandle(this._parent, "ownerRule"));
   }
   auto cssRules()() {
     return CSSRuleList(Object_Getter__Handle(this._parent, "cssRules"));

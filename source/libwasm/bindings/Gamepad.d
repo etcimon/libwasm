@@ -45,7 +45,7 @@ struct Gamepad {
     return Object_Getter__double(this.handle, "timestamp");
   }
   auto pose()() {
-    return Optional!(GamepadPose)(Object_Getter__OptionalHandle(this.handle, "pose"));
+    return recastOpt!(GamepadPose)(Object_Getter__OptionalHandle(this.handle, "pose"));
   }
   auto hapticActuators()() {
     return Sequence!(GamepadHapticActuator)(Object_Getter__Handle(this.handle, "hapticActuators"));

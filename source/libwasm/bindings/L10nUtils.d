@@ -74,7 +74,7 @@ struct L10nElement {
     Serialize_Object_VarArgCall!void(this.handle, "l10nArgs", "Optional!Handle", tuple(!l10nArgs.empty, cast(Handle)l10nArgs.front.handle));
   }
   auto l10nArgs()() {
-    return Optional!(JsObject)(Object_Getter__OptionalHandle(this.handle, "l10nArgs"));
+    return recastOpt!(JsObject)(Object_Getter__OptionalHandle(this.handle, "l10nArgs"));
   }
 }
 struct L10nValue {
@@ -97,7 +97,7 @@ struct L10nValue {
     Serialize_Object_VarArgCall!void(this.handle, "attributes", "Optional!Handle", tuple(!attributes.empty, cast(Handle)attributes.front.handle));
   }
   auto attributes()() {
-    return Optional!(Sequence!(AttributeNameValue))(Object_Getter__OptionalHandle(this.handle, "attributes"));
+    return recastOpt!(Sequence!(AttributeNameValue))(Object_Getter__OptionalHandle(this.handle, "attributes"));
   }
 }
 

@@ -4,9 +4,11 @@ import memutils.allocators;
 import memutils.constants;
 import memutils.vector : Array;
 import memutils.helpers : UnConst, memset, memcpy;
+import memutils.memory;
 
 import std.traits : hasMember, isPointer, hasIndirections, hasElaborateDestructor, isArray, ReturnType;
 
+pragma(LDC_no_typeinfo):
 struct ThreadMem {
 	nothrow:
 	@trusted:
@@ -16,6 +18,10 @@ struct ThreadMem {
 // Reserved for containers
 struct Malloc {
 	enum ident = Mallocator;
+}
+// Reserved for containers
+struct CTFE {
+	
 }
 
 // overloaded for AppMem, otherwise uses ThreadMem
@@ -71,9 +77,10 @@ nothrow:
 
 nothrow:
 
-
+pragma(LDC_no_typeinfo):
 struct ObjectAllocator(T, ALLOC = ThreadMem)
 {
+pragma(LDC_no_typeinfo):
 nothrow:
 	enum ElemSize = AllocSize!T;
 
@@ -88,10 +95,13 @@ nothrow:
 	enum NOGC = true;
 
 	alias TR = RefTypeOf!T;
-
 	TR alloc(ARGS...)(auto ref ARGS args)
 	{
-		static if (ALLOC.stringof == "PoolStack") {
+		static if (ALLOC.stringof == "CTFE") {
+			pragma(msg, T.stringof);
+			if (__ctfe) return new T(args);
+		}
+		else static if (ALLOC.stringof == "PoolStack") {
 			auto mem = m_getAlloc().alloc(ElemSize);
 		}
 		else static if (ALLOC.stringof == "void") {
@@ -126,7 +136,9 @@ nothrow:
 			destructRecurse(objc);
 		} 
 
-		static if (ALLOC.stringof == "PoolStack") {
+		static if (ALLOC.stringof == "CTFE") {
+			return;
+		} else static if (ALLOC.stringof == "PoolStack") {
 			m_getAlloc().free((cast(void*)obj)[0 .. ElemSize]);
 		}
 		else static if (ALLOC.stringof == "void") {
@@ -151,7 +163,10 @@ T[] allocArray(T, ALLOC = ThreadMem)(size_t n, ALLOC* base = null)
 		auto mem = FL_allocate(TSize * n);
 		return (cast(T*)mem.ptr)[0 .. n];
 	} else {
-		static if (ALLOC.stringof == "PoolStack")
+		static if (ALLOC.stringof == "CTFE") {
+			//return new T[n];
+		}
+		else static if (ALLOC.stringof == "PoolStack")
 			auto allocator = ALLOC.top;
 		else static if (hasMember!(ALLOC, "ident")) 
 			auto allocator = getAllocator!(ALLOC.ident)(false);
@@ -176,8 +191,12 @@ T[] reallocArray(T, ALLOC = ThreadMem)(T[] array, size_t n, ALLOC* base = null) 
 		return (cast(T*)mem.ptr)[0 .. n];
 	}
 	else {
-
-		static if (ALLOC.stringof == "PoolStack")
+		static if (ALLOC.stringof == "CTFE") {
+			//auto arr = new T[n];
+			//arr[0 .. array.length] = array;
+			//return arr;
+		}
+		else static if (ALLOC.stringof == "PoolStack")
 			auto allocator = ALLOC.top;
 		else static if (hasMember!(ALLOC, "ident")) 
 			auto allocator = getAllocator!(ALLOC.ident)(false);
@@ -216,7 +235,10 @@ nothrow void freeArray(T, ALLOC = ThreadMem)(auto ref T[] array, size_t max_dest
 		FL_deallocate((cast(void*)array.ptr)[0 .. array.length * TSize]);
 	} 
 	else {
-		static if (ALLOC.stringof == "PoolStack")
+		static if (ALLOC.stringof == "CTFE") {
+			return;
+		}
+		else static if (ALLOC.stringof == "PoolStack")
 			auto allocator = ALLOC.top;
 		else static if (hasMember!(ALLOC, "ident")) {
 			auto allocator = getAllocator!(ALLOC.ident)(true);

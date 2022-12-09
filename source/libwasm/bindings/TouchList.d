@@ -19,7 +19,7 @@ struct TouchList {
     return Object_Getter__uint(this.handle, "length");
   }
   auto item()(uint index) {
-    return Optional!(Touch)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
+    return recastOpt!(Touch)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
   }
 }
 

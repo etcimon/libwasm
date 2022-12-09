@@ -45,10 +45,10 @@ struct HTMLDocument {
     return Document(Object_Getter__Handle(this._parent, "open"));
   }
   auto open()(string url, string name, string features, bool replace /* = false */) {
-    return Optional!(WindowProxy)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "open", "string;string;string;bool", tuple(url, name, features, replace)));
+    return recastOpt!(WindowProxy)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "open", "string;string;string;bool", tuple(url, name, features, replace)));
   }
   auto open()(string url, string name, string features) {
-    return Optional!(WindowProxy)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "open", "string;string;string", tuple(url, name, features)));
+    return recastOpt!(WindowProxy)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "open", "string;string;string", tuple(url, name, features)));
   }
   void close()() {
     Object_Call__void(this._parent, "close");

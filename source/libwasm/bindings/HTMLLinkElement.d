@@ -103,7 +103,7 @@ struct HTMLLinkElement {
     return Object_Getter__string(this._parent, "as");
   }
   auto sheet()() {
-    return Optional!(StyleSheet)(Object_Getter__OptionalHandle(this._parent, "sheet"));
+    return recastOpt!(StyleSheet)(Object_Getter__OptionalHandle(this._parent, "sheet"));
   }
 }
 

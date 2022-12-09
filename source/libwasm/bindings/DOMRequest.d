@@ -37,15 +37,15 @@ struct DOMRequest {
     return Any(Object_Getter__Handle(this._parent, "result"));
   }
   auto error()() {
-    return Optional!(DOMException)(Object_Getter__OptionalHandle(this._parent, "error"));
+    return recastOpt!(DOMException)(Object_Getter__OptionalHandle(this._parent, "error"));
   }
-  void onsuccess(T0)(scope auto ref Optional!(T0) onsuccess) if (isTOrPointer!(T0, EventHandler)) {
+  void onsuccess(T0)(scope auto ref Optional!(T0) onsuccess) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onsuccess", !onsuccess.empty, onsuccess.front);
   }
   EventHandler onsuccess()() {
     return Object_Getter__EventHandler(this._parent, "onsuccess");
   }
-  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onerror", !onerror.empty, onerror.front);
   }
   EventHandler onerror()() {
@@ -70,15 +70,15 @@ struct DOMRequestShared {
     return Any(Object_Getter__Handle(this.handle, "result"));
   }
   auto error()() {
-    return Optional!(DOMException)(Object_Getter__OptionalHandle(this.handle, "error"));
+    return recastOpt!(DOMException)(Object_Getter__OptionalHandle(this.handle, "error"));
   }
-  void onsuccess(T0)(scope auto ref Optional!(T0) onsuccess) if (isTOrPointer!(T0, EventHandler)) {
+  void onsuccess(T0)(scope auto ref Optional!(T0) onsuccess) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this.handle, "onsuccess", !onsuccess.empty, onsuccess.front);
   }
   EventHandler onsuccess()() {
     return Object_Getter__EventHandler(this.handle, "onsuccess");
   }
-  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this.handle, "onerror", !onerror.empty, onerror.front);
   }
   EventHandler onerror()() {

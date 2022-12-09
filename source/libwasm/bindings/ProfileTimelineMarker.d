@@ -75,7 +75,7 @@ struct ProfileTimelineMarker {
     Serialize_Object_VarArgCall!void(this.handle, "stack", "Optional!Handle", tuple(!stack.empty, cast(Handle)stack.front.handle));
   }
   auto stack()() {
-    return Optional!(JsObject)(Object_Getter__OptionalHandle(this.handle, "stack"));
+    return recastOpt!(JsObject)(Object_Getter__OptionalHandle(this.handle, "stack"));
   }
   void processType()(ushort processType) {
     Serialize_Object_VarArgCall!void(this.handle, "processType", "ushort", tuple(processType));
@@ -99,7 +99,7 @@ struct ProfileTimelineMarker {
     Serialize_Object_VarArgCall!void(this.handle, "endStack", "Optional!Handle", tuple(!endStack.empty, cast(Handle)endStack.front.handle));
   }
   auto endStack()() {
-    return Optional!(JsObject)(Object_Getter__OptionalHandle(this.handle, "endStack"));
+    return recastOpt!(JsObject)(Object_Getter__OptionalHandle(this.handle, "endStack"));
   }
   void type()(string type) {
     Object_Call_string__void(this.handle, "type", type);
@@ -186,13 +186,13 @@ struct ProfileTimelineStackFrame {
     Serialize_Object_VarArgCall!void(this.handle, "parent", "Optional!Handle", tuple(!parent.empty, cast(Handle)parent.front.handle));
   }
   auto parent()() {
-    return Optional!(JsObject)(Object_Getter__OptionalHandle(this.handle, "parent"));
+    return recastOpt!(JsObject)(Object_Getter__OptionalHandle(this.handle, "parent"));
   }
   void asyncParent(T0)(scope auto ref Optional!(T0) asyncParent) if (isTOrPointer!(T0, JsObject)) {
     Serialize_Object_VarArgCall!void(this.handle, "asyncParent", "Optional!Handle", tuple(!asyncParent.empty, cast(Handle)asyncParent.front.handle));
   }
   auto asyncParent()() {
-    return Optional!(JsObject)(Object_Getter__OptionalHandle(this.handle, "asyncParent"));
+    return recastOpt!(JsObject)(Object_Getter__OptionalHandle(this.handle, "asyncParent"));
   }
   void asyncCause()(string asyncCause) {
     Object_Call_string__void(this.handle, "asyncCause", asyncCause);

@@ -30,7 +30,7 @@ struct ServiceWorker {
   ServiceWorkerState state()() {
     return Object_Getter__int(this._parent, "state");
   }
-  void onstatechange(T0)(scope auto ref Optional!(T0) onstatechange) if (isTOrPointer!(T0, EventHandler)) {
+  void onstatechange(T0)(scope auto ref Optional!(T0) onstatechange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onstatechange", !onstatechange.empty, onstatechange.front);
   }
   EventHandler onstatechange()() {
@@ -65,7 +65,7 @@ struct ServiceWorker {
     Object_Call_Handle__void(this._parent, "postMessage", _handle_message);
     dropHandle!(T0)(_handle_message);
   }
-  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onerror", !onerror.empty, onerror.front);
   }
   EventHandler onerror()() {

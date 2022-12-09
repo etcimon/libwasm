@@ -18,13 +18,13 @@ struct Selection {
     this.handle = JsHandle(h);
   }
   auto anchorNode()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "anchorNode"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "anchorNode"));
   }
   uint anchorOffset()() {
     return Object_Getter__uint(this.handle, "anchorOffset");
   }
   auto focusNode()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "focusNode"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "focusNode"));
   }
   uint focusOffset()() {
     return Object_Getter__uint(this.handle, "focusOffset");

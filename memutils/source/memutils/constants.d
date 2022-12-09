@@ -12,7 +12,7 @@ enum { // overhead allocator definitions, lazily loaded
 }
 
 enum Mallocator = 0x05; // For use by the DebugAllocator.
-
+enum Ctfe = 0x06; 
 const LogLevel = Error;
 version(DictionaryDebugger) const HasDictionaryDebugger = true;
 else					const HasDictionaryDebugger = false;

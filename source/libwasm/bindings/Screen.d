@@ -50,7 +50,7 @@ struct Screen {
   string mozOrientation()() {
     return Object_Getter__string(this._parent, "mozOrientation");
   }
-  void onmozorientationchange(T0)(scope auto ref Optional!(T0) onmozorientationchange) if (isTOrPointer!(T0, EventHandler)) {
+  void onmozorientationchange(T0)(scope auto ref Optional!(T0) onmozorientationchange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onmozorientationchange", !onmozorientationchange.empty, onmozorientationchange.front);
   }
   EventHandler onmozorientationchange()() {
@@ -72,9 +72,9 @@ struct Screen {
     return Object_Getter__int(this._parent, "colorGamut");
   }
   auto luminance()() {
-    return Optional!(ScreenLuminance)(Object_Getter__OptionalHandle(this._parent, "luminance"));
+    return recastOpt!(ScreenLuminance)(Object_Getter__OptionalHandle(this._parent, "luminance"));
   }
-  void onchange(T0)(scope auto ref Optional!(T0) onchange) if (isTOrPointer!(T0, EventHandler)) {
+  void onchange(T0)(scope auto ref Optional!(T0) onchange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onchange", !onchange.empty, onchange.front);
   }
   EventHandler onchange()() {

@@ -34,7 +34,7 @@ struct ImageCaptureErrorEvent {
     _parent = .Event(h);
   }
   auto imageCaptureError()() {
-    return Optional!(ImageCaptureError)(Object_Getter__OptionalHandle(this._parent, "imageCaptureError"));
+    return recastOpt!(ImageCaptureError)(Object_Getter__OptionalHandle(this._parent, "imageCaptureError"));
   }
 }
 struct ImageCaptureErrorEventInit {
@@ -51,7 +51,7 @@ struct ImageCaptureErrorEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "imageCaptureError", "Optional!Handle", tuple(!imageCaptureError.empty, cast(Handle)imageCaptureError.front.handle));
   }
   auto imageCaptureError()() {
-    return Optional!(ImageCaptureError)(Object_Getter__OptionalHandle(this._parent, "imageCaptureError"));
+    return recastOpt!(ImageCaptureError)(Object_Getter__OptionalHandle(this._parent, "imageCaptureError"));
   }
 }
 

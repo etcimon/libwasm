@@ -19,7 +19,7 @@ struct PaymentMethodChangeEvent {
     return Object_Getter__string(this._parent, "methodName");
   }
   auto methodDetails()() {
-    return Optional!(JsObject)(Object_Getter__OptionalHandle(this._parent, "methodDetails"));
+    return recastOpt!(JsObject)(Object_Getter__OptionalHandle(this._parent, "methodDetails"));
   }
 }
 struct PaymentMethodChangeEventInit {
@@ -42,7 +42,7 @@ struct PaymentMethodChangeEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "methodDetails", "Optional!Handle", tuple(!methodDetails.empty, cast(Handle)methodDetails.front.handle));
   }
   auto methodDetails()() {
-    return Optional!(JsObject)(Object_Getter__OptionalHandle(this._parent, "methodDetails"));
+    return recastOpt!(JsObject)(Object_Getter__OptionalHandle(this._parent, "methodDetails"));
   }
 }
 

@@ -48,7 +48,7 @@ struct VTTCue {
     Serialize_Object_VarArgCall!void(this._parent, "region", "Optional!Handle", tuple(!region.empty, cast(Handle)region.front.handle));
   }
   auto region()() {
-    return Optional!(VTTRegion)(Object_Getter__OptionalHandle(this._parent, "region"));
+    return recastOpt!(VTTRegion)(Object_Getter__OptionalHandle(this._parent, "region"));
   }
   void vertical()(DirectionSetting vertical) {
     Object_Call_int__void(this._parent, "vertical", vertical);
@@ -111,7 +111,7 @@ struct VTTCue {
     Serialize_Object_VarArgCall!void(this._parent, "displayState", "Optional!Handle", tuple(!displayState.empty, cast(Handle)displayState.front.handle));
   }
   auto displayState()() {
-    return Optional!(HTMLDivElement)(Object_Getter__OptionalHandle(this._parent, "displayState"));
+    return recastOpt!(HTMLDivElement)(Object_Getter__OptionalHandle(this._parent, "displayState"));
   }
   bool hasBeenReset()() {
     return Object_Getter__bool(this._parent, "hasBeenReset");

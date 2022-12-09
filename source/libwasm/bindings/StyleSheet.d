@@ -23,10 +23,10 @@ struct StyleSheet {
     return Object_Getter__OptionalString(this.handle, "href");
   }
   auto ownerNode()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "ownerNode"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "ownerNode"));
   }
   auto parentStyleSheet()() {
-    return Optional!(StyleSheet)(Object_Getter__OptionalHandle(this.handle, "parentStyleSheet"));
+    return recastOpt!(StyleSheet)(Object_Getter__OptionalHandle(this.handle, "parentStyleSheet"));
   }
   Optional!(string) title()() {
     return Object_Getter__OptionalString(this.handle, "title");

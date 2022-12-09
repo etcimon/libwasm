@@ -400,9 +400,10 @@ void formattedWriteItem(string format, T)(ref char* buffer, T t)
 {
 	import ldc.intrinsics;
 	static if (isIntegral!T || isFloatingPoint!T) auto str = decStr(t);
-	else auto str = t;
+	else static if (isSomeChar!T) auto str = t;
+	else auto str = t.ptr[0 .. t.length];
 	
-	static if (is(typeof(str) : char)){
+	static if (is(typeof(str) : char) || isSomeChar!T){
 		llvm_memcpy( buffer, &str, char.sizeof );
 		buffer += char.sizeof;
 	}

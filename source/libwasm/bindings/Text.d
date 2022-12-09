@@ -27,10 +27,10 @@ struct Text {
     return Object_Getter__string(this._parent, "wholeText");
   }
   auto assignedSlot()() {
-    return Optional!(HTMLSlotElement)(Object_Getter__OptionalHandle(this._parent, "assignedSlot"));
+    return recastOpt!(HTMLSlotElement)(Object_Getter__OptionalHandle(this._parent, "assignedSlot"));
   }
   auto openOrClosedAssignedSlot()() {
-    return Optional!(HTMLSlotElement)(Object_Getter__OptionalHandle(this._parent, "openOrClosedAssignedSlot"));
+    return recastOpt!(HTMLSlotElement)(Object_Getter__OptionalHandle(this._parent, "openOrClosedAssignedSlot"));
   }
   auto getBoxQuads()(scope ref BoxQuadOptions options) {
     return Sequence!(DOMQuad)(Object_Call_Handle__Handle(this._parent, "getBoxQuads", options.handle));

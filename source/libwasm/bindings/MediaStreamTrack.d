@@ -50,13 +50,13 @@ struct MediaStreamTrack {
   bool muted()() {
     return Object_Getter__bool(this._parent, "muted");
   }
-  void onmute(T0)(scope auto ref Optional!(T0) onmute) if (isTOrPointer!(T0, EventHandler)) {
+  void onmute(T0)(scope auto ref Optional!(T0) onmute) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onmute", !onmute.empty, onmute.front);
   }
   EventHandler onmute()() {
     return Object_Getter__EventHandler(this._parent, "onmute");
   }
-  void onunmute(T0)(scope auto ref Optional!(T0) onunmute) if (isTOrPointer!(T0, EventHandler)) {
+  void onunmute(T0)(scope auto ref Optional!(T0) onunmute) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onunmute", !onunmute.empty, onunmute.front);
   }
   EventHandler onunmute()() {
@@ -65,7 +65,7 @@ struct MediaStreamTrack {
   MediaStreamTrackState readyState()() {
     return Object_Getter__int(this._parent, "readyState");
   }
-  void onended(T0)(scope auto ref Optional!(T0) onended) if (isTOrPointer!(T0, EventHandler)) {
+  void onended(T0)(scope auto ref Optional!(T0) onended) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onended", !onended.empty, onended.front);
   }
   EventHandler onended()() {

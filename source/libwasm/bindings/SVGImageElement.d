@@ -60,16 +60,16 @@ struct SVGImageElement {
     Object_Call_Handle__void(this._parent, "removeObserver", aObserver.handle);
   }
   auto getRequest()(int aRequestType) {
-    return Optional!(imgIRequest)(Object_Call_int__OptionalHandle(this._parent, "getRequest", aRequestType));
+    return recastOpt!(imgIRequest)(Object_Call_int__OptionalHandle(this._parent, "getRequest", aRequestType));
   }
   int getRequestType()(scope ref imgIRequest aRequest) {
     return Serialize_Object_VarArgCall!int(this._parent, "getRequestType", "Handle", tuple(cast(Handle)aRequest.handle));
   }
   auto currentURI()() {
-    return Optional!(URI)(Object_Getter__OptionalHandle(this._parent, "currentURI"));
+    return recastOpt!(URI)(Object_Getter__OptionalHandle(this._parent, "currentURI"));
   }
   auto currentRequestFinalURI()() {
-    return Optional!(URI)(Object_Getter__OptionalHandle(this._parent, "currentRequestFinalURI"));
+    return recastOpt!(URI)(Object_Getter__OptionalHandle(this._parent, "currentRequestFinalURI"));
   }
   void forceReload()(bool aNotify /* = true */) {
     Object_Call_bool__void(this._parent, "forceReload", aNotify);

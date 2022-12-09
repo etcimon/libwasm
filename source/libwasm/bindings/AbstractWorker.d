@@ -15,7 +15,7 @@ struct AbstractWorker {
   this(Handle h) {
     this.handle = JsHandle(h);
   }
-  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this.handle, "onerror", !onerror.empty, onerror.front);
   }
   EventHandler onerror()() {

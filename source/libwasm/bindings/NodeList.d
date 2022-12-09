@@ -16,7 +16,7 @@ struct NodeList {
     this.handle = JsHandle(h);
   }
   auto item()(uint index) {
-    return Optional!(Node)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
+    return recastOpt!(Node)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
   }
   uint length()() {
     return Object_Getter__uint(this.handle, "length");

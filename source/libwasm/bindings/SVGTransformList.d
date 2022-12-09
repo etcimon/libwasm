@@ -44,7 +44,7 @@ struct SVGTransformList {
     return SVGTransform(Object_Call_Handle__Handle(this.handle, "createSVGTransformFromMatrix", matrix.handle));
   }
   auto consolidate()() {
-    return Optional!(SVGTransform)(Object_Getter__OptionalHandle(this.handle, "consolidate"));
+    return recastOpt!(SVGTransform)(Object_Getter__OptionalHandle(this.handle, "consolidate"));
   }
   uint length()() {
     return Object_Getter__uint(this.handle, "length");

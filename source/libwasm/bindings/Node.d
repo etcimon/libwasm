@@ -61,7 +61,7 @@ struct Node {
     return Object_Getter__bool(this._parent, "isConnected");
   }
   auto ownerDocument()() {
-    return Optional!(Document)(Object_Getter__OptionalHandle(this._parent, "ownerDocument"));
+    return recastOpt!(Document)(Object_Getter__OptionalHandle(this._parent, "ownerDocument"));
   }
   auto getRootNode()(scope ref GetRootNodeOptions options) {
     return Node(Object_Call_Handle__Handle(this._parent, "getRootNode", options.handle));
@@ -70,10 +70,10 @@ struct Node {
     return Node(Object_Getter__Handle(this._parent, "getRootNode"));
   }
   auto parentNode()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this._parent, "parentNode"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this._parent, "parentNode"));
   }
   auto parentElement()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this._parent, "parentElement"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this._parent, "parentElement"));
   }
   bool hasChildNodes()() {
     return Object_Getter__bool(this._parent, "hasChildNodes");
@@ -82,16 +82,16 @@ struct Node {
     return NodeList(Object_Getter__Handle(this._parent, "childNodes"));
   }
   auto firstChild()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this._parent, "firstChild"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this._parent, "firstChild"));
   }
   auto lastChild()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this._parent, "lastChild"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this._parent, "lastChild"));
   }
   auto previousSibling()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this._parent, "previousSibling"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this._parent, "previousSibling"));
   }
   auto nextSibling()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this._parent, "nextSibling"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this._parent, "nextSibling"));
   }
   void nodeValue(T0)(scope auto ref Optional!(T0) nodeValue) if (isTOrPointer!(T0, string)) {
     Serialize_Object_VarArgCall!void(this._parent, "nodeValue", "Optional!(string)", tuple(!nodeValue.empty, nodeValue.front));
@@ -157,16 +157,16 @@ struct Node {
     return Principal(Object_Getter__Handle(this._parent, "nodePrincipal"));
   }
   auto baseURIObject()() {
-    return Optional!(URI)(Object_Getter__OptionalHandle(this._parent, "baseURIObject"));
+    return recastOpt!(URI)(Object_Getter__OptionalHandle(this._parent, "baseURIObject"));
   }
   string generateXPath()() {
     return Object_Getter__string(this._parent, "generateXPath");
   }
   auto flattenedTreeParentNode()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this._parent, "flattenedTreeParentNode"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this._parent, "flattenedTreeParentNode"));
   }
   auto parentFlexElement()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this._parent, "parentFlexElement"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this._parent, "parentFlexElement"));
   }
   auto localize()(L10nCallback l10nCallback) {
     return JsPromise!(void)(Node_localize(this._parent, l10nCallback));

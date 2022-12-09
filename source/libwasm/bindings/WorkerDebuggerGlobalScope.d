@@ -39,7 +39,7 @@ struct WorkerDebuggerGlobalScope {
   void postMessage()(string message) {
     Object_Call_string__void(this._parent, "postMessage", message);
   }
-  void onmessage(T0)(scope auto ref Optional!(T0) onmessage) if (isTOrPointer!(T0, EventHandler)) {
+  void onmessage(T0)(scope auto ref Optional!(T0) onmessage) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onmessage", !onmessage.empty, onmessage.front);
   }
   EventHandler onmessage()() {

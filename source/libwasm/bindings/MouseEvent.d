@@ -60,7 +60,7 @@ struct MouseEvent {
     return Object_Getter__ushort(this._parent, "buttons");
   }
   auto relatedTarget()() {
-    return Optional!(EventTarget)(Object_Getter__OptionalHandle(this._parent, "relatedTarget"));
+    return recastOpt!(EventTarget)(Object_Getter__OptionalHandle(this._parent, "relatedTarget"));
   }
   Optional!(string) region()() {
     return Object_Getter__OptionalString(this._parent, "region");
@@ -230,7 +230,7 @@ struct MouseEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "relatedTarget", "Optional!Handle", tuple(!relatedTarget.empty, cast(Handle)relatedTarget.front.handle));
   }
   auto relatedTarget()() {
-    return Optional!(EventTarget)(Object_Getter__OptionalHandle(this._parent, "relatedTarget"));
+    return recastOpt!(EventTarget)(Object_Getter__OptionalHandle(this._parent, "relatedTarget"));
   }
   void movementX()(int movementX) {
     Object_Call_int__void(this._parent, "movementX", movementX);

@@ -104,7 +104,7 @@ struct GridLines {
     return Object_Getter__uint(this.handle, "length");
   }
   auto item()(uint index) {
-    return Optional!(GridLine)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
+    return recastOpt!(GridLine)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
   }
 }
 struct GridTrack {
@@ -143,7 +143,7 @@ struct GridTracks {
     return Object_Getter__uint(this.handle, "length");
   }
   auto item()(uint index) {
-    return Optional!(GridTrack)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
+    return recastOpt!(GridTrack)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
   }
 }
 

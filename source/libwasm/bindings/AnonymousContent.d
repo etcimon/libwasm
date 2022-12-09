@@ -33,7 +33,7 @@ struct AnonymousContent {
     Object_Call_string_string__void(this.handle, "removeAttributeForElement", elementId, attributeName);
   }
   auto getCanvasContext()(string elementId, string contextId) {
-    return Optional!(nsISupports)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getCanvasContext", "string;string", tuple(elementId, contextId)));
+    return recastOpt!(nsISupports)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getCanvasContext", "string;string", tuple(elementId, contextId)));
   }
   auto setAnimationForElement(T1)(string elementId, scope auto ref Optional!(T1) keyframes, scope ref SumType!(double, KeyframeAnimationOptions) options) if (isTOrPointer!(T1, JsObject)) {
     return Animation(Serialize_Object_VarArgCall!Handle(this.handle, "setAnimationForElement", "string;Optional!Handle;SumType!(double,Handle)", tuple(elementId, !keyframes.empty, cast(Handle)keyframes.front.handle, libwasm.sumtype.match!(((double v) => 0),((ref options.Types[1] v) => 1))(options),tuple(libwasm.sumtype.match!(((double v) => v),((ref options.Types[1] v) => double.init))(options),libwasm.sumtype.match!(((double v) => Handle.init),((ref options.Types[1] v) => cast(Handle)v.handle))(options)))));

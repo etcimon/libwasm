@@ -33,7 +33,7 @@ struct CSSKeyframesRule {
     Object_Call_string__void(this._parent, "deleteRule", select);
   }
   auto findRule()(string select) {
-    return Optional!(CSSKeyframeRule)(Object_Call_string__OptionalHandle(this._parent, "findRule", select));
+    return recastOpt!(CSSKeyframeRule)(Object_Call_string__OptionalHandle(this._parent, "findRule", select));
   }
 }
 

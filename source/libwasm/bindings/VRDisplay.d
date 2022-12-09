@@ -38,7 +38,7 @@ struct VRDisplay {
     return VRDisplayCapabilities(Object_Getter__Handle(this._parent, "capabilities"));
   }
   auto stageParameters()() {
-    return Optional!(VRStageParameters)(Object_Getter__OptionalHandle(this._parent, "stageParameters"));
+    return recastOpt!(VRStageParameters)(Object_Getter__OptionalHandle(this._parent, "stageParameters"));
   }
   auto getEyeParameters()(VREye whichEye) {
     return VREyeParameters(Object_Call_int__Handle(this._parent, "getEyeParameters", whichEye));
@@ -199,7 +199,7 @@ struct VRLayer {
     Serialize_Object_VarArgCall!void(this.handle, "source", "Optional!Handle", tuple(!source.empty, cast(Handle)source.front._parent));
   }
   auto source()() {
-    return Optional!(HTMLCanvasElement)(Object_Getter__OptionalHandle(this.handle, "source"));
+    return recastOpt!(HTMLCanvasElement)(Object_Getter__OptionalHandle(this.handle, "source"));
   }
   void leftBounds()(scope ref Sequence!(float) leftBounds) {
     Object_Call_Handle__void(this.handle, "leftBounds", leftBounds.handle);
@@ -222,22 +222,22 @@ struct VRPose {
     this.handle = JsHandle(h);
   }
   auto position()() {
-    return Optional!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "position"));
+    return recastOpt!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "position"));
   }
   auto linearVelocity()() {
-    return Optional!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "linearVelocity"));
+    return recastOpt!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "linearVelocity"));
   }
   auto linearAcceleration()() {
-    return Optional!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "linearAcceleration"));
+    return recastOpt!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "linearAcceleration"));
   }
   auto orientation()() {
-    return Optional!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "orientation"));
+    return recastOpt!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "orientation"));
   }
   auto angularVelocity()() {
-    return Optional!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "angularVelocity"));
+    return recastOpt!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "angularVelocity"));
   }
   auto angularAcceleration()() {
-    return Optional!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "angularAcceleration"));
+    return recastOpt!(Float32Array)(Object_Getter__OptionalHandle(this.handle, "angularAcceleration"));
   }
 }
 alias VRSource = SumType!(HTMLCanvasElement, OffscreenCanvas);

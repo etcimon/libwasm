@@ -20,13 +20,13 @@ struct SourceBufferList {
   uint length()() {
     return Object_Getter__uint(this._parent, "length");
   }
-  void onaddsourcebuffer(T0)(scope auto ref Optional!(T0) onaddsourcebuffer) if (isTOrPointer!(T0, EventHandler)) {
+  void onaddsourcebuffer(T0)(scope auto ref Optional!(T0) onaddsourcebuffer) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onaddsourcebuffer", !onaddsourcebuffer.empty, onaddsourcebuffer.front);
   }
   EventHandler onaddsourcebuffer()() {
     return Object_Getter__EventHandler(this._parent, "onaddsourcebuffer");
   }
-  void onremovesourcebuffer(T0)(scope auto ref Optional!(T0) onremovesourcebuffer) if (isTOrPointer!(T0, EventHandler)) {
+  void onremovesourcebuffer(T0)(scope auto ref Optional!(T0) onremovesourcebuffer) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onremovesourcebuffer", !onremovesourcebuffer.empty, onremovesourcebuffer.front);
   }
   EventHandler onremovesourcebuffer()() {

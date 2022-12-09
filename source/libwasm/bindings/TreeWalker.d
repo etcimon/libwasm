@@ -23,7 +23,7 @@ struct TreeWalker {
     return Object_Getter__uint(this.handle, "whatToShow");
   }
   auto filter()() {
-    return Optional!(NodeFilter)(Object_Getter__OptionalHandle(this.handle, "filter"));
+    return recastOpt!(NodeFilter)(Object_Getter__OptionalHandle(this.handle, "filter"));
   }
   void currentNode()(scope ref Node currentNode) {
     Object_Call_Handle__void(this.handle, "currentNode", currentNode.handle);
@@ -32,25 +32,25 @@ struct TreeWalker {
     return Node(Object_Getter__Handle(this.handle, "currentNode"));
   }
   auto parentNode()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "parentNode"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "parentNode"));
   }
   auto firstChild()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "firstChild"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "firstChild"));
   }
   auto lastChild()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "lastChild"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "lastChild"));
   }
   auto previousSibling()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "previousSibling"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "previousSibling"));
   }
   auto nextSibling()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "nextSibling"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "nextSibling"));
   }
   auto previousNode()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "previousNode"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "previousNode"));
   }
   auto nextNode()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "nextNode"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "nextNode"));
   }
 }
 

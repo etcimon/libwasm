@@ -16,7 +16,7 @@ struct BoxObject {
     this.handle = JsHandle(h);
   }
   auto element()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this.handle, "element"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this.handle, "element"));
   }
   int x()() {
     return Object_Getter__int(this.handle, "x");
@@ -37,7 +37,7 @@ struct BoxObject {
     return Object_Getter__int(this.handle, "height");
   }
   auto getPropertyAsSupports()(string propertyName) {
-    return Optional!(nsISupports)(Object_Call_string__OptionalHandle(this.handle, "getPropertyAsSupports", propertyName));
+    return recastOpt!(nsISupports)(Object_Call_string__OptionalHandle(this.handle, "getPropertyAsSupports", propertyName));
   }
   void setPropertyAsSupports()(string propertyName, scope ref nsISupports value) {
     Serialize_Object_VarArgCall!void(this.handle, "setPropertyAsSupports", "string;Handle", tuple(propertyName, cast(Handle)value.handle));
@@ -52,19 +52,19 @@ struct BoxObject {
     Object_Call_string__void(this.handle, "removeProperty", propertyName);
   }
   auto parentBox()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this.handle, "parentBox"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this.handle, "parentBox"));
   }
   auto firstChild()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this.handle, "firstChild"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this.handle, "firstChild"));
   }
   auto lastChild()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this.handle, "lastChild"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this.handle, "lastChild"));
   }
   auto nextSibling()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this.handle, "nextSibling"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this.handle, "nextSibling"));
   }
   auto previousSibling()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this.handle, "previousSibling"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this.handle, "previousSibling"));
   }
 }
 

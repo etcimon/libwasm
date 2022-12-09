@@ -803,7 +803,7 @@ struct WebGL2RenderingContext {
     Serialize_Object_VarArgCall!void(this.handle, "clearBufferfi", "uint;int;float;int", tuple(buffer, drawbuffer, depth, stencil));
   }
   auto createQuery()() {
-    return Optional!(WebGLQuery)(Object_Getter__OptionalHandle(this.handle, "createQuery"));
+    return recastOpt!(WebGLQuery)(Object_Getter__OptionalHandle(this.handle, "createQuery"));
   }
   void deleteQuery(T0)(scope auto ref Optional!(T0) query) if (isTOrPointer!(T0, WebGLQuery)) {
     Serialize_Object_VarArgCall!void(this.handle, "deleteQuery", "Optional!Handle", tuple(!query.empty, cast(Handle)query.front.handle));
@@ -824,7 +824,7 @@ struct WebGL2RenderingContext {
     return Any(Serialize_Object_VarArgCall!Handle(this.handle, "getQueryParameter", "Handle;uint", tuple(cast(Handle)query.handle, pname)));
   }
   auto createSampler()() {
-    return Optional!(WebGLSampler)(Object_Getter__OptionalHandle(this.handle, "createSampler"));
+    return recastOpt!(WebGLSampler)(Object_Getter__OptionalHandle(this.handle, "createSampler"));
   }
   void deleteSampler(T0)(scope auto ref Optional!(T0) sampler) if (isTOrPointer!(T0, WebGLSampler)) {
     Serialize_Object_VarArgCall!void(this.handle, "deleteSampler", "Optional!Handle", tuple(!sampler.empty, cast(Handle)sampler.front.handle));
@@ -845,7 +845,7 @@ struct WebGL2RenderingContext {
     return Any(Serialize_Object_VarArgCall!Handle(this.handle, "getSamplerParameter", "Handle;uint", tuple(cast(Handle)sampler.handle, pname)));
   }
   auto fenceSync()(uint condition, uint flags) {
-    return Optional!(WebGLSync)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "fenceSync", "uint;uint", tuple(condition, flags)));
+    return recastOpt!(WebGLSync)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "fenceSync", "uint;uint", tuple(condition, flags)));
   }
   bool isSync(T0)(scope auto ref Optional!(T0) sync) if (isTOrPointer!(T0, WebGLSync)) {
     return Serialize_Object_VarArgCall!bool(this.handle, "isSync", "Optional!Handle", tuple(!sync.empty, cast(Handle)sync.front.handle));
@@ -863,7 +863,7 @@ struct WebGL2RenderingContext {
     return Any(Serialize_Object_VarArgCall!Handle(this.handle, "getSyncParameter", "Handle;uint", tuple(cast(Handle)sync.handle, pname)));
   }
   auto createTransformFeedback()() {
-    return Optional!(WebGLTransformFeedback)(Object_Getter__OptionalHandle(this.handle, "createTransformFeedback"));
+    return recastOpt!(WebGLTransformFeedback)(Object_Getter__OptionalHandle(this.handle, "createTransformFeedback"));
   }
   void deleteTransformFeedback(T0)(scope auto ref Optional!(T0) tf) if (isTOrPointer!(T0, WebGLTransformFeedback)) {
     Serialize_Object_VarArgCall!void(this.handle, "deleteTransformFeedback", "Optional!Handle", tuple(!tf.empty, cast(Handle)tf.front.handle));
@@ -884,7 +884,7 @@ struct WebGL2RenderingContext {
     Serialize_Object_VarArgCall!void(this.handle, "transformFeedbackVaryings", "Handle;Handle;uint", tuple(cast(Handle)program.handle, cast(Handle)varyings.handle, bufferMode));
   }
   auto getTransformFeedbackVarying()(scope ref WebGLProgram program, uint index) {
-    return Optional!(WebGLActiveInfo)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getTransformFeedbackVarying", "Handle;uint", tuple(cast(Handle)program.handle, index)));
+    return recastOpt!(WebGLActiveInfo)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getTransformFeedbackVarying", "Handle;uint", tuple(cast(Handle)program.handle, index)));
   }
   void pauseTransformFeedback()() {
     Object_Call__void(this.handle, "pauseTransformFeedback");
@@ -902,7 +902,7 @@ struct WebGL2RenderingContext {
     return Any(Serialize_Object_VarArgCall!Handle(this.handle, "getIndexedParameter", "uint;uint", tuple(target, index)));
   }
   auto getUniformIndices()(scope ref WebGLProgram program, scope ref Sequence!(string) uniformNames) {
-    return Optional!(Sequence!(uint))(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getUniformIndices", "Handle;Handle", tuple(cast(Handle)program.handle, cast(Handle)uniformNames.handle)));
+    return recastOpt!(Sequence!(uint))(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getUniformIndices", "Handle;Handle", tuple(cast(Handle)program.handle, cast(Handle)uniformNames.handle)));
   }
   auto getActiveUniforms()(scope ref WebGLProgram program, scope ref Sequence!(uint) uniformIndices, uint pname) {
     return Any(Serialize_Object_VarArgCall!Handle(this.handle, "getActiveUniforms", "Handle;Handle;uint", tuple(cast(Handle)program.handle, cast(Handle)uniformIndices.handle, pname)));
@@ -920,7 +920,7 @@ struct WebGL2RenderingContext {
     Serialize_Object_VarArgCall!void(this.handle, "uniformBlockBinding", "Handle;uint;uint", tuple(cast(Handle)program.handle, uniformBlockIndex, uniformBlockBinding));
   }
   auto createVertexArray()() {
-    return Optional!(WebGLVertexArrayObject)(Object_Getter__OptionalHandle(this.handle, "createVertexArray"));
+    return recastOpt!(WebGLVertexArrayObject)(Object_Getter__OptionalHandle(this.handle, "createVertexArray"));
   }
   void deleteVertexArray(T0)(scope auto ref Optional!(T0) vertexArray) if (isTOrPointer!(T0, WebGLVertexArrayObject)) {
     Serialize_Object_VarArgCall!void(this.handle, "deleteVertexArray", "Optional!Handle", tuple(!vertexArray.empty, cast(Handle)vertexArray.front.handle));
@@ -1710,7 +1710,7 @@ struct WebGL2RenderingContextBase {
     Serialize_Object_VarArgCall!void(this.handle, "clearBufferfi", "uint;int;float;int", tuple(buffer, drawbuffer, depth, stencil));
   }
   auto createQuery()() {
-    return Optional!(WebGLQuery)(Object_Getter__OptionalHandle(this.handle, "createQuery"));
+    return recastOpt!(WebGLQuery)(Object_Getter__OptionalHandle(this.handle, "createQuery"));
   }
   void deleteQuery(T0)(scope auto ref Optional!(T0) query) if (isTOrPointer!(T0, WebGLQuery)) {
     Serialize_Object_VarArgCall!void(this.handle, "deleteQuery", "Optional!Handle", tuple(!query.empty, cast(Handle)query.front.handle));
@@ -1731,7 +1731,7 @@ struct WebGL2RenderingContextBase {
     return Any(Serialize_Object_VarArgCall!Handle(this.handle, "getQueryParameter", "Handle;uint", tuple(cast(Handle)query.handle, pname)));
   }
   auto createSampler()() {
-    return Optional!(WebGLSampler)(Object_Getter__OptionalHandle(this.handle, "createSampler"));
+    return recastOpt!(WebGLSampler)(Object_Getter__OptionalHandle(this.handle, "createSampler"));
   }
   void deleteSampler(T0)(scope auto ref Optional!(T0) sampler) if (isTOrPointer!(T0, WebGLSampler)) {
     Serialize_Object_VarArgCall!void(this.handle, "deleteSampler", "Optional!Handle", tuple(!sampler.empty, cast(Handle)sampler.front.handle));
@@ -1752,7 +1752,7 @@ struct WebGL2RenderingContextBase {
     return Any(Serialize_Object_VarArgCall!Handle(this.handle, "getSamplerParameter", "Handle;uint", tuple(cast(Handle)sampler.handle, pname)));
   }
   auto fenceSync()(uint condition, uint flags) {
-    return Optional!(WebGLSync)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "fenceSync", "uint;uint", tuple(condition, flags)));
+    return recastOpt!(WebGLSync)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "fenceSync", "uint;uint", tuple(condition, flags)));
   }
   bool isSync(T0)(scope auto ref Optional!(T0) sync) if (isTOrPointer!(T0, WebGLSync)) {
     return Serialize_Object_VarArgCall!bool(this.handle, "isSync", "Optional!Handle", tuple(!sync.empty, cast(Handle)sync.front.handle));
@@ -1770,7 +1770,7 @@ struct WebGL2RenderingContextBase {
     return Any(Serialize_Object_VarArgCall!Handle(this.handle, "getSyncParameter", "Handle;uint", tuple(cast(Handle)sync.handle, pname)));
   }
   auto createTransformFeedback()() {
-    return Optional!(WebGLTransformFeedback)(Object_Getter__OptionalHandle(this.handle, "createTransformFeedback"));
+    return recastOpt!(WebGLTransformFeedback)(Object_Getter__OptionalHandle(this.handle, "createTransformFeedback"));
   }
   void deleteTransformFeedback(T0)(scope auto ref Optional!(T0) tf) if (isTOrPointer!(T0, WebGLTransformFeedback)) {
     Serialize_Object_VarArgCall!void(this.handle, "deleteTransformFeedback", "Optional!Handle", tuple(!tf.empty, cast(Handle)tf.front.handle));
@@ -1791,7 +1791,7 @@ struct WebGL2RenderingContextBase {
     Serialize_Object_VarArgCall!void(this.handle, "transformFeedbackVaryings", "Handle;Handle;uint", tuple(cast(Handle)program.handle, cast(Handle)varyings.handle, bufferMode));
   }
   auto getTransformFeedbackVarying()(scope ref WebGLProgram program, uint index) {
-    return Optional!(WebGLActiveInfo)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getTransformFeedbackVarying", "Handle;uint", tuple(cast(Handle)program.handle, index)));
+    return recastOpt!(WebGLActiveInfo)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getTransformFeedbackVarying", "Handle;uint", tuple(cast(Handle)program.handle, index)));
   }
   void pauseTransformFeedback()() {
     Object_Call__void(this.handle, "pauseTransformFeedback");
@@ -1809,7 +1809,7 @@ struct WebGL2RenderingContextBase {
     return Any(Serialize_Object_VarArgCall!Handle(this.handle, "getIndexedParameter", "uint;uint", tuple(target, index)));
   }
   auto getUniformIndices()(scope ref WebGLProgram program, scope ref Sequence!(string) uniformNames) {
-    return Optional!(Sequence!(uint))(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getUniformIndices", "Handle;Handle", tuple(cast(Handle)program.handle, cast(Handle)uniformNames.handle)));
+    return recastOpt!(Sequence!(uint))(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getUniformIndices", "Handle;Handle", tuple(cast(Handle)program.handle, cast(Handle)uniformNames.handle)));
   }
   auto getActiveUniforms()(scope ref WebGLProgram program, scope ref Sequence!(uint) uniformIndices, uint pname) {
     return Any(Serialize_Object_VarArgCall!Handle(this.handle, "getActiveUniforms", "Handle;Handle;uint", tuple(cast(Handle)program.handle, cast(Handle)uniformIndices.handle, pname)));
@@ -1827,7 +1827,7 @@ struct WebGL2RenderingContextBase {
     Serialize_Object_VarArgCall!void(this.handle, "uniformBlockBinding", "Handle;uint;uint", tuple(cast(Handle)program.handle, uniformBlockIndex, uniformBlockBinding));
   }
   auto createVertexArray()() {
-    return Optional!(WebGLVertexArrayObject)(Object_Getter__OptionalHandle(this.handle, "createVertexArray"));
+    return recastOpt!(WebGLVertexArrayObject)(Object_Getter__OptionalHandle(this.handle, "createVertexArray"));
   }
   void deleteVertexArray(T0)(scope auto ref Optional!(T0) vertexArray) if (isTOrPointer!(T0, WebGLVertexArrayObject)) {
     Serialize_Object_VarArgCall!void(this.handle, "deleteVertexArray", "Optional!Handle", tuple(!vertexArray.empty, cast(Handle)vertexArray.front.handle));
@@ -2144,16 +2144,16 @@ struct WebGL2RenderingContextBase {
     return Object_Getter__int(this.handle, "drawingBufferHeight");
   }
   auto getContextAttributes()() {
-    return Optional!(WebGLContextAttributes)(Object_Getter__OptionalHandle(this.handle, "getContextAttributes"));
+    return recastOpt!(WebGLContextAttributes)(Object_Getter__OptionalHandle(this.handle, "getContextAttributes"));
   }
   bool isContextLost()() {
     return Object_Getter__bool(this.handle, "isContextLost");
   }
   auto getSupportedExtensions()() {
-    return Optional!(Sequence!(string))(Object_Getter__OptionalHandle(this.handle, "getSupportedExtensions"));
+    return recastOpt!(Sequence!(string))(Object_Getter__OptionalHandle(this.handle, "getSupportedExtensions"));
   }
   auto getExtension()(string name) {
-    return Optional!(JsObject)(Object_Call_string__OptionalHandle(this.handle, "getExtension", name));
+    return recastOpt!(JsObject)(Object_Call_string__OptionalHandle(this.handle, "getExtension", name));
   }
   void activeTexture()(uint texture) {
     Object_Call_uint__void(this.handle, "activeTexture", texture);
@@ -2219,22 +2219,22 @@ struct WebGL2RenderingContextBase {
     Serialize_Object_VarArgCall!void(this.handle, "copyTexSubImage2D", "uint;int;int;int;int;int;int;int", tuple(target, level, xoffset, yoffset, x, y, width, height));
   }
   auto createBuffer()() {
-    return Optional!(WebGLBuffer)(Object_Getter__OptionalHandle(this.handle, "createBuffer"));
+    return recastOpt!(WebGLBuffer)(Object_Getter__OptionalHandle(this.handle, "createBuffer"));
   }
   auto createFramebuffer()() {
-    return Optional!(WebGLFramebuffer)(Object_Getter__OptionalHandle(this.handle, "createFramebuffer"));
+    return recastOpt!(WebGLFramebuffer)(Object_Getter__OptionalHandle(this.handle, "createFramebuffer"));
   }
   auto createProgram()() {
-    return Optional!(WebGLProgram)(Object_Getter__OptionalHandle(this.handle, "createProgram"));
+    return recastOpt!(WebGLProgram)(Object_Getter__OptionalHandle(this.handle, "createProgram"));
   }
   auto createRenderbuffer()() {
-    return Optional!(WebGLRenderbuffer)(Object_Getter__OptionalHandle(this.handle, "createRenderbuffer"));
+    return recastOpt!(WebGLRenderbuffer)(Object_Getter__OptionalHandle(this.handle, "createRenderbuffer"));
   }
   auto createShader()(uint type) {
-    return Optional!(WebGLShader)(Object_Call_uint__OptionalHandle(this.handle, "createShader", type));
+    return recastOpt!(WebGLShader)(Object_Call_uint__OptionalHandle(this.handle, "createShader", type));
   }
   auto createTexture()() {
-    return Optional!(WebGLTexture)(Object_Getter__OptionalHandle(this.handle, "createTexture"));
+    return recastOpt!(WebGLTexture)(Object_Getter__OptionalHandle(this.handle, "createTexture"));
   }
   void cullFace()(uint mode) {
     Object_Call_uint__void(this.handle, "cullFace", mode);
@@ -2306,13 +2306,13 @@ struct WebGL2RenderingContextBase {
     Object_Call_uint__void(this.handle, "generateMipmap", target);
   }
   auto getActiveAttrib()(scope ref WebGLProgram program, uint index) {
-    return Optional!(WebGLActiveInfo)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getActiveAttrib", "Handle;uint", tuple(cast(Handle)program.handle, index)));
+    return recastOpt!(WebGLActiveInfo)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getActiveAttrib", "Handle;uint", tuple(cast(Handle)program.handle, index)));
   }
   auto getActiveUniform()(scope ref WebGLProgram program, uint index) {
-    return Optional!(WebGLActiveInfo)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getActiveUniform", "Handle;uint", tuple(cast(Handle)program.handle, index)));
+    return recastOpt!(WebGLActiveInfo)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getActiveUniform", "Handle;uint", tuple(cast(Handle)program.handle, index)));
   }
   auto getAttachedShaders()(scope ref WebGLProgram program) {
-    return Optional!(Sequence!(WebGLShader))(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getAttachedShaders", "Handle", tuple(cast(Handle)program.handle)));
+    return recastOpt!(Sequence!(WebGLShader))(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getAttachedShaders", "Handle", tuple(cast(Handle)program.handle)));
   }
   int getAttribLocation()(scope ref WebGLProgram program, string name) {
     return Serialize_Object_VarArgCall!int(this.handle, "getAttribLocation", "Handle;string", tuple(cast(Handle)program.handle, name));
@@ -2342,7 +2342,7 @@ struct WebGL2RenderingContextBase {
     return Any(Serialize_Object_VarArgCall!Handle(this.handle, "getShaderParameter", "Handle;uint", tuple(cast(Handle)shader.handle, pname)));
   }
   auto getShaderPrecisionFormat()(uint shadertype, uint precisiontype) {
-    return Optional!(WebGLShaderPrecisionFormat)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getShaderPrecisionFormat", "uint;uint", tuple(shadertype, precisiontype)));
+    return recastOpt!(WebGLShaderPrecisionFormat)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getShaderPrecisionFormat", "uint;uint", tuple(shadertype, precisiontype)));
   }
   Optional!(string) getShaderInfoLog()(scope ref WebGLShader shader) {
     return Serialize_Object_VarArgCall!(Optional!string)(this.handle, "getShaderInfoLog", "Handle", tuple(cast(Handle)shader.handle));
@@ -2357,7 +2357,7 @@ struct WebGL2RenderingContextBase {
     return Any(Serialize_Object_VarArgCall!Handle(this.handle, "getUniform", "Handle;Handle", tuple(cast(Handle)program.handle, cast(Handle)location.handle)));
   }
   auto getUniformLocation()(scope ref WebGLProgram program, string name) {
-    return Optional!(WebGLUniformLocation)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getUniformLocation", "Handle;string", tuple(cast(Handle)program.handle, name)));
+    return recastOpt!(WebGLUniformLocation)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getUniformLocation", "Handle;string", tuple(cast(Handle)program.handle, name)));
   }
   auto getVertexAttrib()(uint index, uint pname) {
     return Any(Serialize_Object_VarArgCall!Handle(this.handle, "getVertexAttrib", "uint;uint", tuple(index, pname)));

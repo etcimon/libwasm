@@ -182,22 +182,22 @@ struct RTCPeerConnection {
     return JsPromise!(void)(Object_Call_Handle__Handle(this._parent, "setRemoteDescription", description.handle));
   }
   auto localDescription()() {
-    return Optional!(RTCSessionDescription)(Object_Getter__OptionalHandle(this._parent, "localDescription"));
+    return recastOpt!(RTCSessionDescription)(Object_Getter__OptionalHandle(this._parent, "localDescription"));
   }
   auto currentLocalDescription()() {
-    return Optional!(RTCSessionDescription)(Object_Getter__OptionalHandle(this._parent, "currentLocalDescription"));
+    return recastOpt!(RTCSessionDescription)(Object_Getter__OptionalHandle(this._parent, "currentLocalDescription"));
   }
   auto pendingLocalDescription()() {
-    return Optional!(RTCSessionDescription)(Object_Getter__OptionalHandle(this._parent, "pendingLocalDescription"));
+    return recastOpt!(RTCSessionDescription)(Object_Getter__OptionalHandle(this._parent, "pendingLocalDescription"));
   }
   auto remoteDescription()() {
-    return Optional!(RTCSessionDescription)(Object_Getter__OptionalHandle(this._parent, "remoteDescription"));
+    return recastOpt!(RTCSessionDescription)(Object_Getter__OptionalHandle(this._parent, "remoteDescription"));
   }
   auto currentRemoteDescription()() {
-    return Optional!(RTCSessionDescription)(Object_Getter__OptionalHandle(this._parent, "currentRemoteDescription"));
+    return recastOpt!(RTCSessionDescription)(Object_Getter__OptionalHandle(this._parent, "currentRemoteDescription"));
   }
   auto pendingRemoteDescription()() {
-    return Optional!(RTCSessionDescription)(Object_Getter__OptionalHandle(this._parent, "pendingRemoteDescription"));
+    return recastOpt!(RTCSessionDescription)(Object_Getter__OptionalHandle(this._parent, "pendingRemoteDescription"));
   }
   RTCSignalingState signalingState()() {
     return Object_Getter__int(this._parent, "signalingState");
@@ -283,55 +283,55 @@ struct RTCPeerConnection {
   void close()() {
     Object_Call__void(this._parent, "close");
   }
-  void onnegotiationneeded(T0)(scope auto ref Optional!(T0) onnegotiationneeded) if (isTOrPointer!(T0, EventHandler)) {
+  void onnegotiationneeded(T0)(scope auto ref Optional!(T0) onnegotiationneeded) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onnegotiationneeded", !onnegotiationneeded.empty, onnegotiationneeded.front);
   }
   EventHandler onnegotiationneeded()() {
     return Object_Getter__EventHandler(this._parent, "onnegotiationneeded");
   }
-  void onicecandidate(T0)(scope auto ref Optional!(T0) onicecandidate) if (isTOrPointer!(T0, EventHandler)) {
+  void onicecandidate(T0)(scope auto ref Optional!(T0) onicecandidate) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onicecandidate", !onicecandidate.empty, onicecandidate.front);
   }
   EventHandler onicecandidate()() {
     return Object_Getter__EventHandler(this._parent, "onicecandidate");
   }
-  void onsignalingstatechange(T0)(scope auto ref Optional!(T0) onsignalingstatechange) if (isTOrPointer!(T0, EventHandler)) {
+  void onsignalingstatechange(T0)(scope auto ref Optional!(T0) onsignalingstatechange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onsignalingstatechange", !onsignalingstatechange.empty, onsignalingstatechange.front);
   }
   EventHandler onsignalingstatechange()() {
     return Object_Getter__EventHandler(this._parent, "onsignalingstatechange");
   }
-  void onaddstream(T0)(scope auto ref Optional!(T0) onaddstream) if (isTOrPointer!(T0, EventHandler)) {
+  void onaddstream(T0)(scope auto ref Optional!(T0) onaddstream) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onaddstream", !onaddstream.empty, onaddstream.front);
   }
   EventHandler onaddstream()() {
     return Object_Getter__EventHandler(this._parent, "onaddstream");
   }
-  void onaddtrack(T0)(scope auto ref Optional!(T0) onaddtrack) if (isTOrPointer!(T0, EventHandler)) {
+  void onaddtrack(T0)(scope auto ref Optional!(T0) onaddtrack) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onaddtrack", !onaddtrack.empty, onaddtrack.front);
   }
   EventHandler onaddtrack()() {
     return Object_Getter__EventHandler(this._parent, "onaddtrack");
   }
-  void ontrack(T0)(scope auto ref Optional!(T0) ontrack) if (isTOrPointer!(T0, EventHandler)) {
+  void ontrack(T0)(scope auto ref Optional!(T0) ontrack) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "ontrack", !ontrack.empty, ontrack.front);
   }
   EventHandler ontrack()() {
     return Object_Getter__EventHandler(this._parent, "ontrack");
   }
-  void onremovestream(T0)(scope auto ref Optional!(T0) onremovestream) if (isTOrPointer!(T0, EventHandler)) {
+  void onremovestream(T0)(scope auto ref Optional!(T0) onremovestream) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onremovestream", !onremovestream.empty, onremovestream.front);
   }
   EventHandler onremovestream()() {
     return Object_Getter__EventHandler(this._parent, "onremovestream");
   }
-  void oniceconnectionstatechange(T0)(scope auto ref Optional!(T0) oniceconnectionstatechange) if (isTOrPointer!(T0, EventHandler)) {
+  void oniceconnectionstatechange(T0)(scope auto ref Optional!(T0) oniceconnectionstatechange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "oniceconnectionstatechange", !oniceconnectionstatechange.empty, oniceconnectionstatechange.front);
   }
   EventHandler oniceconnectionstatechange()() {
     return Object_Getter__EventHandler(this._parent, "oniceconnectionstatechange");
   }
-  void onicegatheringstatechange(T0)(scope auto ref Optional!(T0) onicegatheringstatechange) if (isTOrPointer!(T0, EventHandler)) {
+  void onicegatheringstatechange(T0)(scope auto ref Optional!(T0) onicegatheringstatechange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onicegatheringstatechange", !onicegatheringstatechange.empty, onicegatheringstatechange.front);
   }
   EventHandler onicegatheringstatechange()() {
@@ -349,7 +349,7 @@ struct RTCPeerConnection {
   auto createDataChannel()(string label) {
     return RTCDataChannel(Object_Call_string__Handle(this._parent, "createDataChannel", label));
   }
-  void ondatachannel(T0)(scope auto ref Optional!(T0) ondatachannel) if (isTOrPointer!(T0, EventHandler)) {
+  void ondatachannel(T0)(scope auto ref Optional!(T0) ondatachannel) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "ondatachannel", !ondatachannel.empty, ondatachannel.front);
   }
   EventHandler ondatachannel()() {

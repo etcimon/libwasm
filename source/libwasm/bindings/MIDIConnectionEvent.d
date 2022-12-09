@@ -17,7 +17,7 @@ struct MIDIConnectionEvent {
     _parent = .Event(h);
   }
   auto port()() {
-    return Optional!(MIDIPort)(Object_Getter__OptionalHandle(this._parent, "port"));
+    return recastOpt!(MIDIPort)(Object_Getter__OptionalHandle(this._parent, "port"));
   }
 }
 struct MIDIConnectionEventInit {
@@ -34,7 +34,7 @@ struct MIDIConnectionEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "port", "Optional!Handle", tuple(!port.empty, cast(Handle)port.front._parent));
   }
   auto port()() {
-    return Optional!(MIDIPort)(Object_Getter__OptionalHandle(this._parent, "port"));
+    return recastOpt!(MIDIPort)(Object_Getter__OptionalHandle(this._parent, "port"));
   }
 }
 

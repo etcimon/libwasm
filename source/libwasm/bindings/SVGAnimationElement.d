@@ -18,7 +18,7 @@ struct SVGAnimationElement {
     _parent = .SVGElement(h);
   }
   auto targetElement()() {
-    return Optional!(SVGElement)(Object_Getter__OptionalHandle(this._parent, "targetElement"));
+    return recastOpt!(SVGElement)(Object_Getter__OptionalHandle(this._parent, "targetElement"));
   }
   float getStartTime()() {
     return Object_Getter__float(this._parent, "getStartTime");

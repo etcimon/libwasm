@@ -16,7 +16,7 @@ struct MozApplicationEvent {
     _parent = .Event(h);
   }
   auto application()() {
-    return Optional!(DOMApplication)(Object_Getter__OptionalHandle(this._parent, "application"));
+    return recastOpt!(DOMApplication)(Object_Getter__OptionalHandle(this._parent, "application"));
   }
 }
 struct MozApplicationEventInit {
@@ -33,7 +33,7 @@ struct MozApplicationEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "application", "Optional!Handle", tuple(!application.empty, cast(Handle)application.front.handle));
   }
   auto application()() {
-    return Optional!(DOMApplication)(Object_Getter__OptionalHandle(this._parent, "application"));
+    return recastOpt!(DOMApplication)(Object_Getter__OptionalHandle(this._parent, "application"));
   }
 }
 

@@ -15,7 +15,7 @@ struct TestFunctions {
   void throwUncatchableException()() {
     Object_Call__void(this.handle, "throwUncatchableException");
   }
-  auto passThroughPromise()(scope ref JsPromise!(Any) arg) {
+  auto passThroughPromise()(scope ref Promise!(Any) arg) {
     return JsPromise!(Any)(Object_Call_Handle__Handle(this.handle, "passThroughPromise", arg.handle));
   }
   auto passThroughCallbackPromise()(PromiseReturner callback) {
@@ -43,7 +43,7 @@ struct TestFunctions {
     Object_Call__void(this.handle, "testThrowNsresultFromNative");
   }
   auto throwToRejectPromise()() {
-    return Promise!(Any)(Object_Getter__Handle(this.handle, "throwToRejectPromise"));
+    return JsPromise!(Any)(Object_Getter__Handle(this.handle, "throwToRejectPromise"));
   }
   int one()() {
     return Object_Getter__int(this.handle, "one");

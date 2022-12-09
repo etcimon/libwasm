@@ -73,10 +73,10 @@ struct HTMLIFrameElement {
     return Object_Getter__string(this._parent, "referrerPolicy");
   }
   auto contentDocument()() {
-    return Optional!(Document)(Object_Getter__OptionalHandle(this._parent, "contentDocument"));
+    return recastOpt!(Document)(Object_Getter__OptionalHandle(this._parent, "contentDocument"));
   }
   auto contentWindow()() {
-    return Optional!(WindowProxy)(Object_Getter__OptionalHandle(this._parent, "contentWindow"));
+    return recastOpt!(WindowProxy)(Object_Getter__OptionalHandle(this._parent, "contentWindow"));
   }
   void align_()(string align_) {
     Object_Call_string__void(this._parent, "align", align_);
@@ -115,7 +115,7 @@ struct HTMLIFrameElement {
     return Object_Getter__string(this._parent, "marginWidth");
   }
   auto getSVGDocument()() {
-    return Optional!(Document)(Object_Getter__OptionalHandle(this._parent, "getSVGDocument"));
+    return recastOpt!(Document)(Object_Getter__OptionalHandle(this._parent, "getSVGDocument"));
   }
   void mozbrowser()(bool mozbrowser) {
     Object_Call_bool__void(this._parent, "mozbrowser", mozbrowser);
@@ -133,7 +133,7 @@ struct HTMLIFrameElement {
     return Object_Getter__string(this._parent, "allow");
   }
   auto frameLoader()() {
-    return Optional!(FrameLoader)(Object_Getter__OptionalHandle(this._parent, "frameLoader"));
+    return recastOpt!(FrameLoader)(Object_Getter__OptionalHandle(this._parent, "frameLoader"));
   }
   void presetOpenerWindow(T0)(scope auto ref Optional!(T0) window) if (isTOrPointer!(T0, WindowProxy)) {
     Serialize_Object_VarArgCall!void(this._parent, "presetOpenerWindow", "Optional!Handle", tuple(!window.empty, cast(Handle)window.front.handle));

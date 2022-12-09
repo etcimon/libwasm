@@ -15,9 +15,9 @@ import memutils.utils;
 import std.traits : isPointer;
 
 
-alias HashMapRef(Key, Value, ALLOC = void) = RefCounted!(HashMap!(Key, Value, ALLOC), ALLOC);
+alias HashMap(Key, Value, ALLOC = void) = RefCounted!(HashMapImpl!(Key, Value, ALLOC), ALLOC);
 
-struct HashMap(Key, Value, ALLOC = void)
+struct HashMapImpl(Key, Value, ALLOC = void)
 {
 @trusted:
 nothrow:

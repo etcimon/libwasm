@@ -28,13 +28,13 @@ struct Animation {
     Serialize_Object_VarArgCall!void(this._parent, "effect", "Optional!Handle", tuple(!effect.empty, cast(Handle)effect.front.handle));
   }
   auto effect()() {
-    return Optional!(AnimationEffect)(Object_Getter__OptionalHandle(this._parent, "effect"));
+    return recastOpt!(AnimationEffect)(Object_Getter__OptionalHandle(this._parent, "effect"));
   }
   void timeline(T0)(scope auto ref Optional!(T0) timeline) if (isTOrPointer!(T0, AnimationTimeline)) {
     Serialize_Object_VarArgCall!void(this._parent, "timeline", "Optional!Handle", tuple(!timeline.empty, cast(Handle)timeline.front.handle));
   }
   auto timeline()() {
-    return Optional!(AnimationTimeline)(Object_Getter__OptionalHandle(this._parent, "timeline"));
+    return recastOpt!(AnimationTimeline)(Object_Getter__OptionalHandle(this._parent, "timeline"));
   }
   void startTime(T0)(scope auto ref Optional!(T0) startTime) if (isTOrPointer!(T0, double)) {
     Serialize_Object_VarArgCall!void(this._parent, "startTime", "Optional!(double)", tuple(!startTime.empty, startTime.front));
@@ -66,13 +66,13 @@ struct Animation {
   auto finished()() {
     return JsPromise!(Animation)(Object_Getter__Handle(this._parent, "finished"));
   }
-  void onfinish(T0)(scope auto ref Optional!(T0) onfinish) if (isTOrPointer!(T0, EventHandler)) {
+  void onfinish(T0)(scope auto ref Optional!(T0) onfinish) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onfinish", !onfinish.empty, onfinish.front);
   }
   EventHandler onfinish()() {
     return Object_Getter__EventHandler(this._parent, "onfinish");
   }
-  void oncancel(T0)(scope auto ref Optional!(T0) oncancel) if (isTOrPointer!(T0, EventHandler)) {
+  void oncancel(T0)(scope auto ref Optional!(T0) oncancel) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "oncancel", !oncancel.empty, oncancel.front);
   }
   EventHandler oncancel()() {

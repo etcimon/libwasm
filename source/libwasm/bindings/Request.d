@@ -209,7 +209,7 @@ struct RequestInit {
     Serialize_Object_VarArgCall!void(this.handle, "signal", "Optional!Handle", tuple(!signal.empty, cast(Handle)signal.front._parent));
   }
   auto signal()() {
-    return Optional!(AbortSignal)(Object_Getter__OptionalHandle(this.handle, "signal"));
+    return recastOpt!(AbortSignal)(Object_Getter__OptionalHandle(this.handle, "signal"));
   }
   void observe()(scope ref ObserverCallback observe) {
     Object_Call_Handle__void(this.handle, "observe", observe.handle);

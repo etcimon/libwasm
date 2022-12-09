@@ -23,7 +23,7 @@ struct OfflineAudioContext {
   uint length()() {
     return Object_Getter__uint(this._parent, "length");
   }
-  void oncomplete(T0)(scope auto ref Optional!(T0) oncomplete) if (isTOrPointer!(T0, EventHandler)) {
+  void oncomplete(T0)(scope auto ref Optional!(T0) oncomplete) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "oncomplete", !oncomplete.empty, oncomplete.front);
   }
   EventHandler oncomplete()() {

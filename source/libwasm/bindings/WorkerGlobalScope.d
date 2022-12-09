@@ -39,19 +39,19 @@ struct WorkerGlobalScope {
   void importScripts()(string urls) {
     Object_Call_string__void(this._parent, "importScripts", urls);
   }
-  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, OnErrorEventHandler)) {
+  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, OnErrorEventHandlerNonNull)) {
     WorkerGlobalScope_onerror_Set(this._parent, !onerror.empty, onerror.front);
   }
   OnErrorEventHandler onerror()() {
     return WorkerGlobalScope_onerror_Get(this._parent);
   }
-  void onoffline(T0)(scope auto ref Optional!(T0) onoffline) if (isTOrPointer!(T0, EventHandler)) {
+  void onoffline(T0)(scope auto ref Optional!(T0) onoffline) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onoffline", !onoffline.empty, onoffline.front);
   }
   EventHandler onoffline()() {
     return Object_Getter__EventHandler(this._parent, "onoffline");
   }
-  void ononline(T0)(scope auto ref Optional!(T0) ononline) if (isTOrPointer!(T0, EventHandler)) {
+  void ononline(T0)(scope auto ref Optional!(T0) ononline) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "ononline", !ononline.empty, ononline.front);
   }
   EventHandler ononline()() {
@@ -137,7 +137,7 @@ struct WorkerGlobalScope {
     return Object_Getter__bool(this._parent, "isSecureContext");
   }
   auto indexedDB()() {
-    return Optional!(IDBFactory)(Object_Getter__OptionalHandle(this._parent, "indexedDB"));
+    return recastOpt!(IDBFactory)(Object_Getter__OptionalHandle(this._parent, "indexedDB"));
   }
   auto caches()() {
     return CacheStorage(Object_Getter__Handle(this._parent, "caches"));

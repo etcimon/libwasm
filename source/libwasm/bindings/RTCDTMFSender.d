@@ -25,7 +25,7 @@ struct RTCDTMFSender {
   void insertDTMF()(string tones) {
     Object_Call_string__void(this._parent, "insertDTMF", tones);
   }
-  void ontonechange(T0)(scope auto ref Optional!(T0) ontonechange) if (isTOrPointer!(T0, EventHandler)) {
+  void ontonechange(T0)(scope auto ref Optional!(T0) ontonechange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "ontonechange", !ontonechange.empty, ontonechange.front);
   }
   EventHandler ontonechange()() {

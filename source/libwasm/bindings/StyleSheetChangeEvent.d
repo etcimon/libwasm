@@ -17,7 +17,7 @@ struct StyleSheetChangeEvent {
     _parent = .Event(h);
   }
   auto stylesheet()() {
-    return Optional!(CSSStyleSheet)(Object_Getter__OptionalHandle(this._parent, "stylesheet"));
+    return recastOpt!(CSSStyleSheet)(Object_Getter__OptionalHandle(this._parent, "stylesheet"));
   }
   bool documentSheet()() {
     return Object_Getter__bool(this._parent, "documentSheet");
@@ -37,7 +37,7 @@ struct StyleSheetChangeEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "stylesheet", "Optional!Handle", tuple(!stylesheet.empty, cast(Handle)stylesheet.front._parent));
   }
   auto stylesheet()() {
-    return Optional!(CSSStyleSheet)(Object_Getter__OptionalHandle(this._parent, "stylesheet"));
+    return recastOpt!(CSSStyleSheet)(Object_Getter__OptionalHandle(this._parent, "stylesheet"));
   }
   void documentSheet()(bool documentSheet) {
     Object_Call_bool__void(this._parent, "documentSheet", documentSheet);

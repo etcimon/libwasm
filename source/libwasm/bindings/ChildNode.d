@@ -37,10 +37,10 @@ struct NonDocumentTypeChildNode {
     this.handle = JsHandle(h);
   }
   auto previousElementSibling()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this.handle, "previousElementSibling"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this.handle, "previousElementSibling"));
   }
   auto nextElementSibling()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this.handle, "nextElementSibling"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this.handle, "nextElementSibling"));
   }
 }
 

@@ -26,43 +26,43 @@ struct MediaRecorder {
   RecordingState state()() {
     return Object_Getter__int(this._parent, "state");
   }
-  void onstart(T0)(scope auto ref Optional!(T0) onstart) if (isTOrPointer!(T0, EventHandler)) {
+  void onstart(T0)(scope auto ref Optional!(T0) onstart) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onstart", !onstart.empty, onstart.front);
   }
   EventHandler onstart()() {
     return Object_Getter__EventHandler(this._parent, "onstart");
   }
-  void onstop(T0)(scope auto ref Optional!(T0) onstop) if (isTOrPointer!(T0, EventHandler)) {
+  void onstop(T0)(scope auto ref Optional!(T0) onstop) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onstop", !onstop.empty, onstop.front);
   }
   EventHandler onstop()() {
     return Object_Getter__EventHandler(this._parent, "onstop");
   }
-  void ondataavailable(T0)(scope auto ref Optional!(T0) ondataavailable) if (isTOrPointer!(T0, EventHandler)) {
+  void ondataavailable(T0)(scope auto ref Optional!(T0) ondataavailable) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "ondataavailable", !ondataavailable.empty, ondataavailable.front);
   }
   EventHandler ondataavailable()() {
     return Object_Getter__EventHandler(this._parent, "ondataavailable");
   }
-  void onpause(T0)(scope auto ref Optional!(T0) onpause) if (isTOrPointer!(T0, EventHandler)) {
+  void onpause(T0)(scope auto ref Optional!(T0) onpause) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onpause", !onpause.empty, onpause.front);
   }
   EventHandler onpause()() {
     return Object_Getter__EventHandler(this._parent, "onpause");
   }
-  void onresume(T0)(scope auto ref Optional!(T0) onresume) if (isTOrPointer!(T0, EventHandler)) {
+  void onresume(T0)(scope auto ref Optional!(T0) onresume) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onresume", !onresume.empty, onresume.front);
   }
   EventHandler onresume()() {
     return Object_Getter__EventHandler(this._parent, "onresume");
   }
-  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onerror", !onerror.empty, onerror.front);
   }
   EventHandler onerror()() {
     return Object_Getter__EventHandler(this._parent, "onerror");
   }
-  void onwarning(T0)(scope auto ref Optional!(T0) onwarning) if (isTOrPointer!(T0, EventHandler)) {
+  void onwarning(T0)(scope auto ref Optional!(T0) onwarning) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onwarning", !onwarning.empty, onwarning.front);
   }
   EventHandler onwarning()() {

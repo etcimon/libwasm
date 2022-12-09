@@ -23,7 +23,7 @@ struct TreeView {
     Serialize_Object_VarArgCall!void(this.handle, "selection", "Optional!Handle", tuple(!selection.empty, cast(Handle)selection.front.handle));
   }
   auto selection()() {
-    return Optional!(nsITreeSelection)(Object_Getter__OptionalHandle(this.handle, "selection"));
+    return recastOpt!(nsITreeSelection)(Object_Getter__OptionalHandle(this.handle, "selection"));
   }
   string getRowProperties()(int row) {
     return Serialize_Object_VarArgCall!string(this.handle, "getRowProperties", "int", tuple(row));

@@ -54,10 +54,10 @@ struct CharacterData {
     Object_Call__void(this._parent, "remove");
   }
   auto previousElementSibling()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this._parent, "previousElementSibling"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this._parent, "previousElementSibling"));
   }
   auto nextElementSibling()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this._parent, "nextElementSibling"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this._parent, "nextElementSibling"));
   }
 }
 

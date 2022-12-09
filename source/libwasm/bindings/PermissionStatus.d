@@ -24,7 +24,7 @@ struct PermissionStatus {
   PermissionState state()() {
     return Object_Getter__int(this._parent, "state");
   }
-  void onchange(T0)(scope auto ref Optional!(T0) onchange) if (isTOrPointer!(T0, EventHandler)) {
+  void onchange(T0)(scope auto ref Optional!(T0) onchange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onchange", !onchange.empty, onchange.front);
   }
   EventHandler onchange()() {

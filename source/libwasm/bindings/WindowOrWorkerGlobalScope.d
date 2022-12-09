@@ -85,7 +85,7 @@ struct WindowOrWorkerGlobalScope {
     return Object_Getter__bool(this.handle, "isSecureContext");
   }
   auto indexedDB()() {
-    return Optional!(IDBFactory)(Object_Getter__OptionalHandle(this.handle, "indexedDB"));
+    return recastOpt!(IDBFactory)(Object_Getter__OptionalHandle(this.handle, "indexedDB"));
   }
   auto caches()() {
     return CacheStorage(Object_Getter__Handle(this.handle, "caches"));

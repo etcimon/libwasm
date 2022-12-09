@@ -33,7 +33,7 @@ struct SpeechSynthesisUtterance {
     Serialize_Object_VarArgCall!void(this._parent, "voice", "Optional!Handle", tuple(!voice.empty, cast(Handle)voice.front.handle));
   }
   auto voice()() {
-    return Optional!(SpeechSynthesisVoice)(Object_Getter__OptionalHandle(this._parent, "voice"));
+    return recastOpt!(SpeechSynthesisVoice)(Object_Getter__OptionalHandle(this._parent, "voice"));
   }
   void volume()(float volume) {
     Object_Call_float__void(this._parent, "volume", volume);
@@ -53,43 +53,43 @@ struct SpeechSynthesisUtterance {
   float pitch()() {
     return Object_Getter__float(this._parent, "pitch");
   }
-  void onstart(T0)(scope auto ref Optional!(T0) onstart) if (isTOrPointer!(T0, EventHandler)) {
+  void onstart(T0)(scope auto ref Optional!(T0) onstart) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onstart", !onstart.empty, onstart.front);
   }
   EventHandler onstart()() {
     return Object_Getter__EventHandler(this._parent, "onstart");
   }
-  void onend(T0)(scope auto ref Optional!(T0) onend) if (isTOrPointer!(T0, EventHandler)) {
+  void onend(T0)(scope auto ref Optional!(T0) onend) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onend", !onend.empty, onend.front);
   }
   EventHandler onend()() {
     return Object_Getter__EventHandler(this._parent, "onend");
   }
-  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onerror", !onerror.empty, onerror.front);
   }
   EventHandler onerror()() {
     return Object_Getter__EventHandler(this._parent, "onerror");
   }
-  void onpause(T0)(scope auto ref Optional!(T0) onpause) if (isTOrPointer!(T0, EventHandler)) {
+  void onpause(T0)(scope auto ref Optional!(T0) onpause) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onpause", !onpause.empty, onpause.front);
   }
   EventHandler onpause()() {
     return Object_Getter__EventHandler(this._parent, "onpause");
   }
-  void onresume(T0)(scope auto ref Optional!(T0) onresume) if (isTOrPointer!(T0, EventHandler)) {
+  void onresume(T0)(scope auto ref Optional!(T0) onresume) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onresume", !onresume.empty, onresume.front);
   }
   EventHandler onresume()() {
     return Object_Getter__EventHandler(this._parent, "onresume");
   }
-  void onmark(T0)(scope auto ref Optional!(T0) onmark) if (isTOrPointer!(T0, EventHandler)) {
+  void onmark(T0)(scope auto ref Optional!(T0) onmark) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onmark", !onmark.empty, onmark.front);
   }
   EventHandler onmark()() {
     return Object_Getter__EventHandler(this._parent, "onmark");
   }
-  void onboundary(T0)(scope auto ref Optional!(T0) onboundary) if (isTOrPointer!(T0, EventHandler)) {
+  void onboundary(T0)(scope auto ref Optional!(T0) onboundary) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onboundary", !onboundary.empty, onboundary.front);
   }
   EventHandler onboundary()() {

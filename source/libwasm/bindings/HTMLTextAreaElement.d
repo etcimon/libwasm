@@ -44,7 +44,7 @@ struct HTMLTextAreaElement {
     return Object_Getter__bool(this._parent, "disabled");
   }
   auto form()() {
-    return Optional!(HTMLFormElement)(Object_Getter__OptionalHandle(this._parent, "form"));
+    return recastOpt!(HTMLFormElement)(Object_Getter__OptionalHandle(this._parent, "form"));
   }
   void maxLength()(int maxLength) {
     Object_Call_int__void(this._parent, "maxLength", maxLength);
@@ -179,7 +179,7 @@ struct HTMLTextAreaElement {
     return Object_Getter__string(this._parent, "previewValue");
   }
   auto editor()() {
-    return Optional!(nsIEditor)(Object_Getter__OptionalHandle(this._parent, "editor"));
+    return recastOpt!(nsIEditor)(Object_Getter__OptionalHandle(this._parent, "editor"));
   }
   bool isInputEventTarget()() {
     return Object_Getter__bool(this._parent, "isInputEventTarget");

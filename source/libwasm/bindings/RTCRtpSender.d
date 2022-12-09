@@ -241,7 +241,7 @@ struct RTCRtpSender {
     this.handle = JsHandle(h);
   }
   auto track()() {
-    return Optional!(MediaStreamTrack)(Object_Getter__OptionalHandle(this.handle, "track"));
+    return recastOpt!(MediaStreamTrack)(Object_Getter__OptionalHandle(this.handle, "track"));
   }
   auto setParameters()(scope ref RTCRtpParameters parameters) {
     return JsPromise!(void)(Object_Call_Handle__Handle(this.handle, "setParameters", parameters.handle));
@@ -259,7 +259,7 @@ struct RTCRtpSender {
     return JsPromise!(RTCStatsReport)(Object_Getter__Handle(this.handle, "getStats"));
   }
   auto dtmf()() {
-    return Optional!(RTCDTMFSender)(Object_Getter__OptionalHandle(this.handle, "dtmf"));
+    return recastOpt!(RTCDTMFSender)(Object_Getter__OptionalHandle(this.handle, "dtmf"));
   }
   auto getStreams()() {
     return Sequence!(MediaStream)(Object_Getter__Handle(this.handle, "getStreams"));

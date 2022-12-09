@@ -20,13 +20,13 @@ struct ImageCapture {
   auto videoStreamTrack()() {
     return MediaStreamTrack(Object_Getter__Handle(this._parent, "videoStreamTrack"));
   }
-  void onphoto(T0)(scope auto ref Optional!(T0) onphoto) if (isTOrPointer!(T0, EventHandler)) {
+  void onphoto(T0)(scope auto ref Optional!(T0) onphoto) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onphoto", !onphoto.empty, onphoto.front);
   }
   EventHandler onphoto()() {
     return Object_Getter__EventHandler(this._parent, "onphoto");
   }
-  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onerror", !onerror.empty, onerror.front);
   }
   EventHandler onerror()() {

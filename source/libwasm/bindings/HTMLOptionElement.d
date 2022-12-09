@@ -23,7 +23,7 @@ struct HTMLOptionElement {
     return Object_Getter__bool(this._parent, "disabled");
   }
   auto form()() {
-    return Optional!(HTMLFormElement)(Object_Getter__OptionalHandle(this._parent, "form"));
+    return recastOpt!(HTMLFormElement)(Object_Getter__OptionalHandle(this._parent, "form"));
   }
   void label()(string label) {
     Object_Call_string__void(this._parent, "label", label);

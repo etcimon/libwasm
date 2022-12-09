@@ -27,7 +27,7 @@ struct PresentationRequest {
   auto getAvailability()() {
     return JsPromise!(PresentationAvailability)(Object_Getter__Handle(this._parent, "getAvailability"));
   }
-  void onconnectionavailable(T0)(scope auto ref Optional!(T0) onconnectionavailable) if (isTOrPointer!(T0, EventHandler)) {
+  void onconnectionavailable(T0)(scope auto ref Optional!(T0) onconnectionavailable) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onconnectionavailable", !onconnectionavailable.empty, onconnectionavailable.front);
   }
   EventHandler onconnectionavailable()() {

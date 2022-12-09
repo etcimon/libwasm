@@ -26,10 +26,10 @@ struct DataTransferItem {
     DataTransferItem_getAsString(this.handle, !_callback.empty, _callback.front);
   }
   auto getAsFile()() {
-    return Optional!(File)(Object_Getter__OptionalHandle(this.handle, "getAsFile"));
+    return recastOpt!(File)(Object_Getter__OptionalHandle(this.handle, "getAsFile"));
   }
   auto webkitGetAsEntry()() {
-    return Optional!(FileSystemEntry)(Object_Getter__OptionalHandle(this.handle, "webkitGetAsEntry"));
+    return recastOpt!(FileSystemEntry)(Object_Getter__OptionalHandle(this.handle, "webkitGetAsEntry"));
   }
 }
 alias FunctionStringCallback = void delegate(string);

@@ -19,10 +19,10 @@ struct PluginArray {
     return Object_Getter__uint(this.handle, "length");
   }
   auto item()(uint index) {
-    return Optional!(Plugin)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
+    return recastOpt!(Plugin)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
   }
   auto namedItem()(string name) {
-    return Optional!(Plugin)(Object_Call_string__OptionalHandle(this.handle, "namedItem", name));
+    return recastOpt!(Plugin)(Object_Call_string__OptionalHandle(this.handle, "namedItem", name));
   }
   void refresh()(bool reloadDocuments /* = false */) {
     Object_Call_bool__void(this.handle, "refresh", reloadDocuments);

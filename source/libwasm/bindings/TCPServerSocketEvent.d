@@ -34,7 +34,7 @@ struct TCPServerSocketEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "socket", "Optional!Handle", tuple(!socket.empty, cast(Handle)socket.front._parent));
   }
   auto socket()() {
-    return Optional!(TCPSocket)(Object_Getter__OptionalHandle(this._parent, "socket"));
+    return recastOpt!(TCPSocket)(Object_Getter__OptionalHandle(this._parent, "socket"));
   }
 }
 

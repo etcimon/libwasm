@@ -32,12 +32,12 @@ struct OffscreenCanvas {
   auto getContext(T1)(string contextId, scope auto ref T1 contextOptions /* = null */) {
     // Any
     Handle _handle_contextOptions = getOrCreateHandle(contextOptions);
-    auto result = Optional!(nsISupports)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "getContext", "string;Handle", tuple(contextId, _handle_contextOptions)));
+    auto result = recastOpt!(nsISupports)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "getContext", "string;Handle", tuple(contextId, _handle_contextOptions)));
     dropHandle!(T1)(_handle_contextOptions);
     return result;
   }
   auto getContext()(string contextId) {
-    return Optional!(nsISupports)(Object_Call_string__OptionalHandle(this._parent, "getContext", contextId));
+    return recastOpt!(nsISupports)(Object_Call_string__OptionalHandle(this._parent, "getContext", contextId));
   }
   auto transferToImageBitmap()() {
     return ImageBitmap(Object_Getter__Handle(this._parent, "transferToImageBitmap"));

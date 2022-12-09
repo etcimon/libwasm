@@ -18,10 +18,10 @@ struct StyleRuleChangeEvent {
     _parent = .Event(h);
   }
   auto stylesheet()() {
-    return Optional!(CSSStyleSheet)(Object_Getter__OptionalHandle(this._parent, "stylesheet"));
+    return recastOpt!(CSSStyleSheet)(Object_Getter__OptionalHandle(this._parent, "stylesheet"));
   }
   auto rule()() {
-    return Optional!(CSSRule)(Object_Getter__OptionalHandle(this._parent, "rule"));
+    return recastOpt!(CSSRule)(Object_Getter__OptionalHandle(this._parent, "rule"));
   }
 }
 struct StyleRuleChangeEventInit {
@@ -38,13 +38,13 @@ struct StyleRuleChangeEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "stylesheet", "Optional!Handle", tuple(!stylesheet.empty, cast(Handle)stylesheet.front._parent));
   }
   auto stylesheet()() {
-    return Optional!(CSSStyleSheet)(Object_Getter__OptionalHandle(this._parent, "stylesheet"));
+    return recastOpt!(CSSStyleSheet)(Object_Getter__OptionalHandle(this._parent, "stylesheet"));
   }
   void rule(T0)(scope auto ref Optional!(T0) rule) if (isTOrPointer!(T0, CSSRule)) {
     Serialize_Object_VarArgCall!void(this._parent, "rule", "Optional!Handle", tuple(!rule.empty, cast(Handle)rule.front.handle));
   }
   auto rule()() {
-    return Optional!(CSSRule)(Object_Getter__OptionalHandle(this._parent, "rule"));
+    return recastOpt!(CSSRule)(Object_Getter__OptionalHandle(this._parent, "rule"));
   }
 }
 

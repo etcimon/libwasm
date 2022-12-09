@@ -33,7 +33,7 @@ struct XSLTProcessor {
     dropHandle!(T2)(_handle_value);
   }
   auto getParameter()(string namespaceURI, string localName) {
-    return Optional!(nsIVariant)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getParameter", "string;string", tuple(namespaceURI, localName)));
+    return recastOpt!(nsIVariant)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getParameter", "string;string", tuple(namespaceURI, localName)));
   }
   void removeParameter()(string namespaceURI, string localName) {
     Object_Call_string_string__void(this.handle, "removeParameter", namespaceURI, localName);

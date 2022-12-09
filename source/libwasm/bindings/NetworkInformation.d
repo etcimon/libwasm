@@ -28,7 +28,7 @@ struct NetworkInformation {
   ConnectionType type()() {
     return Object_Getter__int(this._parent, "type");
   }
-  void ontypechange(T0)(scope auto ref Optional!(T0) ontypechange) if (isTOrPointer!(T0, EventHandler)) {
+  void ontypechange(T0)(scope auto ref Optional!(T0) ontypechange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "ontypechange", !ontypechange.empty, ontypechange.front);
   }
   EventHandler ontypechange()() {

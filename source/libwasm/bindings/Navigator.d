@@ -151,7 +151,7 @@ struct Navigator {
     return Object_Call_string__bool(this.handle, "sendBeacon", url);
   }
   auto presentation()() {
-    return Optional!(Presentation)(Object_Getter__OptionalHandle(this.handle, "presentation"));
+    return recastOpt!(Presentation)(Object_Getter__OptionalHandle(this.handle, "presentation"));
   }
   auto mozTCPSocket()() {
     return LegacyMozTCPSocket(Object_Getter__Handle(this.handle, "mozTCPSocket"));

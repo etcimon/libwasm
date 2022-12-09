@@ -42,7 +42,7 @@ struct SpeechSynthesis {
   auto getVoices()() {
     return Sequence!(SpeechSynthesisVoice)(Object_Getter__Handle(this._parent, "getVoices"));
   }
-  void onvoiceschanged(T0)(scope auto ref Optional!(T0) onvoiceschanged) if (isTOrPointer!(T0, EventHandler)) {
+  void onvoiceschanged(T0)(scope auto ref Optional!(T0) onvoiceschanged) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onvoiceschanged", !onvoiceschanged.empty, onvoiceschanged.front);
   }
   EventHandler onvoiceschanged()() {

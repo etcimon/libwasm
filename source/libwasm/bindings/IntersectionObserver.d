@@ -19,7 +19,7 @@ struct IntersectionObserver {
     this.handle = JsHandle(h);
   }
   auto root()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this.handle, "root"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this.handle, "root"));
   }
   string rootMargin()() {
     return Object_Getter__string(this.handle, "rootMargin");
@@ -54,7 +54,7 @@ struct IntersectionObserverEntry {
     return Object_Getter__double(this.handle, "time");
   }
   auto rootBounds()() {
-    return Optional!(DOMRectReadOnly)(Object_Getter__OptionalHandle(this.handle, "rootBounds"));
+    return recastOpt!(DOMRectReadOnly)(Object_Getter__OptionalHandle(this.handle, "rootBounds"));
   }
   auto boundingClientRect()() {
     return DOMRectReadOnly(Object_Getter__Handle(this.handle, "boundingClientRect"));
@@ -127,7 +127,7 @@ struct IntersectionObserverInit {
     Serialize_Object_VarArgCall!void(this.handle, "root", "Optional!Handle", tuple(!root.empty, cast(Handle)root.front._parent));
   }
   auto root()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this.handle, "root"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this.handle, "root"));
   }
   void rootMargin()(string rootMargin) {
     Object_Call_string__void(this.handle, "rootMargin", rootMargin);

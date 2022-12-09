@@ -122,7 +122,7 @@ struct MutationObservingInfo {
     Serialize_Object_VarArgCall!void(this._parent, "observedNode", "Optional!Handle", tuple(!observedNode.empty, cast(Handle)observedNode.front._parent));
   }
   auto observedNode()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this._parent, "observedNode"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this._parent, "observedNode"));
   }
 }
 struct MutationRecord {
@@ -136,7 +136,7 @@ struct MutationRecord {
     return Object_Getter__string(this.handle, "type");
   }
   auto target()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "target"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "target"));
   }
   auto addedNodes()() {
     return NodeList(Object_Getter__Handle(this.handle, "addedNodes"));
@@ -145,10 +145,10 @@ struct MutationRecord {
     return NodeList(Object_Getter__Handle(this.handle, "removedNodes"));
   }
   auto previousSibling()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "previousSibling"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "previousSibling"));
   }
   auto nextSibling()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "nextSibling"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "nextSibling"));
   }
   Optional!(string) attributeName()() {
     return Object_Getter__OptionalString(this.handle, "attributeName");

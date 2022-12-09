@@ -20,7 +20,7 @@ struct NodeIterator {
     return Node(Object_Getter__Handle(this.handle, "root"));
   }
   auto referenceNode()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "referenceNode"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "referenceNode"));
   }
   bool pointerBeforeReferenceNode()() {
     return Object_Getter__bool(this.handle, "pointerBeforeReferenceNode");
@@ -29,13 +29,13 @@ struct NodeIterator {
     return Object_Getter__uint(this.handle, "whatToShow");
   }
   auto filter()() {
-    return Optional!(NodeFilter)(Object_Getter__OptionalHandle(this.handle, "filter"));
+    return recastOpt!(NodeFilter)(Object_Getter__OptionalHandle(this.handle, "filter"));
   }
   auto nextNode()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "nextNode"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "nextNode"));
   }
   auto previousNode()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "previousNode"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "previousNode"));
   }
   void detach()() {
     Object_Call__void(this.handle, "detach");

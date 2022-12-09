@@ -16,7 +16,7 @@ struct AudioScheduledSourceNode {
   this(Handle h) {
     _parent = .AudioNode(h);
   }
-  void onended(T0)(scope auto ref Optional!(T0) onended) if (isTOrPointer!(T0, EventHandler)) {
+  void onended(T0)(scope auto ref Optional!(T0) onended) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onended", !onended.empty, onended.front);
   }
   EventHandler onended()() {

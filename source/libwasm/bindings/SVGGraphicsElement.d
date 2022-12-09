@@ -59,10 +59,10 @@ struct SVGGraphicsElement {
     return SVGAnimatedTransformList(Object_Getter__Handle(this._parent, "transform"));
   }
   auto nearestViewportElement()() {
-    return Optional!(SVGElement)(Object_Getter__OptionalHandle(this._parent, "nearestViewportElement"));
+    return recastOpt!(SVGElement)(Object_Getter__OptionalHandle(this._parent, "nearestViewportElement"));
   }
   auto farthestViewportElement()() {
-    return Optional!(SVGElement)(Object_Getter__OptionalHandle(this._parent, "farthestViewportElement"));
+    return recastOpt!(SVGElement)(Object_Getter__OptionalHandle(this._parent, "farthestViewportElement"));
   }
   auto getBBox()(scope ref SVGBoundingBoxOptions aOptions) {
     return SVGRect(Object_Call_Handle__Handle(this._parent, "getBBox", aOptions.handle));
@@ -71,10 +71,10 @@ struct SVGGraphicsElement {
     return SVGRect(Object_Getter__Handle(this._parent, "getBBox"));
   }
   auto getCTM()() {
-    return Optional!(SVGMatrix)(Object_Getter__OptionalHandle(this._parent, "getCTM"));
+    return recastOpt!(SVGMatrix)(Object_Getter__OptionalHandle(this._parent, "getCTM"));
   }
   auto getScreenCTM()() {
-    return Optional!(SVGMatrix)(Object_Getter__OptionalHandle(this._parent, "getScreenCTM"));
+    return recastOpt!(SVGMatrix)(Object_Getter__OptionalHandle(this._parent, "getScreenCTM"));
   }
   auto getTransformToElement()(scope ref SVGGraphicsElement element) {
     return SVGMatrix(Object_Call_Handle__Handle(this._parent, "getTransformToElement", element._parent));

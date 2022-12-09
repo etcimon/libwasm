@@ -17,7 +17,7 @@ struct DeprecationReportBody {
     return Object_Getter__string(this._parent, "id");
   }
   auto anticipatedRemoval()() {
-    return Optional!(Date)(Object_Getter__OptionalHandle(this._parent, "anticipatedRemoval"));
+    return recastOpt!(Date)(Object_Getter__OptionalHandle(this._parent, "anticipatedRemoval"));
   }
   string message()() {
     return Object_Getter__string(this._parent, "message");
@@ -46,7 +46,7 @@ struct Report {
     return Object_Getter__string(this.handle, "url");
   }
   auto body_()() {
-    return Optional!(ReportBody)(Object_Getter__OptionalHandle(this.handle, "body"));
+    return recastOpt!(ReportBody)(Object_Getter__OptionalHandle(this.handle, "body"));
   }
 }
 struct ReportBody {

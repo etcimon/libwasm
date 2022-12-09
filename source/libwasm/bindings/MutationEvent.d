@@ -21,7 +21,7 @@ struct MutationEvent {
   enum ushort REMOVAL = 3;
   enum ushort SMIL = 4;
   auto relatedNode()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this._parent, "relatedNode"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this._parent, "relatedNode"));
   }
   string prevValue()() {
     return Object_Getter__string(this._parent, "prevValue");

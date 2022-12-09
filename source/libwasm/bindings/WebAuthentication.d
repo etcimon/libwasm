@@ -63,7 +63,7 @@ struct AuthenticatorAssertionResponse {
     return ArrayBuffer(Object_Getter__Handle(this._parent, "signature"));
   }
   auto userHandle()() {
-    return Optional!(ArrayBuffer)(Object_Getter__OptionalHandle(this._parent, "userHandle"));
+    return recastOpt!(ArrayBuffer)(Object_Getter__OptionalHandle(this._parent, "userHandle"));
   }
 }
 enum AuthenticatorAttachment {

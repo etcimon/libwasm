@@ -58,7 +58,7 @@ struct Response {
     return Object_Getter__bool(this.handle, "hasCacheInfoChannel");
   }
   auto body_()() {
-    return Optional!(ReadableStream)(Object_Getter__OptionalHandle(this.handle, "body"));
+    return recastOpt!(ReadableStream)(Object_Getter__OptionalHandle(this.handle, "body"));
   }
   bool bodyUsed()() {
     return Object_Getter__bool(this.handle, "bodyUsed");

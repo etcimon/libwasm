@@ -26,7 +26,7 @@ struct HTMLMediaElement {
     _parent = .HTMLElement(h);
   }
   auto error()() {
-    return Optional!(MediaError)(Object_Getter__OptionalHandle(this._parent, "error"));
+    return recastOpt!(MediaError)(Object_Getter__OptionalHandle(this._parent, "error"));
   }
   void src()(string src) {
     Object_Call_string__void(this._parent, "src", src);
@@ -164,7 +164,7 @@ struct HTMLMediaElement {
     return VideoTrackList(Object_Getter__Handle(this._parent, "videoTracks"));
   }
   auto textTracks()() {
-    return Optional!(TextTrackList)(Object_Getter__OptionalHandle(this._parent, "textTracks"));
+    return recastOpt!(TextTrackList)(Object_Getter__OptionalHandle(this._parent, "textTracks"));
   }
   auto addTextTrack()(TextTrackKind kind, string label /* = "" */, string language /* = "" */) {
     return TextTrack(Serialize_Object_VarArgCall!Handle(this._parent, "addTextTrack", "Enum;string;string", tuple(kind, label, language)));
@@ -176,7 +176,7 @@ struct HTMLMediaElement {
     return TextTrack(Object_Call_int__Handle(this._parent, "addTextTrack", kind));
   }
   auto mozMediaSourceObject()() {
-    return Optional!(MediaSource)(Object_Getter__OptionalHandle(this._parent, "mozMediaSourceObject"));
+    return recastOpt!(MediaSource)(Object_Getter__OptionalHandle(this._parent, "mozMediaSourceObject"));
   }
   string mozDebugReaderData()() {
     return Object_Getter__string(this._parent, "mozDebugReaderData");
@@ -197,7 +197,7 @@ struct HTMLMediaElement {
     Serialize_Object_VarArgCall!void(this._parent, "srcObject", "Optional!Handle", tuple(!srcObject.empty, cast(Handle)srcObject.front.handle));
   }
   auto srcObject()() {
-    return Optional!(MediaStream)(Object_Getter__OptionalHandle(this._parent, "srcObject"));
+    return recastOpt!(MediaStream)(Object_Getter__OptionalHandle(this._parent, "srcObject"));
   }
   void mozPreservesPitch()(bool mozPreservesPitch) {
     Object_Call_bool__void(this._parent, "mozPreservesPitch", mozPreservesPitch);
@@ -227,7 +227,7 @@ struct HTMLMediaElement {
     return Object_Getter__bool(this._parent, "mozAudioCaptured");
   }
   auto mozGetMetadata()() {
-    return Optional!(JsObject)(Object_Getter__OptionalHandle(this._parent, "mozGetMetadata"));
+    return recastOpt!(JsObject)(Object_Getter__OptionalHandle(this._parent, "mozGetMetadata"));
   }
   double mozFragmentEnd()() {
     return Object_Getter__double(this._parent, "mozFragmentEnd");
@@ -236,18 +236,18 @@ struct HTMLMediaElement {
     Object_Call__void(this._parent, "reportCanPlayTelemetry");
   }
   auto mediaKeys()() {
-    return Optional!(MediaKeys)(Object_Getter__OptionalHandle(this._parent, "mediaKeys"));
+    return recastOpt!(MediaKeys)(Object_Getter__OptionalHandle(this._parent, "mediaKeys"));
   }
   auto setMediaKeys(T0)(scope auto ref Optional!(T0) mediaKeys) if (isTOrPointer!(T0, MediaKeys)) {
     return JsPromise!(void)(Serialize_Object_VarArgCall!Handle(this._parent, "setMediaKeys", "Optional!Handle", tuple(!mediaKeys.empty, cast(Handle)mediaKeys.front.handle)));
   }
-  void onencrypted(T0)(scope auto ref Optional!(T0) onencrypted) if (isTOrPointer!(T0, EventHandler)) {
+  void onencrypted(T0)(scope auto ref Optional!(T0) onencrypted) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onencrypted", !onencrypted.empty, onencrypted.front);
   }
   EventHandler onencrypted()() {
     return Object_Getter__EventHandler(this._parent, "onencrypted");
   }
-  void onwaitingforkey(T0)(scope auto ref Optional!(T0) onwaitingforkey) if (isTOrPointer!(T0, EventHandler)) {
+  void onwaitingforkey(T0)(scope auto ref Optional!(T0) onwaitingforkey) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onwaitingforkey", !onwaitingforkey.empty, onwaitingforkey.front);
   }
   EventHandler onwaitingforkey()() {

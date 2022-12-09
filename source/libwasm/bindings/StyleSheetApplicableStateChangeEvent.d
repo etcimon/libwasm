@@ -17,7 +17,7 @@ struct StyleSheetApplicableStateChangeEvent {
     _parent = .Event(h);
   }
   auto stylesheet()() {
-    return Optional!(CSSStyleSheet)(Object_Getter__OptionalHandle(this._parent, "stylesheet"));
+    return recastOpt!(CSSStyleSheet)(Object_Getter__OptionalHandle(this._parent, "stylesheet"));
   }
   bool applicable()() {
     return Object_Getter__bool(this._parent, "applicable");
@@ -37,7 +37,7 @@ struct StyleSheetApplicableStateChangeEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "stylesheet", "Optional!Handle", tuple(!stylesheet.empty, cast(Handle)stylesheet.front._parent));
   }
   auto stylesheet()() {
-    return Optional!(CSSStyleSheet)(Object_Getter__OptionalHandle(this._parent, "stylesheet"));
+    return recastOpt!(CSSStyleSheet)(Object_Getter__OptionalHandle(this._parent, "stylesheet"));
   }
   void applicable()(bool applicable) {
     Object_Call_bool__void(this._parent, "applicable", applicable);

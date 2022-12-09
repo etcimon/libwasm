@@ -17,7 +17,7 @@ struct MediaStreamEvent {
     _parent = .Event(h);
   }
   auto stream()() {
-    return Optional!(MediaStream)(Object_Getter__OptionalHandle(this._parent, "stream"));
+    return recastOpt!(MediaStream)(Object_Getter__OptionalHandle(this._parent, "stream"));
   }
 }
 struct MediaStreamEventInit {
@@ -34,7 +34,7 @@ struct MediaStreamEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "stream", "Optional!Handle", tuple(!stream.empty, cast(Handle)stream.front._parent));
   }
   auto stream()() {
-    return Optional!(MediaStream)(Object_Getter__OptionalHandle(this._parent, "stream"));
+    return recastOpt!(MediaStream)(Object_Getter__OptionalHandle(this._parent, "stream"));
   }
 }
 

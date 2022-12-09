@@ -33,19 +33,19 @@ struct MediaSource {
   double duration()() {
     return Object_Getter__double(this._parent, "duration");
   }
-  void onsourceopen(T0)(scope auto ref Optional!(T0) onsourceopen) if (isTOrPointer!(T0, EventHandler)) {
+  void onsourceopen(T0)(scope auto ref Optional!(T0) onsourceopen) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onsourceopen", !onsourceopen.empty, onsourceopen.front);
   }
   EventHandler onsourceopen()() {
     return Object_Getter__EventHandler(this._parent, "onsourceopen");
   }
-  void onsourceended(T0)(scope auto ref Optional!(T0) onsourceended) if (isTOrPointer!(T0, EventHandler)) {
+  void onsourceended(T0)(scope auto ref Optional!(T0) onsourceended) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onsourceended", !onsourceended.empty, onsourceended.front);
   }
   EventHandler onsourceended()() {
     return Object_Getter__EventHandler(this._parent, "onsourceended");
   }
-  void onsourceclosed(T0)(scope auto ref Optional!(T0) onsourceclosed) if (isTOrPointer!(T0, EventHandler)) {
+  void onsourceclosed(T0)(scope auto ref Optional!(T0) onsourceclosed) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onsourceclosed", !onsourceclosed.empty, onsourceclosed.front);
   }
   EventHandler onsourceclosed()() {

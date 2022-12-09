@@ -17,7 +17,7 @@ struct RTCPeerConnectionIceEvent {
     _parent = .Event(h);
   }
   auto candidate()() {
-    return Optional!(RTCIceCandidate)(Object_Getter__OptionalHandle(this._parent, "candidate"));
+    return recastOpt!(RTCIceCandidate)(Object_Getter__OptionalHandle(this._parent, "candidate"));
   }
 }
 struct RTCPeerConnectionIceEventInit {
@@ -34,7 +34,7 @@ struct RTCPeerConnectionIceEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "candidate", "Optional!Handle", tuple(!candidate.empty, cast(Handle)candidate.front.handle));
   }
   auto candidate()() {
-    return Optional!(RTCIceCandidate)(Object_Getter__OptionalHandle(this._parent, "candidate"));
+    return recastOpt!(RTCIceCandidate)(Object_Getter__OptionalHandle(this._parent, "candidate"));
   }
 }
 

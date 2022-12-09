@@ -24,7 +24,7 @@ struct WaveShaperNode {
     Serialize_Object_VarArgCall!void(this._parent, "curve", "Optional!Handle", tuple(!curve.empty, cast(Handle)curve.front.handle));
   }
   auto curve()() {
-    return Optional!(Float32Array)(Object_Getter__OptionalHandle(this._parent, "curve"));
+    return recastOpt!(Float32Array)(Object_Getter__OptionalHandle(this._parent, "curve"));
   }
   void oversample()(OverSampleType oversample) {
     Object_Call_int__void(this._parent, "oversample", oversample);

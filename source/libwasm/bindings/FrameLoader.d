@@ -18,19 +18,19 @@ struct FrameLoader {
     this.handle = JsHandle(h);
   }
   auto docShell()() {
-    return Optional!(nsIDocShell)(Object_Getter__OptionalHandle(this.handle, "docShell"));
+    return recastOpt!(nsIDocShell)(Object_Getter__OptionalHandle(this.handle, "docShell"));
   }
   auto tabParent()() {
-    return Optional!(TabParent)(Object_Getter__OptionalHandle(this.handle, "tabParent"));
+    return recastOpt!(TabParent)(Object_Getter__OptionalHandle(this.handle, "tabParent"));
   }
   auto loadContext()() {
     return LoadContext(Object_Getter__Handle(this.handle, "loadContext"));
   }
   auto browsingContext()() {
-    return Optional!(BrowsingContext)(Object_Getter__OptionalHandle(this.handle, "browsingContext"));
+    return recastOpt!(BrowsingContext)(Object_Getter__OptionalHandle(this.handle, "browsingContext"));
   }
   auto parentSHistory()() {
-    return Optional!(ParentSHistory)(Object_Getter__OptionalHandle(this.handle, "parentSHistory"));
+    return recastOpt!(ParentSHistory)(Object_Getter__OptionalHandle(this.handle, "parentSHistory"));
   }
   bool depthTooGreat()() {
     return Object_Getter__bool(this.handle, "depthTooGreat");
@@ -51,7 +51,7 @@ struct FrameLoader {
     Serialize_Object_VarArgCall!void(this.handle, "activateFrameEvent", "string;bool", tuple(aType, capture));
   }
   auto messageManager()() {
-    return Optional!(MessageSender)(Object_Getter__OptionalHandle(this.handle, "messageManager"));
+    return recastOpt!(MessageSender)(Object_Getter__OptionalHandle(this.handle, "messageManager"));
   }
   void requestNotifyAfterRemotePaint()() {
     Object_Call__void(this.handle, "requestNotifyAfterRemotePaint");
@@ -69,7 +69,7 @@ struct FrameLoader {
     return JsPromise!(ImageBitmap)(Serialize_Object_VarArgCall!Handle(this.handle, "drawSnapshot", "double;double;double;double;double;string", tuple(x, y, w, h, scale, backgroundColor)));
   }
   auto ownerElement()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this.handle, "ownerElement"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this.handle, "ownerElement"));
   }
   uint childID()() {
     return Object_Getter__uint(this.handle, "childID");

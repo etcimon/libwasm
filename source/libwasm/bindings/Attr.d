@@ -38,7 +38,7 @@ struct Attr {
     return Object_Getter__bool(this._parent, "specified");
   }
   auto ownerElement()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this._parent, "ownerElement"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this._parent, "ownerElement"));
   }
 }
 

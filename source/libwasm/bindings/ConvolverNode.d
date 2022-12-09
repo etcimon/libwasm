@@ -20,7 +20,7 @@ struct ConvolverNode {
     Serialize_Object_VarArgCall!void(this._parent, "buffer", "Optional!Handle", tuple(!buffer.empty, cast(Handle)buffer.front.handle));
   }
   auto buffer()() {
-    return Optional!(AudioBuffer)(Object_Getter__OptionalHandle(this._parent, "buffer"));
+    return recastOpt!(AudioBuffer)(Object_Getter__OptionalHandle(this._parent, "buffer"));
   }
   void normalize()(bool normalize) {
     Object_Call_bool__void(this._parent, "normalize", normalize);
@@ -49,7 +49,7 @@ struct ConvolverOptions {
     Serialize_Object_VarArgCall!void(this._parent, "buffer", "Optional!Handle", tuple(!buffer.empty, cast(Handle)buffer.front.handle));
   }
   auto buffer()() {
-    return Optional!(AudioBuffer)(Object_Getter__OptionalHandle(this._parent, "buffer"));
+    return recastOpt!(AudioBuffer)(Object_Getter__OptionalHandle(this._parent, "buffer"));
   }
   void disableNormalization()(bool disableNormalization) {
     Object_Call_bool__void(this._parent, "disableNormalization", disableNormalization);

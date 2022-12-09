@@ -109,13 +109,13 @@ struct HTMLInputElement {
     return Object_Getter__bool(this._parent, "disabled");
   }
   auto form()() {
-    return Optional!(HTMLFormElement)(Object_Getter__OptionalHandle(this._parent, "form"));
+    return recastOpt!(HTMLFormElement)(Object_Getter__OptionalHandle(this._parent, "form"));
   }
   void files(T0)(scope auto ref Optional!(T0) files) if (isTOrPointer!(T0, FileList)) {
     Serialize_Object_VarArgCall!void(this._parent, "files", "Optional!Handle", tuple(!files.empty, cast(Handle)files.front.handle));
   }
   auto files()() {
-    return Optional!(FileList)(Object_Getter__OptionalHandle(this._parent, "files"));
+    return recastOpt!(FileList)(Object_Getter__OptionalHandle(this._parent, "files"));
   }
   void formAction()(string formAction) {
     Object_Call_string__void(this._parent, "formAction", formAction);
@@ -166,7 +166,7 @@ struct HTMLInputElement {
     return Object_Getter__string(this._parent, "inputMode");
   }
   auto list()() {
-    return Optional!(HTMLElement)(Object_Getter__OptionalHandle(this._parent, "list"));
+    return recastOpt!(HTMLElement)(Object_Getter__OptionalHandle(this._parent, "list"));
   }
   void max()(string max) {
     Object_Call_string__void(this._parent, "max", max);
@@ -268,7 +268,7 @@ struct HTMLInputElement {
     Serialize_Object_VarArgCall!void(this._parent, "valueAsDate", "Optional!Handle", tuple(!valueAsDate.empty, cast(Handle)valueAsDate.front.handle));
   }
   auto valueAsDate()() {
-    return Optional!(Date)(Object_Getter__OptionalHandle(this._parent, "valueAsDate"));
+    return recastOpt!(Date)(Object_Getter__OptionalHandle(this._parent, "valueAsDate"));
   }
   void valueAsNumber()(double valueAsNumber) {
     Object_Call_double__void(this._parent, "valueAsNumber", valueAsNumber);
@@ -313,7 +313,7 @@ struct HTMLInputElement {
     Object_Call_string__void(this._parent, "setCustomValidity", error);
   }
   auto labels()() {
-    return Optional!(NodeList)(Object_Getter__OptionalHandle(this._parent, "labels"));
+    return recastOpt!(NodeList)(Object_Getter__OptionalHandle(this._parent, "labels"));
   }
   void select()() {
     Object_Call__void(this._parent, "select");
@@ -385,7 +385,7 @@ struct HTMLInputElement {
     Object_Call_Handle__void(this._parent, "mozSetDndFilesAndDirectories", list.handle);
   }
   auto ownerNumberControl()() {
-    return Optional!(HTMLInputElement)(Object_Getter__OptionalHandle(this._parent, "ownerNumberControl"));
+    return recastOpt!(HTMLInputElement)(Object_Getter__OptionalHandle(this._parent, "ownerNumberControl"));
   }
   bool mozIsTextField()(bool aExcludePassword) {
     return Serialize_Object_VarArgCall!bool(this._parent, "mozIsTextField", "bool", tuple(aExcludePassword));
@@ -400,7 +400,7 @@ struct HTMLInputElement {
     return Object_Getter__string(this._parent, "previewValue");
   }
   auto getAutocompleteInfo()() {
-    return Optional!(AutocompleteInfo)(Object_Getter__OptionalHandle(this._parent, "getAutocompleteInfo"));
+    return recastOpt!(AutocompleteInfo)(Object_Getter__OptionalHandle(this._parent, "getAutocompleteInfo"));
   }
   void allowdirs()(bool allowdirs) {
     Object_Call_bool__void(this._parent, "allowdirs", allowdirs);
@@ -436,7 +436,7 @@ struct HTMLInputElement {
     return DateTimeValue(Object_Getter__Handle(this._parent, "getDateTimeInputBoxValue"));
   }
   auto dateTimeBoxElement()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this._parent, "dateTimeBoxElement"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this._parent, "dateTimeBoxElement"));
   }
   double getMinimum()() {
     return Object_Getter__double(this._parent, "getMinimum");
@@ -472,7 +472,7 @@ struct HTMLInputElement {
     return Object_Getter__double(this._parent, "getStepBase");
   }
   auto editor()() {
-    return Optional!(nsIEditor)(Object_Getter__OptionalHandle(this._parent, "editor"));
+    return recastOpt!(nsIEditor)(Object_Getter__OptionalHandle(this._parent, "editor"));
   }
   bool isInputEventTarget()() {
     return Object_Getter__bool(this._parent, "isInputEventTarget");
@@ -499,16 +499,16 @@ struct HTMLInputElement {
     Object_Call_Handle__void(this._parent, "removeObserver", aObserver.handle);
   }
   auto getRequest()(int aRequestType) {
-    return Optional!(imgIRequest)(Object_Call_int__OptionalHandle(this._parent, "getRequest", aRequestType));
+    return recastOpt!(imgIRequest)(Object_Call_int__OptionalHandle(this._parent, "getRequest", aRequestType));
   }
   int getRequestType()(scope ref imgIRequest aRequest) {
     return Serialize_Object_VarArgCall!int(this._parent, "getRequestType", "Handle", tuple(cast(Handle)aRequest.handle));
   }
   auto currentURI()() {
-    return Optional!(URI)(Object_Getter__OptionalHandle(this._parent, "currentURI"));
+    return recastOpt!(URI)(Object_Getter__OptionalHandle(this._parent, "currentURI"));
   }
   auto currentRequestFinalURI()() {
-    return Optional!(URI)(Object_Getter__OptionalHandle(this._parent, "currentRequestFinalURI"));
+    return recastOpt!(URI)(Object_Getter__OptionalHandle(this._parent, "currentRequestFinalURI"));
   }
   void forceReload()(bool aNotify /* = true */) {
     Object_Call_bool__void(this._parent, "forceReload", aNotify);
@@ -528,7 +528,7 @@ struct MozEditableElement {
     this.handle = JsHandle(h);
   }
   auto editor()() {
-    return Optional!(nsIEditor)(Object_Getter__OptionalHandle(this.handle, "editor"));
+    return recastOpt!(nsIEditor)(Object_Getter__OptionalHandle(this.handle, "editor"));
   }
   bool isInputEventTarget()() {
     return Object_Getter__bool(this.handle, "isInputEventTarget");

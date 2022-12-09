@@ -92,7 +92,7 @@ struct UDPSocket {
   auto closed()() {
     return JsPromise!(void)(Object_Getter__Handle(this._parent, "closed"));
   }
-  void onmessage(T0)(scope auto ref Optional!(T0) onmessage) if (isTOrPointer!(T0, EventHandler)) {
+  void onmessage(T0)(scope auto ref Optional!(T0) onmessage) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onmessage", !onmessage.empty, onmessage.front);
   }
   EventHandler onmessage()() {

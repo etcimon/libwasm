@@ -390,7 +390,7 @@ struct PaymentRequest {
     return Object_Getter__string(this._parent, "id");
   }
   auto shippingAddress()() {
-    return Optional!(PaymentAddress)(Object_Getter__OptionalHandle(this._parent, "shippingAddress"));
+    return recastOpt!(PaymentAddress)(Object_Getter__OptionalHandle(this._parent, "shippingAddress"));
   }
   Optional!(string) shippingOption()() {
     return Object_Getter__OptionalString(this._parent, "shippingOption");
@@ -398,25 +398,25 @@ struct PaymentRequest {
   Optional!(PaymentShippingType) shippingType()() {
     return PaymentRequest_shippingType_Get(this._parent);
   }
-  void onmerchantvalidation(T0)(scope auto ref Optional!(T0) onmerchantvalidation) if (isTOrPointer!(T0, EventHandler)) {
+  void onmerchantvalidation(T0)(scope auto ref Optional!(T0) onmerchantvalidation) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onmerchantvalidation", !onmerchantvalidation.empty, onmerchantvalidation.front);
   }
   EventHandler onmerchantvalidation()() {
     return Object_Getter__EventHandler(this._parent, "onmerchantvalidation");
   }
-  void onshippingaddresschange(T0)(scope auto ref Optional!(T0) onshippingaddresschange) if (isTOrPointer!(T0, EventHandler)) {
+  void onshippingaddresschange(T0)(scope auto ref Optional!(T0) onshippingaddresschange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onshippingaddresschange", !onshippingaddresschange.empty, onshippingaddresschange.front);
   }
   EventHandler onshippingaddresschange()() {
     return Object_Getter__EventHandler(this._parent, "onshippingaddresschange");
   }
-  void onshippingoptionchange(T0)(scope auto ref Optional!(T0) onshippingoptionchange) if (isTOrPointer!(T0, EventHandler)) {
+  void onshippingoptionchange(T0)(scope auto ref Optional!(T0) onshippingoptionchange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onshippingoptionchange", !onshippingoptionchange.empty, onshippingoptionchange.front);
   }
   EventHandler onshippingoptionchange()() {
     return Object_Getter__EventHandler(this._parent, "onshippingoptionchange");
   }
-  void onpaymentmethodchange(T0)(scope auto ref Optional!(T0) onpaymentmethodchange) if (isTOrPointer!(T0, EventHandler)) {
+  void onpaymentmethodchange(T0)(scope auto ref Optional!(T0) onpaymentmethodchange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onpaymentmethodchange", !onpaymentmethodchange.empty, onpaymentmethodchange.front);
   }
   EventHandler onpaymentmethodchange()() {

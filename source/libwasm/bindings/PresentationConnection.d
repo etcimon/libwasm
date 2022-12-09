@@ -26,19 +26,19 @@ struct PresentationConnection {
   PresentationConnectionState state()() {
     return Object_Getter__int(this._parent, "state");
   }
-  void onconnect(T0)(scope auto ref Optional!(T0) onconnect) if (isTOrPointer!(T0, EventHandler)) {
+  void onconnect(T0)(scope auto ref Optional!(T0) onconnect) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onconnect", !onconnect.empty, onconnect.front);
   }
   EventHandler onconnect()() {
     return Object_Getter__EventHandler(this._parent, "onconnect");
   }
-  void onclose(T0)(scope auto ref Optional!(T0) onclose) if (isTOrPointer!(T0, EventHandler)) {
+  void onclose(T0)(scope auto ref Optional!(T0) onclose) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onclose", !onclose.empty, onclose.front);
   }
   EventHandler onclose()() {
     return Object_Getter__EventHandler(this._parent, "onclose");
   }
-  void onterminate(T0)(scope auto ref Optional!(T0) onterminate) if (isTOrPointer!(T0, EventHandler)) {
+  void onterminate(T0)(scope auto ref Optional!(T0) onterminate) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onterminate", !onterminate.empty, onterminate.front);
   }
   EventHandler onterminate()() {
@@ -62,7 +62,7 @@ struct PresentationConnection {
   void send()(scope ref ArrayBufferView data) {
     Object_Call_Handle__void(this._parent, "send", data.handle);
   }
-  void onmessage(T0)(scope auto ref Optional!(T0) onmessage) if (isTOrPointer!(T0, EventHandler)) {
+  void onmessage(T0)(scope auto ref Optional!(T0) onmessage) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onmessage", !onmessage.empty, onmessage.front);
   }
   EventHandler onmessage()() {

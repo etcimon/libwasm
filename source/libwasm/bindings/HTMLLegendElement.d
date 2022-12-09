@@ -17,7 +17,7 @@ struct HTMLLegendElement {
     _parent = .HTMLElement(h);
   }
   auto form()() {
-    return Optional!(HTMLFormElement)(Object_Getter__OptionalHandle(this._parent, "form"));
+    return recastOpt!(HTMLFormElement)(Object_Getter__OptionalHandle(this._parent, "form"));
   }
   void align_()(string align_) {
     Object_Call_string__void(this._parent, "align", align_);

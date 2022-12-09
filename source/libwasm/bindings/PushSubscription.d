@@ -26,7 +26,7 @@ struct PushSubscription {
     return PushSubscriptionOptions(Object_Getter__Handle(this.handle, "options"));
   }
   auto getKey()(PushEncryptionKeyName name) {
-    return Optional!(ArrayBuffer)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getKey", "Enum", tuple(name)));
+    return recastOpt!(ArrayBuffer)(Serialize_Object_VarArgCall!(Optional!Handle)(this.handle, "getKey", "Enum", tuple(name)));
   }
   auto unsubscribe()() {
     return JsPromise!(bool)(Object_Getter__Handle(this.handle, "unsubscribe"));
@@ -61,19 +61,19 @@ struct PushSubscriptionInit {
     Serialize_Object_VarArgCall!void(this.handle, "p256dhKey", "Optional!Handle", tuple(!p256dhKey.empty, cast(Handle)p256dhKey.front.handle));
   }
   auto p256dhKey()() {
-    return Optional!(ArrayBuffer)(Object_Getter__OptionalHandle(this.handle, "p256dhKey"));
+    return recastOpt!(ArrayBuffer)(Object_Getter__OptionalHandle(this.handle, "p256dhKey"));
   }
   void authSecret(T0)(scope auto ref Optional!(T0) authSecret) if (isTOrPointer!(T0, ArrayBuffer)) {
     Serialize_Object_VarArgCall!void(this.handle, "authSecret", "Optional!Handle", tuple(!authSecret.empty, cast(Handle)authSecret.front.handle));
   }
   auto authSecret()() {
-    return Optional!(ArrayBuffer)(Object_Getter__OptionalHandle(this.handle, "authSecret"));
+    return recastOpt!(ArrayBuffer)(Object_Getter__OptionalHandle(this.handle, "authSecret"));
   }
   void appServerKey(T0)(scope auto ref Optional!(T0) appServerKey) if (isTOrPointer!(T0, BufferSource)) {
     Serialize_Object_VarArgCall!void(this.handle, "appServerKey", "Optional!Handle", tuple(!appServerKey.empty, cast(Handle)appServerKey.front.handle));
   }
   auto appServerKey()() {
-    return Optional!(BufferSource)(Object_Getter__OptionalHandle(this.handle, "appServerKey"));
+    return recastOpt!(BufferSource)(Object_Getter__OptionalHandle(this.handle, "appServerKey"));
   }
 }
 struct PushSubscriptionJSON {

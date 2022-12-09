@@ -43,7 +43,7 @@ struct XMLHttpRequest {
   this(Handle h) {
     _parent = .XMLHttpRequestEventTarget(h);
   }
-  void onreadystatechange(T0)(scope auto ref Optional!(T0) onreadystatechange) if (isTOrPointer!(T0, EventHandler)) {
+  void onreadystatechange(T0)(scope auto ref Optional!(T0) onreadystatechange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onreadystatechange", !onreadystatechange.empty, onreadystatechange.front);
   }
   EventHandler onreadystatechange()() {
@@ -127,7 +127,7 @@ struct XMLHttpRequest {
     return Object_Getter__OptionalString(this._parent, "responseText");
   }
   auto responseXML()() {
-    return Optional!(Document)(Object_Getter__OptionalHandle(this._parent, "responseXML"));
+    return recastOpt!(Document)(Object_Getter__OptionalHandle(this._parent, "responseXML"));
   }
   void mozBackgroundRequest()(bool mozBackgroundRequest) {
     Object_Call_bool__void(this._parent, "mozBackgroundRequest", mozBackgroundRequest);
@@ -136,7 +136,7 @@ struct XMLHttpRequest {
     return Object_Getter__bool(this._parent, "mozBackgroundRequest");
   }
   auto channel()() {
-    return Optional!(MozChannel)(Object_Getter__OptionalHandle(this._parent, "channel"));
+    return recastOpt!(MozChannel)(Object_Getter__OptionalHandle(this._parent, "channel"));
   }
   auto getInterface(T0)(scope auto ref T0 iid) {
     // Any

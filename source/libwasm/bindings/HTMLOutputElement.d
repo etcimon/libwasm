@@ -23,7 +23,7 @@ struct HTMLOutputElement {
     return DOMTokenList(Object_Getter__Handle(this._parent, "htmlFor"));
   }
   auto form()() {
-    return Optional!(HTMLFormElement)(Object_Getter__OptionalHandle(this._parent, "form"));
+    return recastOpt!(HTMLFormElement)(Object_Getter__OptionalHandle(this._parent, "form"));
   }
   void name()(string name) {
     Object_Call_string__void(this._parent, "name", name);

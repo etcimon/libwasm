@@ -41,10 +41,10 @@ struct TextTrack {
     return Object_Getter__int(this._parent, "mode");
   }
   auto cues()() {
-    return Optional!(TextTrackCueList)(Object_Getter__OptionalHandle(this._parent, "cues"));
+    return recastOpt!(TextTrackCueList)(Object_Getter__OptionalHandle(this._parent, "cues"));
   }
   auto activeCues()() {
-    return Optional!(TextTrackCueList)(Object_Getter__OptionalHandle(this._parent, "activeCues"));
+    return recastOpt!(TextTrackCueList)(Object_Getter__OptionalHandle(this._parent, "activeCues"));
   }
   void addCue()(scope ref VTTCue cue) {
     Object_Call_Handle__void(this._parent, "addCue", cue._parent);
@@ -52,14 +52,14 @@ struct TextTrack {
   void removeCue()(scope ref VTTCue cue) {
     Object_Call_Handle__void(this._parent, "removeCue", cue._parent);
   }
-  void oncuechange(T0)(scope auto ref Optional!(T0) oncuechange) if (isTOrPointer!(T0, EventHandler)) {
+  void oncuechange(T0)(scope auto ref Optional!(T0) oncuechange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "oncuechange", !oncuechange.empty, oncuechange.front);
   }
   EventHandler oncuechange()() {
     return Object_Getter__EventHandler(this._parent, "oncuechange");
   }
   auto textTrackList()() {
-    return Optional!(TextTrackList)(Object_Getter__OptionalHandle(this._parent, "textTrackList"));
+    return recastOpt!(TextTrackList)(Object_Getter__OptionalHandle(this._parent, "textTrackList"));
   }
 }
 enum TextTrackKind {

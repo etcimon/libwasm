@@ -67,7 +67,7 @@ struct L10nKey {
     Serialize_Object_VarArgCall!void(this.handle, "args", "Optional!Handle", tuple(!args.empty, cast(Handle)args.front.handle));
   }
   auto args()() {
-    return Optional!(JsObject)(Object_Getter__OptionalHandle(this.handle, "args"));
+    return recastOpt!(JsObject)(Object_Getter__OptionalHandle(this.handle, "args"));
   }
 }
 

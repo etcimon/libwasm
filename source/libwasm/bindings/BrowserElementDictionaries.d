@@ -63,7 +63,7 @@ struct OpenWindowEventDetail {
     Serialize_Object_VarArgCall!void(this.handle, "frameElement", "Optional!Handle", tuple(!frameElement.empty, cast(Handle)frameElement.front._parent));
   }
   auto frameElement()() {
-    return Optional!(Node)(Object_Getter__OptionalHandle(this.handle, "frameElement"));
+    return recastOpt!(Node)(Object_Getter__OptionalHandle(this.handle, "frameElement"));
   }
 }
 

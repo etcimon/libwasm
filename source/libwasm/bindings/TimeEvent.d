@@ -20,7 +20,7 @@ struct TimeEvent {
     return Object_Getter__int(this._parent, "detail");
   }
   auto view()() {
-    return Optional!(WindowProxy)(Object_Getter__OptionalHandle(this._parent, "view"));
+    return recastOpt!(WindowProxy)(Object_Getter__OptionalHandle(this._parent, "view"));
   }
   void initTimeEvent(T1)(string aType, scope auto ref Optional!(T1) aView /* = no!(Window) */, int aDetail /* = 0 */) if (isTOrPointer!(T1, Window)) {
     Serialize_Object_VarArgCall!void(this._parent, "initTimeEvent", "string;Optional!Handle;int", tuple(aType, !aView.empty, cast(Handle)aView.front._parent, aDetail));

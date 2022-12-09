@@ -29,7 +29,7 @@ struct CaretStateChangedEvent {
     return Object_Getter__bool(this._parent, "collapsed");
   }
   auto boundingClientRect()() {
-    return Optional!(DOMRectReadOnly)(Object_Getter__OptionalHandle(this._parent, "boundingClientRect"));
+    return recastOpt!(DOMRectReadOnly)(Object_Getter__OptionalHandle(this._parent, "boundingClientRect"));
   }
   CaretChangedReason reason()() {
     return Object_Getter__int(this._parent, "reason");
@@ -70,7 +70,7 @@ struct CaretStateChangedEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "boundingClientRect", "Optional!Handle", tuple(!boundingClientRect.empty, cast(Handle)boundingClientRect.front.handle));
   }
   auto boundingClientRect()() {
-    return Optional!(DOMRectReadOnly)(Object_Getter__OptionalHandle(this._parent, "boundingClientRect"));
+    return recastOpt!(DOMRectReadOnly)(Object_Getter__OptionalHandle(this._parent, "boundingClientRect"));
   }
   void reason()(CaretChangedReason reason) {
     Object_Call_int__void(this._parent, "reason", reason);

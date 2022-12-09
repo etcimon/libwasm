@@ -29,7 +29,7 @@ struct StorageEvent {
     return Object_Getter__OptionalString(this._parent, "url");
   }
   auto storageArea()() {
-    return Optional!(Storage)(Object_Getter__OptionalHandle(this._parent, "storageArea"));
+    return recastOpt!(Storage)(Object_Getter__OptionalHandle(this._parent, "storageArea"));
   }
   void initStorageEvent(T3, T4, T5, T6, T7)(string type, bool canBubble /* = false */, bool cancelable /* = false */, scope auto ref Optional!(T3) key /* = no!(string) */, scope auto ref Optional!(T4) oldValue /* = no!(string) */, scope auto ref Optional!(T5) newValue /* = no!(string) */, scope auto ref Optional!(T6) url /* = no!(string) */, scope auto ref Optional!(T7) storageArea /* = no!(Storage) */) if (isTOrPointer!(T3, string) && isTOrPointer!(T4, string) && isTOrPointer!(T5, string) && isTOrPointer!(T6, string) && isTOrPointer!(T7, Storage)) {
     Serialize_Object_VarArgCall!void(this._parent, "initStorageEvent", "string;bool;bool;Optional!(string);Optional!(string);Optional!(string);Optional!(string);Optional!Handle", tuple(type, canBubble, cancelable, !key.empty, key.front, !oldValue.empty, oldValue.front, !newValue.empty, newValue.front, !url.empty, url.front, !storageArea.empty, cast(Handle)storageArea.front.handle));
@@ -94,7 +94,7 @@ struct StorageEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "storageArea", "Optional!Handle", tuple(!storageArea.empty, cast(Handle)storageArea.front.handle));
   }
   auto storageArea()() {
-    return Optional!(Storage)(Object_Getter__OptionalHandle(this._parent, "storageArea"));
+    return recastOpt!(Storage)(Object_Getter__OptionalHandle(this._parent, "storageArea"));
   }
 }
 

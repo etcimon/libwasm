@@ -107,7 +107,7 @@ struct SVGSVGElement {
     return SVGTransform(Object_Call_Handle__Handle(this._parent, "createSVGTransformFromMatrix", matrix.handle));
   }
   auto getElementById()(string elementId) {
-    return Optional!(Element)(Object_Call_string__OptionalHandle(this._parent, "getElementById", elementId));
+    return recastOpt!(Element)(Object_Call_string__OptionalHandle(this._parent, "getElementById", elementId));
   }
   auto viewBox()() {
     return SVGAnimatedRect(Object_Getter__Handle(this._parent, "viewBox"));

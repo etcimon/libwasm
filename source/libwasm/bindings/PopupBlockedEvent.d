@@ -17,10 +17,10 @@ struct PopupBlockedEvent {
     _parent = .Event(h);
   }
   auto requestingWindow()() {
-    return Optional!(Window)(Object_Getter__OptionalHandle(this._parent, "requestingWindow"));
+    return recastOpt!(Window)(Object_Getter__OptionalHandle(this._parent, "requestingWindow"));
   }
   auto popupWindowURI()() {
-    return Optional!(URI)(Object_Getter__OptionalHandle(this._parent, "popupWindowURI"));
+    return recastOpt!(URI)(Object_Getter__OptionalHandle(this._parent, "popupWindowURI"));
   }
   Optional!(string) popupWindowName()() {
     return Object_Getter__OptionalString(this._parent, "popupWindowName");
@@ -43,13 +43,13 @@ struct PopupBlockedEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "requestingWindow", "Optional!Handle", tuple(!requestingWindow.empty, cast(Handle)requestingWindow.front._parent));
   }
   auto requestingWindow()() {
-    return Optional!(Window)(Object_Getter__OptionalHandle(this._parent, "requestingWindow"));
+    return recastOpt!(Window)(Object_Getter__OptionalHandle(this._parent, "requestingWindow"));
   }
   void popupWindowURI(T0)(scope auto ref Optional!(T0) popupWindowURI) if (isTOrPointer!(T0, URI)) {
     Serialize_Object_VarArgCall!void(this._parent, "popupWindowURI", "Optional!Handle", tuple(!popupWindowURI.empty, cast(Handle)popupWindowURI.front.handle));
   }
   auto popupWindowURI()() {
-    return Optional!(URI)(Object_Getter__OptionalHandle(this._parent, "popupWindowURI"));
+    return recastOpt!(URI)(Object_Getter__OptionalHandle(this._parent, "popupWindowURI"));
   }
   void popupWindowName()(string popupWindowName) {
     Object_Call_string__void(this._parent, "popupWindowName", popupWindowName);

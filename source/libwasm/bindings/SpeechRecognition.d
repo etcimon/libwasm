@@ -66,67 +66,67 @@ struct SpeechRecognition {
   void abort()() {
     Object_Call__void(this._parent, "abort");
   }
-  void onaudiostart(T0)(scope auto ref Optional!(T0) onaudiostart) if (isTOrPointer!(T0, EventHandler)) {
+  void onaudiostart(T0)(scope auto ref Optional!(T0) onaudiostart) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onaudiostart", !onaudiostart.empty, onaudiostart.front);
   }
   EventHandler onaudiostart()() {
     return Object_Getter__EventHandler(this._parent, "onaudiostart");
   }
-  void onsoundstart(T0)(scope auto ref Optional!(T0) onsoundstart) if (isTOrPointer!(T0, EventHandler)) {
+  void onsoundstart(T0)(scope auto ref Optional!(T0) onsoundstart) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onsoundstart", !onsoundstart.empty, onsoundstart.front);
   }
   EventHandler onsoundstart()() {
     return Object_Getter__EventHandler(this._parent, "onsoundstart");
   }
-  void onspeechstart(T0)(scope auto ref Optional!(T0) onspeechstart) if (isTOrPointer!(T0, EventHandler)) {
+  void onspeechstart(T0)(scope auto ref Optional!(T0) onspeechstart) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onspeechstart", !onspeechstart.empty, onspeechstart.front);
   }
   EventHandler onspeechstart()() {
     return Object_Getter__EventHandler(this._parent, "onspeechstart");
   }
-  void onspeechend(T0)(scope auto ref Optional!(T0) onspeechend) if (isTOrPointer!(T0, EventHandler)) {
+  void onspeechend(T0)(scope auto ref Optional!(T0) onspeechend) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onspeechend", !onspeechend.empty, onspeechend.front);
   }
   EventHandler onspeechend()() {
     return Object_Getter__EventHandler(this._parent, "onspeechend");
   }
-  void onsoundend(T0)(scope auto ref Optional!(T0) onsoundend) if (isTOrPointer!(T0, EventHandler)) {
+  void onsoundend(T0)(scope auto ref Optional!(T0) onsoundend) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onsoundend", !onsoundend.empty, onsoundend.front);
   }
   EventHandler onsoundend()() {
     return Object_Getter__EventHandler(this._parent, "onsoundend");
   }
-  void onaudioend(T0)(scope auto ref Optional!(T0) onaudioend) if (isTOrPointer!(T0, EventHandler)) {
+  void onaudioend(T0)(scope auto ref Optional!(T0) onaudioend) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onaudioend", !onaudioend.empty, onaudioend.front);
   }
   EventHandler onaudioend()() {
     return Object_Getter__EventHandler(this._parent, "onaudioend");
   }
-  void onresult(T0)(scope auto ref Optional!(T0) onresult) if (isTOrPointer!(T0, EventHandler)) {
+  void onresult(T0)(scope auto ref Optional!(T0) onresult) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onresult", !onresult.empty, onresult.front);
   }
   EventHandler onresult()() {
     return Object_Getter__EventHandler(this._parent, "onresult");
   }
-  void onnomatch(T0)(scope auto ref Optional!(T0) onnomatch) if (isTOrPointer!(T0, EventHandler)) {
+  void onnomatch(T0)(scope auto ref Optional!(T0) onnomatch) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onnomatch", !onnomatch.empty, onnomatch.front);
   }
   EventHandler onnomatch()() {
     return Object_Getter__EventHandler(this._parent, "onnomatch");
   }
-  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onerror", !onerror.empty, onerror.front);
   }
   EventHandler onerror()() {
     return Object_Getter__EventHandler(this._parent, "onerror");
   }
-  void onstart(T0)(scope auto ref Optional!(T0) onstart) if (isTOrPointer!(T0, EventHandler)) {
+  void onstart(T0)(scope auto ref Optional!(T0) onstart) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onstart", !onstart.empty, onstart.front);
   }
   EventHandler onstart()() {
     return Object_Getter__EventHandler(this._parent, "onstart");
   }
-  void onend(T0)(scope auto ref Optional!(T0) onend) if (isTOrPointer!(T0, EventHandler)) {
+  void onend(T0)(scope auto ref Optional!(T0) onend) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onend", !onend.empty, onend.front);
   }
   EventHandler onend()() {

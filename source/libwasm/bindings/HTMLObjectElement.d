@@ -53,7 +53,7 @@ struct HTMLObjectElement {
     return Object_Getter__string(this._parent, "useMap");
   }
   auto form()() {
-    return Optional!(HTMLFormElement)(Object_Getter__OptionalHandle(this._parent, "form"));
+    return recastOpt!(HTMLFormElement)(Object_Getter__OptionalHandle(this._parent, "form"));
   }
   void width()(string width) {
     Object_Call_string__void(this._parent, "width", width);
@@ -68,10 +68,10 @@ struct HTMLObjectElement {
     return Object_Getter__string(this._parent, "height");
   }
   auto contentDocument()() {
-    return Optional!(Document)(Object_Getter__OptionalHandle(this._parent, "contentDocument"));
+    return recastOpt!(Document)(Object_Getter__OptionalHandle(this._parent, "contentDocument"));
   }
   auto contentWindow()() {
-    return Optional!(WindowProxy)(Object_Getter__OptionalHandle(this._parent, "contentWindow"));
+    return recastOpt!(WindowProxy)(Object_Getter__OptionalHandle(this._parent, "contentWindow"));
   }
   bool willValidate()() {
     return Object_Getter__bool(this._parent, "willValidate");
@@ -152,7 +152,7 @@ struct HTMLObjectElement {
     return Object_Getter__string(this._parent, "border");
   }
   auto getSVGDocument()() {
-    return Optional!(Document)(Object_Getter__OptionalHandle(this._parent, "getSVGDocument"));
+    return recastOpt!(Document)(Object_Getter__OptionalHandle(this._parent, "getSVGDocument"));
   }
   enum int UNKNOWN_REQUEST = -1;
   enum int CURRENT_REQUEST = 0;
@@ -173,16 +173,16 @@ struct HTMLObjectElement {
     Object_Call_Handle__void(this._parent, "removeObserver", aObserver.handle);
   }
   auto getRequest()(int aRequestType) {
-    return Optional!(imgIRequest)(Object_Call_int__OptionalHandle(this._parent, "getRequest", aRequestType));
+    return recastOpt!(imgIRequest)(Object_Call_int__OptionalHandle(this._parent, "getRequest", aRequestType));
   }
   int getRequestType()(scope ref imgIRequest aRequest) {
     return Serialize_Object_VarArgCall!int(this._parent, "getRequestType", "Handle", tuple(cast(Handle)aRequest.handle));
   }
   auto currentURI()() {
-    return Optional!(URI)(Object_Getter__OptionalHandle(this._parent, "currentURI"));
+    return recastOpt!(URI)(Object_Getter__OptionalHandle(this._parent, "currentURI"));
   }
   auto currentRequestFinalURI()() {
-    return Optional!(URI)(Object_Getter__OptionalHandle(this._parent, "currentRequestFinalURI"));
+    return recastOpt!(URI)(Object_Getter__OptionalHandle(this._parent, "currentRequestFinalURI"));
   }
   void forceReload()(bool aNotify /* = true */) {
     Object_Call_bool__void(this._parent, "forceReload", aNotify);
@@ -194,7 +194,7 @@ struct HTMLObjectElement {
     Serialize_Object_VarArgCall!void(this._parent, "forceImageState", "bool;uint", tuple(aForce, aState));
   }
   auto frameLoader()() {
-    return Optional!(FrameLoader)(Object_Getter__OptionalHandle(this._parent, "frameLoader"));
+    return recastOpt!(FrameLoader)(Object_Getter__OptionalHandle(this._parent, "frameLoader"));
   }
   void presetOpenerWindow(T0)(scope auto ref Optional!(T0) window) if (isTOrPointer!(T0, WindowProxy)) {
     Serialize_Object_VarArgCall!void(this._parent, "presetOpenerWindow", "Optional!Handle", tuple(!window.empty, cast(Handle)window.front.handle));
@@ -247,7 +247,7 @@ struct HTMLObjectElement {
     return Object_Getter__bool(this._parent, "activated");
   }
   auto srcURI()() {
-    return Optional!(URI)(Object_Getter__OptionalHandle(this._parent, "srcURI"));
+    return recastOpt!(URI)(Object_Getter__OptionalHandle(this._parent, "srcURI"));
   }
   uint defaultFallbackType()() {
     return Object_Getter__uint(this._parent, "defaultFallbackType");
@@ -314,7 +314,7 @@ struct MozObjectLoadingContent {
     return Object_Getter__bool(this.handle, "activated");
   }
   auto srcURI()() {
-    return Optional!(URI)(Object_Getter__OptionalHandle(this.handle, "srcURI"));
+    return recastOpt!(URI)(Object_Getter__OptionalHandle(this.handle, "srcURI"));
   }
   uint defaultFallbackType()() {
     return Object_Getter__uint(this.handle, "defaultFallbackType");

@@ -27,7 +27,7 @@ struct ShadowRoot {
     return Element(Object_Getter__Handle(this._parent, "host"));
   }
   auto getElementById()(string elementId) {
-    return Optional!(Element)(Object_Call_string__OptionalHandle(this._parent, "getElementById", elementId));
+    return recastOpt!(Element)(Object_Call_string__OptionalHandle(this._parent, "getElementById", elementId));
   }
   auto getElementsByTagName()(string localName) {
     return HTMLCollection(Object_Call_string__Handle(this._parent, "getElementsByTagName", localName));
@@ -60,31 +60,31 @@ struct ShadowRoot {
     return Object_Getter__bool(this._parent, "isUAWidget");
   }
   auto elementFromPoint()(float x, float y) {
-    return Optional!(Element)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "elementFromPoint", "float;float", tuple(x, y)));
+    return recastOpt!(Element)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "elementFromPoint", "float;float", tuple(x, y)));
   }
   auto elementsFromPoint()(float x, float y) {
     return Sequence!(Element)(Serialize_Object_VarArgCall!Handle(this._parent, "elementsFromPoint", "float;float", tuple(x, y)));
   }
   auto nodeFromPoint()(float x, float y) {
-    return Optional!(Node)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "nodeFromPoint", "float;float", tuple(x, y)));
+    return recastOpt!(Node)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "nodeFromPoint", "float;float", tuple(x, y)));
   }
   auto nodesFromPoint()(float x, float y) {
     return Sequence!(Node)(Serialize_Object_VarArgCall!Handle(this._parent, "nodesFromPoint", "float;float", tuple(x, y)));
   }
   auto activeElement()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this._parent, "activeElement"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this._parent, "activeElement"));
   }
   auto styleSheets()() {
     return StyleSheetList(Object_Getter__Handle(this._parent, "styleSheets"));
   }
   auto pointerLockElement()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this._parent, "pointerLockElement"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this._parent, "pointerLockElement"));
   }
   auto fullscreenElement()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this._parent, "fullscreenElement"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this._parent, "fullscreenElement"));
   }
   auto mozFullScreenElement()() {
-    return Optional!(Element)(Object_Getter__OptionalHandle(this._parent, "mozFullScreenElement"));
+    return recastOpt!(Element)(Object_Getter__OptionalHandle(this._parent, "mozFullScreenElement"));
   }
 }
 enum ShadowRootMode {

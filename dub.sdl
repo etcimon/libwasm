@@ -5,6 +5,7 @@ copyright "Copyright © 2018-2022, Sebastiaan Koppe, Etienne Cimon"
 license "MIT"
 dependency "memutils" path="./memutils"
 dependency "fast" path="./fast"
+dependency "diet-ng" path="./diet-ng"
 dependency "optional" version="~>0.16.0"
 #target "library"
 subPackage "bootstrap-webpack"
@@ -16,7 +17,7 @@ toolchainRequirements ldc=">=1.17.0"
 buildRequirements "allowWarnings" # required for ldc 1.16
 
 configuration "library" {
-              dflags "-mtriple=wasm32-unknown-unknown-wasm" "-betterC" "-fvisibility=hidden"
+              dflags "-mtriple=wasm32-unknown-unknown-wasm" "-betterC" "-fvisibility=hidden"  "--vtemplates" "--vcolumns" "--v-cg" "--verrors-context"
               lflags "-allow-undefined" "--export-table" "--export=domEvent" "--export=allocString" "-export=__heap_base"
               importPaths "source" "includes"
 }

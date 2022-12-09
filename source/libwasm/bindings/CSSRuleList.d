@@ -19,7 +19,7 @@ struct CSSRuleList {
     return Object_Getter__uint(this.handle, "length");
   }
   auto item()(uint index) {
-    return Optional!(CSSRule)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
+    return recastOpt!(CSSRule)(Object_Call_uint__OptionalHandle(this.handle, "item", index));
   }
 }
 

@@ -20,7 +20,7 @@ struct TreeColumn {
     return Element(Object_Getter__Handle(this.handle, "element"));
   }
   auto columns()() {
-    return Optional!(TreeColumns)(Object_Getter__OptionalHandle(this.handle, "columns"));
+    return recastOpt!(TreeColumns)(Object_Getter__OptionalHandle(this.handle, "columns"));
   }
   int x()() {
     return Object_Getter__int(this.handle, "x");
@@ -50,13 +50,13 @@ struct TreeColumn {
     return Serialize_Object_VarArgCall!short(this.handle, "type", "", tuple());
   }
   auto getNext()() {
-    return Optional!(TreeColumn)(Object_Getter__OptionalHandle(this.handle, "getNext"));
+    return recastOpt!(TreeColumn)(Object_Getter__OptionalHandle(this.handle, "getNext"));
   }
   auto getPrevious()() {
-    return Optional!(TreeColumn)(Object_Getter__OptionalHandle(this.handle, "getPrevious"));
+    return recastOpt!(TreeColumn)(Object_Getter__OptionalHandle(this.handle, "getPrevious"));
   }
   auto previousColumn()() {
-    return Optional!(TreeColumn)(Object_Getter__OptionalHandle(this.handle, "previousColumn"));
+    return recastOpt!(TreeColumn)(Object_Getter__OptionalHandle(this.handle, "previousColumn"));
   }
   void invalidate()() {
     Object_Call__void(this.handle, "invalidate");

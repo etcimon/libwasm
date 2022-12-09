@@ -130,7 +130,7 @@ struct Range {
     return DocumentFragment(Object_Call_string__Handle(this.handle, "createContextualFragment", fragment));
   }
   auto getClientRects()() {
-    return Optional!(DOMRectList)(Object_Getter__OptionalHandle(this.handle, "getClientRects"));
+    return recastOpt!(DOMRectList)(Object_Getter__OptionalHandle(this.handle, "getClientRects"));
   }
   auto getBoundingClientRect()() {
     return DOMRect(Object_Getter__Handle(this.handle, "getBoundingClientRect"));

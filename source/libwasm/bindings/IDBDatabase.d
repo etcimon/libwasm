@@ -48,25 +48,25 @@ struct IDBDatabase {
   void close()() {
     Object_Call__void(this._parent, "close");
   }
-  void onabort(T0)(scope auto ref Optional!(T0) onabort) if (isTOrPointer!(T0, EventHandler)) {
+  void onabort(T0)(scope auto ref Optional!(T0) onabort) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onabort", !onabort.empty, onabort.front);
   }
   EventHandler onabort()() {
     return Object_Getter__EventHandler(this._parent, "onabort");
   }
-  void onclose(T0)(scope auto ref Optional!(T0) onclose) if (isTOrPointer!(T0, EventHandler)) {
+  void onclose(T0)(scope auto ref Optional!(T0) onclose) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onclose", !onclose.empty, onclose.front);
   }
   EventHandler onclose()() {
     return Object_Getter__EventHandler(this._parent, "onclose");
   }
-  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onerror", !onerror.empty, onerror.front);
   }
   EventHandler onerror()() {
     return Object_Getter__EventHandler(this._parent, "onerror");
   }
-  void onversionchange(T0)(scope auto ref Optional!(T0) onversionchange) if (isTOrPointer!(T0, EventHandler)) {
+  void onversionchange(T0)(scope auto ref Optional!(T0) onversionchange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onversionchange", !onversionchange.empty, onversionchange.front);
   }
   EventHandler onversionchange()() {

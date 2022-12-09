@@ -16,7 +16,7 @@ struct MIDIInput {
   this(Handle h) {
     _parent = .MIDIPort(h);
   }
-  void onmidimessage(T0)(scope auto ref Optional!(T0) onmidimessage) if (isTOrPointer!(T0, EventHandler)) {
+  void onmidimessage(T0)(scope auto ref Optional!(T0) onmidimessage) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onmidimessage", !onmidimessage.empty, onmidimessage.front);
   }
   EventHandler onmidimessage()() {

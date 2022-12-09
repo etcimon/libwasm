@@ -60,10 +60,10 @@ struct DOMException {
     return Object_Getter__uint(this.handle, "columnNumber");
   }
   auto location()() {
-    return Optional!(StackFrame)(Object_Getter__OptionalHandle(this.handle, "location"));
+    return recastOpt!(StackFrame)(Object_Getter__OptionalHandle(this.handle, "location"));
   }
   auto data()() {
-    return Optional!(nsISupports)(Object_Getter__OptionalHandle(this.handle, "data"));
+    return recastOpt!(nsISupports)(Object_Getter__OptionalHandle(this.handle, "data"));
   }
   string stack()() {
     return Object_Getter__string(this.handle, "stack");
@@ -95,10 +95,10 @@ struct Exception {
     return Object_Getter__uint(this.handle, "columnNumber");
   }
   auto location()() {
-    return Optional!(StackFrame)(Object_Getter__OptionalHandle(this.handle, "location"));
+    return recastOpt!(StackFrame)(Object_Getter__OptionalHandle(this.handle, "location"));
   }
   auto data()() {
-    return Optional!(nsISupports)(Object_Getter__OptionalHandle(this.handle, "data"));
+    return recastOpt!(nsISupports)(Object_Getter__OptionalHandle(this.handle, "data"));
   }
   string stack()() {
     return Object_Getter__string(this.handle, "stack");
@@ -124,10 +124,10 @@ struct ExceptionMembers {
     return Object_Getter__uint(this.handle, "columnNumber");
   }
   auto location()() {
-    return Optional!(StackFrame)(Object_Getter__OptionalHandle(this.handle, "location"));
+    return recastOpt!(StackFrame)(Object_Getter__OptionalHandle(this.handle, "location"));
   }
   auto data()() {
-    return Optional!(nsISupports)(Object_Getter__OptionalHandle(this.handle, "data"));
+    return recastOpt!(nsISupports)(Object_Getter__OptionalHandle(this.handle, "data"));
   }
   string stack()() {
     return Object_Getter__string(this.handle, "stack");

@@ -46,7 +46,7 @@ struct CSSStyleDeclaration {
     return Object_Call_string__string(this.handle, "removeProperty", property);
   }
   auto parentRule()() {
-    return Optional!(CSSRule)(Object_Getter__OptionalHandle(this.handle, "parentRule"));
+    return recastOpt!(CSSRule)(Object_Getter__OptionalHandle(this.handle, "parentRule"));
   }
 }
 

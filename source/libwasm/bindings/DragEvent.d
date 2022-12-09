@@ -19,7 +19,7 @@ struct DragEvent {
     _parent = .MouseEvent(h);
   }
   auto dataTransfer()() {
-    return Optional!(DataTransfer)(Object_Getter__OptionalHandle(this._parent, "dataTransfer"));
+    return recastOpt!(DataTransfer)(Object_Getter__OptionalHandle(this._parent, "dataTransfer"));
   }
   void initDragEvent(T3, T14, T15)(string type, bool canBubble /* = false */, bool cancelable /* = false */, scope auto ref Optional!(T3) aView /* = no!(Window) */, int aDetail /* = 0 */, int aScreenX /* = 0 */, int aScreenY /* = 0 */, int aClientX /* = 0 */, int aClientY /* = 0 */, bool aCtrlKey /* = false */, bool aAltKey /* = false */, bool aShiftKey /* = false */, bool aMetaKey /* = false */, ushort aButton /* = 0 */, scope auto ref Optional!(T14) aRelatedTarget /* = no!(EventTarget) */, scope auto ref Optional!(T15) aDataTransfer /* = no!(DataTransfer) */) if (isTOrPointer!(T3, Window) && isTOrPointer!(T14, EventTarget) && isTOrPointer!(T15, DataTransfer)) {
     Serialize_Object_VarArgCall!void(this._parent, "initDragEvent", "string;bool;bool;Optional!Handle;int;int;int;int;int;bool;bool;bool;bool;ushort;Optional!Handle;Optional!Handle", tuple(type, canBubble, cancelable, !aView.empty, cast(Handle)aView.front._parent, aDetail, aScreenX, aScreenY, aClientX, aClientY, aCtrlKey, aAltKey, aShiftKey, aMetaKey, aButton, !aRelatedTarget.empty, cast(Handle)aRelatedTarget.front.handle, !aDataTransfer.empty, cast(Handle)aDataTransfer.front.handle));
@@ -84,7 +84,7 @@ struct DragEventInit {
     Serialize_Object_VarArgCall!void(this._parent, "dataTransfer", "Optional!Handle", tuple(!dataTransfer.empty, cast(Handle)dataTransfer.front.handle));
   }
   auto dataTransfer()() {
-    return Optional!(DataTransfer)(Object_Getter__OptionalHandle(this._parent, "dataTransfer"));
+    return recastOpt!(DataTransfer)(Object_Getter__OptionalHandle(this._parent, "dataTransfer"));
   }
 }
 

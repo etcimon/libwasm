@@ -37,13 +37,13 @@ struct TCPServerSocket {
   ushort localPort()() {
     return Object_Getter__ushort(this._parent, "localPort");
   }
-  void onconnect(T0)(scope auto ref Optional!(T0) onconnect) if (isTOrPointer!(T0, EventHandler)) {
+  void onconnect(T0)(scope auto ref Optional!(T0) onconnect) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onconnect", !onconnect.empty, onconnect.front);
   }
   EventHandler onconnect()() {
     return Object_Getter__EventHandler(this._parent, "onconnect");
   }
-  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandler)) {
+  void onerror(T0)(scope auto ref Optional!(T0) onerror) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onerror", !onerror.empty, onerror.front);
   }
   EventHandler onerror()() {

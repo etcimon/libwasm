@@ -18,7 +18,7 @@ struct TextTrackCue {
     _parent = .EventTarget(h);
   }
   auto track()() {
-    return Optional!(TextTrack)(Object_Getter__OptionalHandle(this._parent, "track"));
+    return recastOpt!(TextTrack)(Object_Getter__OptionalHandle(this._parent, "track"));
   }
   void id()(string id) {
     Object_Call_string__void(this._parent, "id", id);
@@ -44,13 +44,13 @@ struct TextTrackCue {
   bool pauseOnExit()() {
     return Object_Getter__bool(this._parent, "pauseOnExit");
   }
-  void onenter(T0)(scope auto ref Optional!(T0) onenter) if (isTOrPointer!(T0, EventHandler)) {
+  void onenter(T0)(scope auto ref Optional!(T0) onenter) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onenter", !onenter.empty, onenter.front);
   }
   EventHandler onenter()() {
     return Object_Getter__EventHandler(this._parent, "onenter");
   }
-  void onexit(T0)(scope auto ref Optional!(T0) onexit) if (isTOrPointer!(T0, EventHandler)) {
+  void onexit(T0)(scope auto ref Optional!(T0) onexit) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onexit", !onexit.empty, onexit.front);
   }
   EventHandler onexit()() {

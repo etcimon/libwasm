@@ -82,19 +82,19 @@ struct HTMLMarqueeElement {
   string width()() {
     return Object_Getter__string(this._parent, "width");
   }
-  void onbounce(T0)(scope auto ref Optional!(T0) onbounce) if (isTOrPointer!(T0, EventHandler)) {
+  void onbounce(T0)(scope auto ref Optional!(T0) onbounce) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onbounce", !onbounce.empty, onbounce.front);
   }
   EventHandler onbounce()() {
     return Object_Getter__EventHandler(this._parent, "onbounce");
   }
-  void onfinish(T0)(scope auto ref Optional!(T0) onfinish) if (isTOrPointer!(T0, EventHandler)) {
+  void onfinish(T0)(scope auto ref Optional!(T0) onfinish) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onfinish", !onfinish.empty, onfinish.front);
   }
   EventHandler onfinish()() {
     return Object_Getter__EventHandler(this._parent, "onfinish");
   }
-  void onstart(T0)(scope auto ref Optional!(T0) onstart) if (isTOrPointer!(T0, EventHandler)) {
+  void onstart(T0)(scope auto ref Optional!(T0) onstart) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onstart", !onstart.empty, onstart.front);
   }
   EventHandler onstart()() {

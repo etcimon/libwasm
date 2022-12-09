@@ -8,6 +8,7 @@ public import libwasm.lodash;
 import memutils.vector;
 import std.traits : hasMember, isCallable, isBasicType, isSomeString;
 import libwasm.event : toTuple;
+import libwasm.bindings.EventHandler;
 
 version (LDC) {
   public import ldc.attributes : assumeUsed;
@@ -38,6 +39,7 @@ version (unittest) {
     Handle libwasm_add__string(scope ref string);
     Handle libwasm_add__object();
     Handle libwasm_copyObjectRef(Handle);
+    void libwasm_set__function(string, void delegate(Handle));
     void libwasm_removeObject(Handle);
     Handle libwasm_get__field(Handle, string);
     Handle libwasm_get_idx__field(Handle, uint);
@@ -60,6 +62,7 @@ version (unittest) {
     void Object_Call_uint__void(Handle, string, uint);
     void Object_Call_int__void(Handle, string, int);
     void Object_Call_bool__void(Handle, string, bool);
+    void Object_Call_EventHandler__void(Handle, string, bool, EventHandlerNonNull);
     void Object_Call_double__void(Handle, string, double);
     void Object_Call_float__void(Handle, string, float);
     void Object_Call_Handle__void(Handle, string, Handle);
@@ -78,6 +81,7 @@ version (unittest) {
     Optional!bool Object_Getter__OptionalBool(Handle, string);
     Optional!string Object_Call_string__OptionalString(Handle, string, string);
     Optional!Handle Object_Getter__OptionalHandle(Handle, string);
+    EventHandler Object_Getter__EventHandler(Handle, string);
     Optional!Handle Object_Call_string__OptionalHandle(Handle, string, string);
     Optional!Handle Object_Call_uint__OptionalHandle(Handle, string, uint);
     Optional!Handle Object_Call_int__OptionalHandle(Handle, string, int);
@@ -138,6 +142,14 @@ int setTimeout(Delegate)(Delegate del, int ms) {
   return setTimeout(del.toTuple.expand,ms);
 }
 
+int setInterval(Delegate)(Delegate del, int ms) {
+  return setInterval(del.toTuple.expand,ms);
+}
+
+void exportDelegate(Delegate : void delegate(Handle))(string name, Delegate del) {
+  return libwasm_set__function(name, del.toTuple.expand);
+}
+
 extern(C)
 export
 @assumeUsed
@@ -156,6 +168,26 @@ void jsCallback0(uint ctx, uint fun) @trusted {
   c.contextPtr = cast(void*) ctx;
   c.funcPtr = cast(void*) fun;
   c.handle();
+}
+
+extern(C)
+export
+@assumeUsed
+void jsCallback(uint ctx, uint fun, Handle arg) @trusted {
+  static struct Handler {
+    nothrow:
+    union {
+      void delegate(Handle) handle;
+      struct {
+        void* contextPtr;
+        void* funcPtr;
+      }
+    }
+  }
+  Handler c;
+  c.contextPtr = cast(void*) ctx;
+  c.funcPtr = cast(void*) fun;
+  c.handle(arg);
 }
 
 @trusted extern(C) export @assumeUsed ubyte* allocString(uint bytes);
@@ -232,6 +264,7 @@ Eval eval(string eval_str) {
 }
 
 struct JsHandle {
+  import libwasm.bindings.Console;
   nothrow:
   public Handle handle;
   ~this() {
@@ -249,6 +282,8 @@ struct JsHandle {
   }
 
   this(typeof(this) rhs) {
+      console.log("Copying handle ");
+      console.log(cast(int)rhs.handle);
     handle = libwasm_copyObjectRef(rhs.handle);
   }
 
@@ -386,8 +421,8 @@ enum attr;
 struct connect(field...) {};
 struct visible(alias condition) {};
 struct inject(alias parent_name) {};
-struct enter(alias path) {};
-struct leave(alias path) {};
+struct entering(alias path) {};
+struct leaving(alias path) {};
 
 template isTOrPointer(T, Target) {
   enum isTOrPointer = is(T : Target) || is(T : Target*);
@@ -476,6 +511,15 @@ enum EventType {
 
 auto toOpt(T)(return scope ref T item) @trusted {
   return Optional!(T*)(&item);
+}
+
+auto recastOpt(T, U)(Optional!U item) @trusted {
+  if(item.empty()) {
+    return Optional!T();
+  }
+  else {
+    return Optional!T.construct(item.front);
+  }
 }
 
 auto frontRef(T)(return scope ref T t) @trusted {

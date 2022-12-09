@@ -32,10 +32,10 @@ struct CSSRule {
     return Object_Getter__string(this.handle, "cssText");
   }
   auto parentRule()() {
-    return Optional!(CSSRule)(Object_Getter__OptionalHandle(this.handle, "parentRule"));
+    return recastOpt!(CSSRule)(Object_Getter__OptionalHandle(this.handle, "parentRule"));
   }
   auto parentStyleSheet()() {
-    return Optional!(CSSStyleSheet)(Object_Getter__OptionalHandle(this.handle, "parentStyleSheet"));
+    return recastOpt!(CSSStyleSheet)(Object_Getter__OptionalHandle(this.handle, "parentStyleSheet"));
   }
 }
 

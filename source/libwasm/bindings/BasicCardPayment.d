@@ -23,7 +23,7 @@ struct BasicCardChangeDetails {
     Serialize_Object_VarArgCall!void(this.handle, "billingAddress", "Optional!Handle", tuple(!billingAddress.empty, cast(Handle)billingAddress.front.handle));
   }
   auto billingAddress()() {
-    return Optional!(PaymentAddress)(Object_Getter__OptionalHandle(this.handle, "billingAddress"));
+    return recastOpt!(PaymentAddress)(Object_Getter__OptionalHandle(this.handle, "billingAddress"));
   }
 }
 struct BasicCardErrors {
@@ -134,7 +134,7 @@ struct BasicCardResponse {
     Serialize_Object_VarArgCall!void(this.handle, "billingAddress", "Optional!Handle", tuple(!billingAddress.empty, cast(Handle)billingAddress.front.handle));
   }
   auto billingAddress()() {
-    return Optional!(PaymentAddress)(Object_Getter__OptionalHandle(this.handle, "billingAddress"));
+    return recastOpt!(PaymentAddress)(Object_Getter__OptionalHandle(this.handle, "billingAddress"));
   }
 }
 

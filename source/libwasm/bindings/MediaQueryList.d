@@ -29,7 +29,7 @@ struct MediaQueryList {
   void removeListener(T0)(scope auto ref Optional!(T0) listener) if (isTOrPointer!(T0, EventListener)) {
     MediaQueryList_removeListener(this._parent, !listener.empty, listener.front.handle);
   }
-  void onchange(T0)(scope auto ref Optional!(T0) onchange) if (isTOrPointer!(T0, EventHandler)) {
+  void onchange(T0)(scope auto ref Optional!(T0) onchange) if (isTOrPointer!(T0, EventHandlerNonNull)) {
     Object_Call_EventHandler__void(this._parent, "onchange", !onchange.empty, onchange.front);
   }
   EventHandler onchange()() {

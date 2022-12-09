@@ -19,7 +19,7 @@ struct Touch {
     return Object_Getter__int(this.handle, "identifier");
   }
   auto target()() {
-    return Optional!(EventTarget)(Object_Getter__OptionalHandle(this.handle, "target"));
+    return recastOpt!(EventTarget)(Object_Getter__OptionalHandle(this.handle, "target"));
   }
   int screenX()() {
     return Object_Getter__int(this.handle, "screenX");

@@ -35,12 +35,12 @@ struct HTMLCanvasElement {
   auto getContext(T1)(string contextId, scope auto ref T1 contextOptions /* = null */) {
     // Any
     Handle _handle_contextOptions = getOrCreateHandle(contextOptions);
-    auto result = Optional!(nsISupports)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "getContext", "string;Handle", tuple(contextId, _handle_contextOptions)));
+    auto result = recastOpt!(nsISupports)(Serialize_Object_VarArgCall!(Optional!Handle)(this._parent, "getContext", "string;Handle", tuple(contextId, _handle_contextOptions)));
     dropHandle!(T1)(_handle_contextOptions);
     return result;
   }
   auto getContext()(string contextId) {
-    return Optional!(nsISupports)(Object_Call_string__OptionalHandle(this._parent, "getContext", contextId));
+    return recastOpt!(nsISupports)(Object_Call_string__OptionalHandle(this._parent, "getContext", contextId));
   }
   string toDataURL(T1)(string type /* = "" */, scope auto ref T1 encoderOptions) {
     // Any
@@ -80,7 +80,7 @@ struct HTMLCanvasElement {
     return File(Object_Call_string__Handle(this._parent, "mozGetAsFile", name));
   }
   auto MozGetIPCContext()(string contextId) {
-    return Optional!(nsISupports)(Object_Call_string__OptionalHandle(this._parent, "MozGetIPCContext", contextId));
+    return recastOpt!(nsISupports)(Object_Call_string__OptionalHandle(this._parent, "MozGetIPCContext", contextId));
   }
   void mozPrintCallback(T0)(scope auto ref Optional!(T0) mozPrintCallback) if (isTOrPointer!(T0, PrintCallback)) {
     HTMLCanvasElement_mozPrintCallback_Set(this._parent, !mozPrintCallback.empty, mozPrintCallback.front);
