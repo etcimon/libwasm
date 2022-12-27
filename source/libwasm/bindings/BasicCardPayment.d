@@ -2,7 +2,7 @@ module libwasm.bindings.BasicCardPayment;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.PaymentAddress;
 import libwasm.bindings.PaymentRequest;
 

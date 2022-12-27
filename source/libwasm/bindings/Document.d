@@ -2,7 +2,7 @@ module libwasm.bindings.Document;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Animation;
 import libwasm.bindings.AnonymousContent;
 import libwasm.bindings.Attr;

@@ -2,7 +2,7 @@ module libwasm.bindings.XMLDocument;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Document;
 
 @safe:

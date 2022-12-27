@@ -2,7 +2,7 @@ module libwasm.bindings.SVGPoint;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.SVGMatrix;
 
 @safe:

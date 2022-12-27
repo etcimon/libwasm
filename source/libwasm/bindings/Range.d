@@ -2,7 +2,7 @@ module libwasm.bindings.Range;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.DOMRect;
 import libwasm.bindings.DOMRectList;
 import libwasm.bindings.DocumentFragment;

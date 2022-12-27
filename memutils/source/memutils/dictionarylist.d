@@ -32,7 +32,7 @@ struct DictionaryList(KEY, VALUE, ALLOC = ThreadMem, bool case_sensitive = true,
 	@trusted:
 	@disable this(this);
 
-	import std.typecons : Tuple;
+	import memutils.ct;
 	
 	private {
 		static struct Field { uint keyCheckSum; KEY key; VALUE value; }

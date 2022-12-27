@@ -9,7 +9,6 @@ import memutils.helpers;
 import memutils.utils;
 import memutils.refcounted;
 
-pragma(LDC_no_typeinfo):
 @trusted:
 template isImplicitlyConvertibleLegacy(From, To)
 {
@@ -37,10 +36,6 @@ struct Vector(T, ALLOC = ThreadMem)
 nothrow:
 	enum NOGC = true;
 	static enum TSize = T.sizeof;
-	void opAssign()(auto ref Vector!(T, ALLOC) other) {
-		if (other.ptr !is this.ptr)
-			this.swap(other);
-	}
 
 	void opAssign()(ref T[] other) {
 		this[] = other[];
@@ -51,7 +46,8 @@ nothrow:
 	{
 		nothrow:
 		size_t _capacity;
-		T[] _payload;
+		T* _payload;
+		size_t _length;
 		
 		// Convenience constructor
 		this()(auto ref T[] p) 
@@ -61,18 +57,18 @@ nothrow:
 			length = p.length;
 
 			static if (isImplicitlyConvertibleLegacy!(T, T)) {
-				if (_payload.ptr is p.ptr && _payload.length == p.length) {
-					p = null;
+				if (_payload is p.ptr && _length == p.length) {
+					if (!__ctfe) p = null;
 				}
 				else {
-					foreach (i, ref item; _payload) {
+					foreach (i, ref item; _payload[0 .. _length]) {
 						item = p[i];
 					}
 				}
 			}
 			else
 			{
-				foreach (i, ref item; _payload) {
+				foreach (i, ref item; _payload[0 .. _length]) {
 					item = p[i];
 				}
 			}
@@ -81,17 +77,17 @@ nothrow:
 		// Destructor releases array memory
 		~this() const nothrow
 		{
+			if (__ctfe) {
+				return;
+			} else {
 			//try {
-				if (_capacity == 0 || _payload.ptr is null)
+				if (_capacity == 0 || _payload is null)
 					return;
-				T[] data = cast(T[]) _payload.ptr[0 .. _capacity];
-				if (__ctfe) {
-					freeArray!(T, CTFE)(data, _payload.length); // calls destructors and frees memory
-				} else {
-					freeArray!(T, ALLOC)(data, _payload.length); // calls destructors and frees memory
-				}
+				T[] data = cast(T[]) _payload[0 .. _capacity];
+				freeArray!(T, ALLOC)(data, _length); // calls destructors and frees memory
 			//} 
 			//catch (Throwable e) { assert(false, "Vector.~this Exception: " ~ e.toString()); }
+			}
 		}
 		
 		void opAssign(Payload rhs)
@@ -105,14 +101,14 @@ nothrow:
 		//     Payload result;
 		//     result._payload = _payload.dup;
 		//     // Conservatively assume initial capacity == length
-		//     result._capacity = result._payload.length;
+		//     result._capacity = result._length;
 		//     return result;
 		// }
 		
 		// length
 		@property size_t length() const
 		{
-			return _payload.length;
+			return _length;
 		}
 		
 		// length
@@ -123,7 +119,7 @@ nothrow:
 			{
 				// shorten
 				static if (hasElaborateDestructor!T) {
-					foreach (ref e; _payload.ptr[newLength .. _payload.length]) {
+					foreach (ref e; _payload[newLength .. _length]) {
 						static if (is(T == struct) && !isPointer!T) { // call destructors but not for indirections...
 							logTrace("Destructing Vector item(s) ", T.stringof, " for newLength ", newLength);
 							destructRecurse(e);
@@ -132,9 +128,10 @@ nothrow:
 					
 					// Zero out unused capacity to prevent gc from seeing
 					// false pointers
-					memset(_payload.ptr + newLength, 0, (_payload.length - newLength) * TSize);
+					if (!__ctfe) memset(_payload + newLength, 0, (_length - newLength) * TSize);
 				}
-				_payload = _payload.ptr[0 .. newLength];
+				_length = newLength;
+				assert(_length == newLength, "Bad length attribution");
 				return;
 			}
 			
@@ -142,15 +139,18 @@ nothrow:
 				// enlarge
 				auto startEmplace = length;
 				reserve(newLength);
-				_payload = _payload.ptr[0 .. newLength];
-				static if (!isImplicitlyConvertibleLegacy!(T, T)) {					
-					foreach (size_t i; startEmplace .. newLength) {
-						T t = T();
-						memmove(_payload.ptr + i, &t, TSize); 
+				_length = newLength;
+				assert(_length == newLength, "Bad length attribution");
+				if (!__ctfe) {
+					static if (!isImplicitlyConvertibleLegacy!(T, T)) {					
+						foreach (size_t i; startEmplace .. newLength) {
+							T t = T();
+							memmove(_payload + i, &t, TSize); 
+						}
+						
+					} else {
+						initializeAll(_payload[startEmplace .. newLength]);
 					}
-					
-				} else {
-					initializeAll(_payload.ptr[startEmplace .. newLength]);
 				}
 			}
 		}
@@ -170,18 +170,12 @@ nothrow:
 			logTrace("Reserve ", length, " => ", elements, " elements with capacity ", capacity);
 
 			if (_capacity > 0) {
-				size_t len = _payload.length;
-				_payload = _payload.ptr[0 .. _capacity];
-				if (__ctfe) {
-					_payload = reallocArray!(T, CTFE)(_payload, elements)[0 .. len];
-				} else
-				_payload = reallocArray!(T, ALLOC)(_payload, elements)[0 .. len];
+				size_t len = _length;
+				_payload = reallocArray!(T, ALLOC)(_payload[0 .. _capacity], elements)[0 .. len].ptr;
 			}
 			else if (elements > 0) {
-				if (__ctfe) {
-					_payload = allocArray!(T, CTFE)(elements)[0 .. _payload.length];
-				}
-				else _payload = allocArray!(T, ALLOC)(elements)[0 .. _payload.length];
+				size_t len = _length;
+				_payload = allocArray!(T, ALLOC)(elements)[0 .. len].ptr;
 			}
 			_capacity = elements;
 		}
@@ -195,10 +189,16 @@ nothrow:
 			{
 				reserve(1 + (length + stuff.length) * 3 / 2);
 			}
-			assert(capacity >= length + stuff.length && _payload.ptr);
+			assert(capacity >= length + stuff.length && _payload);
 						
-			memmove(_payload.ptr + _payload.length, stuff.ptr, stuff.length);
-			_payload = _payload.ptr[0 .. _payload.length + stuff.length];
+			if (__ctfe) {
+				assert(__ctfe);
+				_length += stuff.length;
+				_payload[_length - stuff.length .. _length] = stuff[0 .. stuff.length];
+			} else {
+				memmove(_payload + _length, stuff.ptr, stuff.length);
+				_length += stuff.length;
+			}
 			
 			return 1;
 		}
@@ -211,10 +211,9 @@ nothrow:
 			{
 				reserve(1 + capacity * 3 / 2);
 			}
-			assert(capacity > length && _payload.ptr);
-						
-			_payload = _payload.ptr[0 .. _payload.length + 1];
-			_payload[_payload.length - 1] = cast(T)stuff;
+			assert(capacity > length && _payload);
+			_length += 1;
+			_payload[_length - 1] = cast(T)stuff;
 			
 			return 1;
 		}
@@ -229,10 +228,10 @@ nothrow:
 			{
 				reserve(1 + capacity * 3 / 2);
 			}
-			assert(capacity > length && _payload.ptr, "Payload pointer capacity is wrong");
-			//emplace(_payload.ptr + _payload.length, stuff);
-			_payload = _payload.ptr[0 .. _payload.length + 1];
-			_payload[_payload.length - 1] = stuff;
+			assert(capacity > length && _payload, "Payload pointer capacity is wrong");
+			//emplace(_payload.ptr + _length, stuff);
+			_length += 1;
+			_payload[_length - 1] = stuff;
 			return 1;
 		}
 		
@@ -290,6 +289,7 @@ nothrow:
 	 * Move Constructor
 	*/
 	this()(auto ref typeof(this) other) {
+		if (__ctfe) return;
 		if (this.ptr !is other.ptr)
 			this.swap(other);
 		else {
@@ -307,16 +307,16 @@ nothrow:
 	@property Vector!(T, ALLOC) dup() const
 	{
 		static if (__traits(compiles, { T a; T b; a = b; } ())) {
-			auto ret = Vector!(T, ALLOC)(cast(T[])_data._payload);
+			auto ret = Vector!(T, ALLOC)(cast(T[])_data._payload[0 .. _data._length]);
 			return ret.move;
 		}
 		else static if (__traits(hasMember, T, "dup")) // Element is @disable this(this) but has dup()
 		{
 			Vector!(T, ALLOC) vec = Vector!(T, ALLOC)(length);
 			// swap each element with a duplicate
-			foreach (size_t i, ref el; _data._payload) {
+			foreach (size_t i, ref el; _data._payload[0 .. _data._length]) {
 				T t = el.dup;
-				memmove(vec._data._payload.ptr + i, &t, TSize);
+				memmove(vec._data._payload + i, &t, TSize);
 				memset(&t, 0, TSize);
 			}
 			return vec.move();
@@ -328,16 +328,7 @@ nothrow:
 	/// ditto
 	@property RefCounted!(Vector!(T, ALLOC), ThreadMem) dupr() const
 	{
-		return RefCounted!(Vector!(T, ALLOC), ThreadMem)(cast(T[])_data._payload);
-	}
-	
-	void swap(ref Vector!(T, ALLOC) other) {
-		import std.algorithm : swap;
-		.swap(_data._payload, other._data._payload);
-		.swap(_data._capacity, other._data._capacity);
-	}
-	void swap(T[] other) {
-		this[] = other;
+		return RefCounted!(Vector!(T, ALLOC), ThreadMem)(cast(T[])_data._payload[0 .. _data._length]);
 	}
 	
 	@property Vector!(T, ALLOC) move() {
@@ -352,7 +343,7 @@ nothrow:
      */
 	@property bool empty() const
 	{
-		return !_data._payload || _data._payload.empty;
+		return !_data._payload[0 .. _data._length] || _data._payload[0 .. _data._length].empty;
 	}
 	
 	/**
@@ -362,7 +353,7 @@ nothrow:
      */
 	@property size_t length() const
 	{
-		return _data._payload.length;
+		return _data._length;
 	}
 	
 	/// ditto
@@ -372,7 +363,7 @@ nothrow:
 	}
 	
 	@property T* ptr() inout {
-		return cast(T*) _data._payload.ptr;
+		return cast(T*) _data._payload;
 	}
 	
 	@property T* end() inout {
@@ -416,9 +407,9 @@ nothrow:
 	auto opSlice() inout @trusted
 	{
 		static if (is(T[] == char[]))
-			return cast(string) _data._payload;
+			return cast(string) _data._payload[0 .. _data._length];
 		else
-			return _data._payload;
+			return _data._payload[0 .. _data._length];
 	}
 	
 	/**
@@ -432,7 +423,9 @@ nothrow:
 	{
 		logTrace("Slicing Vector i=", i, ", j=", j);
 		assert(!(i > j || j > length), "invalid opslice attempt");
-		return (cast(T[])_data._payload)[i .. j];
+		static if (isPointer!T) {
+			return cast() (&(cast()&(cast()**_data._payload)))[i .. j];
+		} else return cast() (&(cast()*_data._payload))[i .. j];
 	}
 	
 	/**
@@ -450,7 +443,7 @@ nothrow:
 	/// ditto
 	@property ref T back()
 	{
-		return _data._payload[$ - 1];
+		return _data._payload[length - 1];
 	}
 	
 	/**
@@ -462,8 +455,26 @@ nothrow:
      */	
 	ref T opIndex(size_t i) const
 	{
-		return *cast(T*)&_data._payload[i];
+		if (__ctfe) {
+			assert(__ctfe);
+			static if (isPointer!T) {
+				return &cast()*_data._payload[i];
+			} else
+			
+			return cast()_data._payload[i];
+		}
+		else return *cast(T*)&_data._payload[i];
 	}
+
+	ref T getRef(size_t i) 
+	{
+		if (__ctfe) {
+			assert(__ctfe);
+			return _data._payload[i];
+		}
+		else return _data._payload[i];
+	}
+	
 	
 	void opIndexAssign(U)(auto ref U val, size_t i)
 	{
@@ -471,7 +482,7 @@ nothrow:
 		static if (__traits(compiles, {_data._payload[i] = cast(T) val; }()))
 			_data._payload[i] = cast(T) val;
 		else { // swap
-			memmove(_data._payload.ptr + i, &val, USize);
+			memmove(_data._payload + i, &val, USize);
 			memset(&val, 0, USize);
 		}
 	}
@@ -484,24 +495,29 @@ nothrow:
      */
 	void opSliceAssign(Stuff)(auto ref Stuff value)
 	{
-		static if (isRandomAccessRange!Stuff)
+		/*static if (isRandomAccessRange!Stuff)
 		{
 			_data.length = value.length;
 			foreach (i, ref item; value){
 				_data._payload[i] = item;
 			}
-		} else static if (is(UnConst!Stuff == Vector!(T, ALLOC))) {
+		} else */static if (is(UnConst!Stuff == Vector!(T, ALLOC))) {
 			_data.length = value._data.length;
 			
-			foreach (i, ref item; value._data._payload){
+			foreach (i, ref item; value._data._payload[0 .. value._data._length]){
 				_data._payload[i] = item;
 			}
 		}
 		else static if (is(T[] == UnConst!Stuff) || isImplicitlyConvertibleLegacy!(T, ElementType!Stuff) || (is(T == char) && is(Stuff == string))) {
 			_data.length = value.length;
-			
-			foreach (i, ref item; cast(T[])value){
-				_data._payload[i] = item;
+			if (__ctfe) {
+				assert(__ctfe);
+				if (value.ptr != _data._payload)
+					_data._payload[0 .. value.length] = value[0 .. $];
+			} else {
+				foreach (i, ref item; cast(T[])value){
+					_data._payload[i] = item;
+				}
 			}
 		} else static assert(false, "Can't convert " ~ Stuff.stringof ~ " to " ~ T.stringof ~ "[]");
 	}
@@ -509,7 +525,8 @@ nothrow:
 	/// ditto
 	void opSliceAssign(Stuff)(Stuff value, size_t i, size_t j)
 	{
-		auto slice = _data._payload;
+		pragma(msg, "opSliceAssign2");
+		auto slice = _data._payload[0 .. _data._length];
 		slice[i .. j] = value;
 	}
 	
@@ -642,7 +659,6 @@ nothrow:
 		else
 			return 0;
 	}
-
 	size_t pushBack(Stuff...)(Stuff stuff) 
 		if (!isNumeric!Stuff || !is ( T == ubyte ))
 	{
@@ -700,9 +716,12 @@ nothrow:
 	{
 		assert(!empty);
 		static if (hasElaborateDestructor!T)
-			destructRecurse(_data._payload[$ - 1]);
-		memset(_data._payload.ptr + _data._payload.length - 1, 0, TSize);
-		_data._payload = _data._payload.ptr[0 .. _data._payload.length - 1];
+			destructRecurse(_data._payload[_data._length - 1]);
+		if (__ctfe) {
+			assert(__ctfe);
+			_data._payload[_data._length - 1] = T.init;
+		} else memset(_data._payload + _data._length - 1, 0, TSize);
+		_data._length -= 1;
 	}
 	
 	@trusted
@@ -711,11 +730,18 @@ nothrow:
 		assert(!empty);
 		static if (hasElaborateDestructor!T)
 			destructRecurse(_data._payload[0]);
-		if (_data._payload.length > 1) {
-			memmove(_data._payload.ptr, _data._payload.ptr + 1, TSize * (_data._payload.length - 1));
-			memset(_data._payload.ptr + _data._payload.length - 1, 0, TSize);
+		
+		if (_data._length > 1) {
+			if (__ctfe) {
+				assert(__ctfe);
+				_data._payload[0 .. _data._length-1] = _data._payload[1 .. _data._length];
+				_data._payload[_data._length-1] = T.init;
+			} else {
+				memmove(_data._payload, _data._payload + 1, TSize * (_data._length - 1));
+				memset(_data._payload + _data._length - 1, 0, TSize);
+			}
 		}
-		_data._payload = _data._payload.ptr[0 .. _data._payload.length - 1];	
+		_data._length -= 1;
 	}
 	
 	/**
@@ -735,10 +761,10 @@ nothrow:
 	{
 		if (howMany > length) howMany = length;
 		static if (hasElaborateDestructor!T)
-			foreach (ref e; _data._payload[$ - howMany .. $])
+			foreach (ref e; _data._payload[_data._length - howMany .. _data._length])
 				destructRecurse(e);
-		memset(_data._payload.ptr + _data._payload.length - howMany, 0, howMany*TSize);
-		_data._payload = _data._payload[0 .. $ - howMany];
+		memset(_data._payload + _data._length - howMany, 0, howMany*TSize);
+		_data._length -= howMany;
 		return howMany;
 	}
 
@@ -756,13 +782,13 @@ nothrow:
 		reserve(length + 1);
 
 		// Move elements over by one slot
-		memmove(_data._payload.ptr + i + 1,
-				_data._payload.ptr + i,
+		memmove(_data._payload + i + 1,
+				_data._payload + i,
 				TSize * (length - i));
 		//emplace(_data._payload.ptr + i, stuff);
-		T* slot = _data._payload.ptr + i;
+		T* slot = _data._payload + i;
 		*slot = stuff;
-		_data._payload = _data._payload.ptr[0 .. _data._payload.length + 1];
+		_data._length += 1;
 	}
 	
 	/// ditto
@@ -777,17 +803,17 @@ nothrow:
 			if (!extra) return 0;
 			reserve(length + extra);
 			// Move elements over by extra slots
-			memmove(_data._payload.ptr + i + extra,
-				_data._payload.ptr + i,
+			memmove(_data._payload + i + extra,
+				_data._payload + i,
 				TSize * (length - i));
-			foreach (p; _data._payload.ptr + i ..
-				_data._payload.ptr + i + extra)
+			foreach (p; _data._payload + i ..
+				_data._payload + i + extra)
 			{
 				*p = stuff.front;
 				//emplace(p, stuff.front);
 				stuff.popFront();
 			}
-			_data._payload = _data._payload.ptr[0 .. _data._payload.length + extra];
+			_data._length += extra;
 			return extra;
 		}
 		else
@@ -828,7 +854,7 @@ nothrow:
 
 	bool opEquals()(auto const ref T[] other) {
 		logTrace("other: ", other, " this: ", _data._payload);
-		return other == _data._payload;
+		return other == _data._payload[0 .. _data._length];
 	}
 	
 }

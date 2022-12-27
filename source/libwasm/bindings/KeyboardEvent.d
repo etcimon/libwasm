@@ -2,7 +2,7 @@ module libwasm.bindings.KeyboardEvent;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.KeyEvent;
 import libwasm.bindings.UIEvent;
 import libwasm.bindings.Window;

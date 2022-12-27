@@ -2,7 +2,7 @@ module libwasm.bindings.PerformanceResourceTiming;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Performance;
 import libwasm.bindings.PerformanceEntry;
 import libwasm.bindings.PerformanceServerTiming;

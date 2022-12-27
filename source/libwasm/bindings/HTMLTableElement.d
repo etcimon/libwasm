@@ -2,7 +2,7 @@ module libwasm.bindings.HTMLTableElement;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.HTMLCollection;
 import libwasm.bindings.HTMLElement;
 import libwasm.bindings.HTMLTableCaptionElement;

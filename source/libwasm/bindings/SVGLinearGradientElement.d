@@ -2,7 +2,7 @@ module libwasm.bindings.SVGLinearGradientElement;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.SVGAnimatedLength;
 import libwasm.bindings.SVGGradientElement;
 

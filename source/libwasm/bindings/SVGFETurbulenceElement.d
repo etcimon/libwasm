@@ -2,7 +2,7 @@ module libwasm.bindings.SVGFETurbulenceElement;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.SVGAnimatedEnumeration;
 import libwasm.bindings.SVGAnimatedInteger;
 import libwasm.bindings.SVGAnimatedLength;

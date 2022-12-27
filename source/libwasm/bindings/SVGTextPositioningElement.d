@@ -2,7 +2,7 @@ module libwasm.bindings.SVGTextPositioningElement;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.SVGAnimatedLengthList;
 import libwasm.bindings.SVGAnimatedNumberList;
 import libwasm.bindings.SVGTextContentElement;

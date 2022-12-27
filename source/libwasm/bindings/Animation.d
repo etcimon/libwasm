@@ -2,7 +2,7 @@ module libwasm.bindings.Animation;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.AnimationEffect;
 import libwasm.bindings.AnimationTimeline;
 import libwasm.bindings.EventHandler;

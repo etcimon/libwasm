@@ -18,7 +18,7 @@ module fast.format;
 //import core.stdc.string;
 import core.bitop;
 import std.traits;
-import std.typecons;
+import memutils.ct;
 import std.typetuple;
 import fast.internal.helpers;
 
@@ -260,7 +260,7 @@ template spaceRequirement(string format, T) if (hasKnownSpaceRequirement!T)
 {
 	static if (isIntegral!T)
 	{
-		static if (format == "%s" || format == "%d")
+		static if (format == "%s" || format == "%d" || format == "%S")
 			enum spaceRequirement = decChars!T;
 		else static if (isUnsigned!T && (format == "%x" || format == "%X"))
 			enum spaceRequirement = 2 * T.sizeof;
@@ -268,7 +268,7 @@ template spaceRequirement(string format, T) if (hasKnownSpaceRequirement!T)
 	}
 	else static if (isPointer!T)
 	{
-		static if (format == "%s" || format == "%p")
+		static if (format == "%s" || format == "%p" || format == "%S")
 			enum spaceRequirement = 2 * T.sizeof;
 		else static assert (0, "Don't know how to handle " ~ T.stringof ~ " as " ~ format);
 	}
@@ -360,7 +360,10 @@ char[] formattedWrite(string format, Args...)(char* buffer, Args args)
 		static if (parts[i][0] != null && parts[i][1] == size_t.max)
 		{
 			// Direct string copy
-			llvm_memcpy( it, parts[i][0].ptr, parts[i][0].length );
+			if (__ctfe) {
+				it[0 .. parts[i][0].length] = parts[i][0].ptr[0 .. parts[i][0].length];
+			} else
+				llvm_memcpy( it, parts[i][0].ptr, parts[i][0].length );
 			it += parts[i][0].length;
 		}
 		else static if (parts[i][0] != null)
@@ -396,7 +399,7 @@ import std.format;
 
 nothrow 
 void formattedWriteItem(string format, T)(ref char* buffer, T t)
-	if (format == "%s" || format == "%d" || format == "%f")
+	if (format == "%s" || format == "%d" || format == "%f" || format == "%S")
 {
 	import ldc.intrinsics;
 	static if (isIntegral!T || isFloatingPoint!T) auto str = decStr(t);
@@ -404,15 +407,22 @@ void formattedWriteItem(string format, T)(ref char* buffer, T t)
 	else auto str = t.ptr[0 .. t.length];
 	
 	static if (is(typeof(str) : char) || isSomeChar!T){
-		llvm_memcpy( buffer, &str, char.sizeof );
+		if (__ctfe) {
+			assert(__ctfe);
+			buffer[0] = str;
+		} else llvm_memcpy( buffer, &str, char.sizeof );
 		buffer += char.sizeof;
 	}
-	else {
+	else static if (format == "%S") {
 		ptrdiff_t escape_idx = str.indexOf("\"\t\r\n\\\b\0");
 		auto str_ptr = str.ptr;
 		size_t remaining = str.length;
 		while (escape_idx > -1) {
-			llvm_memcpy(buffer, str_ptr, escape_idx);
+			if (__ctfe) {
+				assert(__ctfe);
+				buffer[0 .. escape_idx] = str_ptr[0 .. escape_idx];
+
+			} else llvm_memcpy(buffer, str_ptr, escape_idx);
 			buffer += escape_idx;
 			str_ptr += escape_idx;
 			remaining -= escape_idx;
@@ -425,17 +435,41 @@ void formattedWriteItem(string format, T)(ref char* buffer, T t)
 			else if (c == '\\') { str_ptr++; escape_idx++; remaining--; *(buffer++) = '\\'; *(buffer++) = '\\'; }
 			else if (c == 0x00) { str_ptr++; escape_idx++; remaining--; *(buffer++) = '?'; }
 			
-			escape_idx = indexOf(str_ptr[0 .. str.length - escape_idx],"\"\t\r\n\\\b\0");
+			escape_idx = indexOf(str_ptr[0 .. remaining],"\"\t\r\n\\\b\0");
 		}
-		llvm_memcpy( buffer, str_ptr, remaining );
+		if (__ctfe) {
+			buffer[0 .. remaining] = str_ptr[0 .. remaining];
+		} else llvm_memcpy( buffer, str_ptr, remaining );
+		buffer += remaining;
+	}
+	else {		
+		auto str_ptr = str.ptr;
+		size_t remaining = str.length;
+		if (__ctfe) {
+			buffer[0 .. remaining] = str_ptr[0 .. remaining];
+		} else llvm_memcpy( buffer, str_ptr, remaining );
 		buffer += remaining;
 	}
 }
 
+nothrow size_t escapedLength(string str) {
+		ptrdiff_t escape_idx = str.indexOf("\"\t\r\n\\\b\0");
+		auto str_ptr = str.ptr;
+		size_t sz = str.length;
+		size_t remaining = str.length;
+		while (escape_idx > -1) {
+			remaining -= escape_idx;
+			if (remaining > 0) remaining--;
+			str_ptr += escape_idx;
+			escape_idx = indexOf(str_ptr[0 .. remaining],"\"\t\r\n\\\b\0");
+			sz++;
+		}
+		return sz;
+}
 
 pure nothrow
 void formattedWriteItem(string format)(ref char* buffer, void* p)
-	if (format == "%s" || format == "%p")
+	if (format == "%s" || format == "%p" || format == "%S")
 {
 	buffer.formattedWriteItem!"%X"( cast(size_t) p );
 }

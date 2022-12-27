@@ -2,7 +2,7 @@ module libwasm.bindings.GeometryUtils;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.DOMPoint;
 import libwasm.bindings.DOMQuad;
 import libwasm.bindings.DOMRect;

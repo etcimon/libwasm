@@ -2,7 +2,7 @@ module libwasm.bindings.SVGScriptElement;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.SVGAnimatedString;
 import libwasm.bindings.SVGElement;
 import libwasm.bindings.SVGURIReference;

@@ -2,7 +2,7 @@ module libwasm.bindings.NotificationEvent;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.ExtendableEvent;
 import libwasm.bindings.Notification;
 

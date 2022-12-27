@@ -2,7 +2,7 @@ module libwasm.bindings.SVGPolylineElement;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.SVGAnimatedPoints;
 import libwasm.bindings.SVGGeometryElement;
 import libwasm.bindings.SVGPointList;

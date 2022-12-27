@@ -62,7 +62,7 @@ version (unittest) {
     void Object_Call_uint__void(Handle, string, uint);
     void Object_Call_int__void(Handle, string, int);
     void Object_Call_bool__void(Handle, string, bool);
-    void Object_Call_EventHandler__void(Handle, string, bool, EventHandlerNonNull);
+    void Object_Call_EventHandler__void(Handle, string, bool, scope EventHandlerNonNull);
     void Object_Call_double__void(Handle, string, double);
     void Object_Call_float__void(Handle, string, float);
     void Object_Call_Handle__void(Handle, string, Handle);

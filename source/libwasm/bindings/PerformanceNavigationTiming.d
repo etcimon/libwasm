@@ -2,7 +2,7 @@ module libwasm.bindings.PerformanceNavigationTiming;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Performance;
 import libwasm.bindings.PerformanceResourceTiming;
 

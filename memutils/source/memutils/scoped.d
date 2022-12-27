@@ -69,14 +69,19 @@ T alloc(T, ARGS...)(auto ref ARGS args)
 T* alloc(T, ARGS...)(auto ref ARGS args)
 {
 	T* ret;
-	
-	if (!PoolStack.empty) {
+	if (__ctfe) {
+		assert(__ctfe);
 		ret = ObjectAllocator!(T, PoolStack)().alloc(args);
-		
-		// Add destructor to pool
-		static if (hasElaborateDestructor!T || __traits(hasMember, T, "__xdtor") ) 
-			PoolStack.top.onDestroy(&((*ret).__xdtor));
-		
+	} else {
+		if (!PoolStack.empty) {
+			ret = ObjectAllocator!(T, PoolStack)().alloc(args);
+			
+			// Add destructor to pool
+			static if (hasElaborateDestructor!T || __traits(hasMember, T, "__xdtor") ) 
+				PoolStack.top.onDestroy(&((*ret).__xdtor));
+			
+		}
+
 	}
 	
 	return ret;
@@ -109,16 +114,21 @@ auto realloc(T)(ref T arr, size_t n)
 auto copy(T)(auto ref T arr)
 	if (isArray!T)
 {
-	alias ElType = UnConst!(typeof(arr[0]));
-	enum ElSize = ElType.sizeof;
-	T arr_copy;
-	if (!PoolStack.empty) {
-		arr_copy = cast(T)allocArray!(ElementType!T, PoolStack)(arr.length);
-		registerPoolArray(arr_copy);
-		memcpy(cast(void*)arr_copy.ptr, cast(void*)arr.ptr, arr.length * ElSize);
-	}
+	if (__ctfe) {
+		assert(__ctfe);
+		return cast()cast(T)arr[0 .. $];
+	} else {
+		alias ElType = UnConst!(typeof(arr[0]));
+		enum ElSize = ElType.sizeof;
+		T arr_copy;
+		if (!PoolStack.empty) {
+			arr_copy = cast(T)allocArray!(ElementType!T, PoolStack)(arr.length);
+			registerPoolArray(arr_copy);
+			memcpy(cast(void*)arr_copy.ptr, cast(void*)arr.ptr, arr.length * ElSize);
+		}
 
-	return arr_copy;
+		return arr_copy;
+	}
 }
 
 struct PoolStack {
@@ -199,10 +209,11 @@ private static:
 
 }
 
+alias ManagedPool = RefCounted!Pool;
+
 package:
 
 alias Pool = PoolAllocator!(AutoFreeListAllocator!(MallocAllocator));
-alias ManagedPool = RefCounted!Pool;
 
 /// User utility for allocating on lower level pools
 struct ThreadPoolFreezer 

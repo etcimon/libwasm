@@ -2,7 +2,7 @@ module libwasm.bindings.URL;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Blob;
 import libwasm.bindings.MediaSource;
 import libwasm.bindings.URLSearchParams;

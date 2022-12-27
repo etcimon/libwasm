@@ -2,7 +2,7 @@ module libwasm.bindings.Selection;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.LegacyQueryInterface;
 import libwasm.bindings.Node;
 import libwasm.bindings.Range;

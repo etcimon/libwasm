@@ -2,7 +2,7 @@ module libwasm.bindings.AbortController;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.AbortSignal;
 
 @safe:

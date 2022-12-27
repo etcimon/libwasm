@@ -2,7 +2,7 @@ module libwasm.bindings.MouseEvent;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.EventTarget;
 import libwasm.bindings.UIEvent;
 import libwasm.bindings.Window;

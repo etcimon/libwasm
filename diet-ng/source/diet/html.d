@@ -269,9 +269,9 @@ template compileHTMLDietFileString(string filename, alias contents, ALIASES...)
 template compileHTMLDietString(string contents, ALIASES...)
 {
 	pragma(msg, "compileHTMLDietString");
-	void compileHTMLDietString(R)(ref R dst)
+	string compileHTMLDietString(R)(ref R dst)
 	{
-		compileHTMLDietStrings!(Group!(contents, "diet-string"), ALIASES)(dst);
+		return compileHTMLDietStrings!(Group!(contents, "diet-string"), ALIASES)(dst);
 	}
 }
 
@@ -296,16 +296,18 @@ template compileHTMLDietStrings(alias FILES_GROUP, ALIASES...)
 	private static Document _diet_nodes() { return applyTraits!TRAITS(parseDiet!(translate!TRAITS)(filesFromGroup!FILES_GROUP)); }
 
 	// uses the correct range name and removes 'dst' from the scope
-	private void exec(R)(ref R _diet_output)
+	private string exec(R)(ref R _diet_output)
 	{
 		mixin(localAliasesMixin!(0, ALIASES));
 		//pragma(msg, getHTMLMixin(_diet_nodes()));
 		mixin(getHTMLMixin(_diet_nodes(), dietOutputRangeName, getHTMLOutputStyle!TRAITS));
+		
+		return getHTMLMixin(_diet_nodes(), dietOutputRangeName, getHTMLOutputStyle!TRAITS);
 	}
 
-	void compileHTMLDietStrings(R)(ref R dst)
+	string compileHTMLDietStrings(R)(ref R dst)
 	{
-		exec(dst);
+		return exec(dst);
 	}
 }
 
@@ -605,7 +607,7 @@ private string getElementMixin(ref CTX ctx, in Node node, bool in_pre) @safe
 			ret ~= ctx.statement!("static if (is(typeof(() { return %s; }()) == bool) ){")(node.loc, expr[]);
 				ret ~= ctx.statementCont!"if (%s)"(node.loc, expr[]);
 				if (ctx.isHTML5)
-					ret ~= ctx.rawText(node.loc, format!" %s"(att.name));
+					ret ~= ctx.rawText(node.loc, format!" %s"(att.name[]));
 				else
 					ret ~= ctx.rawText(node.loc, format!" %s = \"%s\""(att.name[], att.name[]));
 
@@ -671,7 +673,6 @@ private string getElementMixin(ref CTX ctx, in Node node, bool in_pre) @safe
 		ctx.inhibitNewLine();
 	else if (need_newline)
 		ctx.prettyNewLine();
-
 	return ret[].copy();
 }
 
@@ -685,7 +686,7 @@ private string getNodeContentsMixin(ref CTX ctx, in NodeContent* c, bool in_pre)
 		case interpolation:
 			return ctx.textStatement!"%s.htmlEscape(%s);"(c.loc, ctx.rangeName[], c.value[]);
 		case rawInterpolation:
-			return ctx.textStatement!"() @trusted { return (&%s); } ().formattedWrite(\"%s\", %s);"(c.loc, ctx.rangeName[], "%s", c.value[]);
+			return ctx.textStatement!"put(%s, format!\"%s\"(%s));"(c.loc, ctx.rangeName[], "%s", c.value[]);
 	}
 }
 
@@ -746,7 +747,7 @@ private string getDoctypeMixin(ref CTX ctx, in Node node) @safe
 		break;
 	}
 
-	return ctx.rawText(node.loc, format!"<%s>"(doctype_str));
+	return ctx.rawText(node.loc, format!"<%s>"(doctype_str[]));
 }
 
 private string getCodeMixin(ref CTX ctx, const ref Node node, bool in_pre) @safe
@@ -759,10 +760,12 @@ private string getCodeMixin(ref CTX ctx, const ref Node node, bool in_pre) @safe
 	bool have_contents = node.contents.length > 1;
 	foreach (i, c; node.contents[]) {
 		if (i == 0 && c.kind == NodeContent.Kind.text) {
-			if(have_contents)
+			if(have_contents) {
 				ret ~= ctx.statement!"%s\n{"(node.loc, c.value[]);
-			else
+			}
+			else {
 				ret ~= ctx.statement!"%s"(node.loc, c.value[]);
+			}
 		} else {
 			assert(c.kind == NodeContent.Kind.node);
 			ret ~= ctx.getHTMLMixin(c.node, in_pre);
@@ -851,7 +854,9 @@ private struct CTX {
 		{
 		case live:
 		case normal:
-			return format!("#line %s \"%s\"\n"~fmt~"\n")(loc.line+1, loc.file[], args);
+			auto ret = format!("#line %s \"%s\"\n"~fmt~"\n")(loc.line+1, loc.file[], args);
+			//assert(ret.length == 0, ret);
+			return ret;
 		case rawTextOnly:
 			// do not output anything here, no raw text is possible
 			return "";
@@ -886,6 +891,7 @@ private struct CTX {
 		// `return` or `else` as the first word of the line. This should be
 		// good enough, but may not be sufficient in all cases.
 		auto nextLine = format!(fmt~"\n")(args);
+		//assert(nextLine.length == 0, nextLine[]);
 		Vector!string firstNonSpace = ctsplit(nextLine[], ' ');
 		immutable isReturn = !firstNonSpace.empty && (firstNonSpace[][0] == "return" || firstNonSpace[][0] == "return;");
 		immutable isElse = !firstNonSpace.empty && firstNonSpace[][0] == "else";
@@ -905,8 +911,8 @@ private struct CTX {
 			// fall through
 			goto case normal;
 		case normal:
-			ret ~= format!("#line %s \"%s\"\n")(loc.line+1, loc.file);
-			ret ~= nextLine;
+			ret ~= format!("#line %s \"%s\"\n")(loc.line+1, loc.file[]);
+			ret ~= nextLine[];
 			break;
 		}
 		if(!isElse)

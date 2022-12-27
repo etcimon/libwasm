@@ -2,7 +2,7 @@ module libwasm.bindings.FormData;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Blob;
 import libwasm.bindings.Directory;
 

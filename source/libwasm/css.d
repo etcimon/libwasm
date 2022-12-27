@@ -2,7 +2,7 @@ module libwasm.css;
 
 import std.meta : staticMap, ApplyRight, AliasSeq, NoDuplicates, ApplyLeft, Filter;
 import std.traits : getSymbolsByUDA, hasUDA, hasMember, getUDAs, Fields, FieldNameTuple, PointerTarget, isPointer, isType, isAggregateType;
-import libwasm.ct;
+import memutils.ct;
 import libwasm.types;
 
 struct styleset(alias set) {};

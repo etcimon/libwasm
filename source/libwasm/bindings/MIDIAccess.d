@@ -2,7 +2,7 @@ module libwasm.bindings.MIDIAccess;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.EventHandler;
 import libwasm.bindings.EventTarget;
 import libwasm.bindings.MIDIInputMap;

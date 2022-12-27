@@ -2,7 +2,7 @@ module libwasm.bindings.CredentialManagement;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.AbortSignal;
 import libwasm.bindings.WebAuthentication;
 

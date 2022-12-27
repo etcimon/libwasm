@@ -2,7 +2,7 @@ module libwasm.bindings.Window;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.AbortSignal;
 import libwasm.bindings.BarProp;
 import libwasm.bindings.Blob;

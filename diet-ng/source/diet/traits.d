@@ -119,8 +119,10 @@ Document applyTraits(TRAITS...)(Document doc)
 		for (size_t i = 1; i < n.contents.length;) {
 			if (n.contents[i-1].kind == NodeContent.Kind.text && n.contents[i].kind == NodeContent.Kind.text) {
 				n.contents[i-1].value ~= n.contents[i].value[];
-				n.contents[] = n.contents[0 .. i];
-				n.contents ~= n.contents[i+1 .. $];
+				Array!(NodeContent*) new_contents = Array!(NodeContent*)(n.contents[0 .. i]);
+				new_contents ~= n.contents[i+1 .. $];
+				n.contents = new_contents;
+
 			} else i++;
 		}
 

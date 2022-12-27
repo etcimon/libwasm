@@ -2,7 +2,7 @@ module libwasm.bindings.CustomElementRegistry;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Function;
 import libwasm.bindings.Node;
 

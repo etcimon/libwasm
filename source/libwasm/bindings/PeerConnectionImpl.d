@@ -2,7 +2,7 @@ module libwasm.bindings.PeerConnectionImpl;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.MediaStreamTrack;
 import libwasm.bindings.PeerConnectionImplEnums;
 import libwasm.bindings.PeerConnectionObserver;

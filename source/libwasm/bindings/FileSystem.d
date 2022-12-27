@@ -2,7 +2,7 @@ module libwasm.bindings.FileSystem;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.DOMException;
 import libwasm.bindings.FileSystemDirectoryEntry;
 import libwasm.bindings.FileSystemEntry;

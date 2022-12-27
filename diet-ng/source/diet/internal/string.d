@@ -1,6 +1,5 @@
 module diet.internal.string;
 
-import std.ascii : isWhite;
 import memutils.vector;
 import memutils.scoped;
 import diet.defs;
@@ -18,13 +17,25 @@ Vector!string ctsplit(string s, char c) {
 			j = i;
 		}
 	}
-	if (j != s.length) ret ~= ret[j .. $]; // remainder
+	if (j < s.length) ret ~= s[j .. $]; // remainder
 	return ret.move();
 }
 
 string dstringEscape(in string str)
 {
 	Vector!char ret;
+	size_t new_len = str.length;
+	foreach( ch; str ) {
+		switch (ch) {
+			default: break;
+			case '\\': new_len++; break;
+			case '\r': new_len++; break;
+			case '\n': new_len++; break;
+			case '\t': new_len++; break;
+			case '\"': new_len++; break;
+		}
+	}
+	ret.reserve(new_len);
 	foreach( ch; str ) {
 		switch (ch) {
 			default: ret ~= ch; break;
@@ -125,4 +136,9 @@ string stripUTF8BOM(string input)
 	if (input.length >= 3 && input[0 .. 3] == comp)
 		return input[3 .. $];
 	return input;
+}
+
+bool isWhite(dchar c) @safe pure nothrow @nogc
+{
+    return c == ' ' || (c >= 0x09 && c <= 0x0D);
 }

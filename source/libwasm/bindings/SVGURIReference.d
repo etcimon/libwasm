@@ -2,7 +2,7 @@ module libwasm.bindings.SVGURIReference;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.SVGAnimatedString;
 
 @safe:

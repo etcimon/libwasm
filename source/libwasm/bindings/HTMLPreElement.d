@@ -2,7 +2,7 @@ module libwasm.bindings.HTMLPreElement;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.HTMLElement;
 
 @safe:

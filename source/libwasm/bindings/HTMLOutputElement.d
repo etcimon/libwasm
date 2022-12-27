@@ -2,7 +2,7 @@ module libwasm.bindings.HTMLOutputElement;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.DOMTokenList;
 import libwasm.bindings.HTMLElement;
 import libwasm.bindings.HTMLFormElement;

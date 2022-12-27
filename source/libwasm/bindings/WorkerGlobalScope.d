@@ -2,7 +2,7 @@ module libwasm.bindings.WorkerGlobalScope;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.CacheStorage;
 import libwasm.bindings.Crypto;
 import libwasm.bindings.EventHandler;

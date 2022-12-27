@@ -2,7 +2,7 @@ module libwasm.bindings.AudioTrackList;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.AudioTrack;
 import libwasm.bindings.EventHandler;
 import libwasm.bindings.EventTarget;

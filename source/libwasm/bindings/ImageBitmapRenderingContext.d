@@ -2,7 +2,7 @@ module libwasm.bindings.ImageBitmapRenderingContext;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.ImageBitmap;
 
 @safe:

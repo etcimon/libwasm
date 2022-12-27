@@ -2,7 +2,7 @@ module libwasm.bindings.AudioContext;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.BaseAudioContext;
 import libwasm.bindings.HTMLMediaElement;
 import libwasm.bindings.MediaElementAudioSourceNode;

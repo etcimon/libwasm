@@ -2,7 +2,7 @@ module libwasm.bindings.CSS;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 @safe:
 nothrow:
 
@@ -14,8 +14,8 @@ struct CSS {
   }
   bool supports()(string conditionText) {
     return Static_Call_string__bool("CSS", "supports", conditionText);
-  }
   string escape()(string ident) {
     return Static_Call_string__string("CSS", "escape", ident);
+  }
   }
 }

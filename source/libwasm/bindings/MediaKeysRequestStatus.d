@@ -2,7 +2,7 @@ module libwasm.bindings.MediaKeysRequestStatus;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 @safe:
 nothrow:
 

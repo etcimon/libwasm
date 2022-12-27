@@ -2,7 +2,7 @@ module libwasm.bindings.WebrtcDeprecated;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.RTCIceCandidate;
 import libwasm.bindings.RTCPeerConnection;
 import libwasm.bindings.RTCSessionDescription;

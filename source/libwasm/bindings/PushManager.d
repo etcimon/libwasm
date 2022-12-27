@@ -2,7 +2,7 @@ module libwasm.bindings.PushManager;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.PushSubscription;
 
 @safe:

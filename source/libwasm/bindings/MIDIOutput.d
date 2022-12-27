@@ -2,7 +2,7 @@ module libwasm.bindings.MIDIOutput;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.MIDIPort;
 import libwasm.bindings.Performance;
 

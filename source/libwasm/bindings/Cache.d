@@ -2,7 +2,7 @@ module libwasm.bindings.Cache;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Request;
 import libwasm.bindings.Response;
 

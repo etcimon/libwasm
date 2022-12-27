@@ -2,7 +2,7 @@ module libwasm.bindings.WindowOrWorkerGlobalScope;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.CacheStorage;
 import libwasm.bindings.Function;
 import libwasm.bindings.IDBFactory;

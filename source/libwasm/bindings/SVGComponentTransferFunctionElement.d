@@ -2,7 +2,7 @@ module libwasm.bindings.SVGComponentTransferFunctionElement;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.SVGAnimatedEnumeration;
 import libwasm.bindings.SVGAnimatedNumber;
 import libwasm.bindings.SVGAnimatedNumberList;

@@ -2,7 +2,7 @@ module libwasm.bindings.SVGPathSegList;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.SVGPathSeg;
 
 @safe:

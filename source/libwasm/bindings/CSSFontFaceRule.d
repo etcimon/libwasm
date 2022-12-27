@@ -2,7 +2,7 @@ module libwasm.bindings.CSSFontFaceRule;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.CSSRule;
 import libwasm.bindings.CSSStyleDeclaration;
 

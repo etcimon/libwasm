@@ -2,7 +2,7 @@ module libwasm.bindings.SVGFEConvolveMatrixElement;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.SVGAnimatedBoolean;
 import libwasm.bindings.SVGAnimatedEnumeration;
 import libwasm.bindings.SVGAnimatedInteger;

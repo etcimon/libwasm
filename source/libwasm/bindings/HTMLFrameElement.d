@@ -2,7 +2,7 @@ module libwasm.bindings.HTMLFrameElement;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Document;
 import libwasm.bindings.FrameLoader;
 import libwasm.bindings.HTMLElement;

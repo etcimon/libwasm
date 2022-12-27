@@ -2,7 +2,7 @@ module libwasm.bindings.MozFrameLoaderOwner;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.FrameLoader;
 import libwasm.bindings.HTMLIFrameElement;
 

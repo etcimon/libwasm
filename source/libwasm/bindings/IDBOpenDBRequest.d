@@ -2,7 +2,7 @@ module libwasm.bindings.IDBOpenDBRequest;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.EventHandler;
 import libwasm.bindings.IDBRequest;
 

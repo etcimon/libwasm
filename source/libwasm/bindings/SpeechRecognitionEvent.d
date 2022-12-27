@@ -2,7 +2,7 @@ module libwasm.bindings.SpeechRecognitionEvent;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Document;
 import libwasm.bindings.Event;
 import libwasm.bindings.SpeechRecognitionResultList;

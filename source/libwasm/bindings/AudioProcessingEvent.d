@@ -2,7 +2,7 @@ module libwasm.bindings.AudioProcessingEvent;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.AudioBuffer;
 import libwasm.bindings.Event;
 

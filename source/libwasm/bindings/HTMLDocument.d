@@ -2,7 +2,7 @@ module libwasm.bindings.HTMLDocument;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Document;
 import libwasm.bindings.HTMLAllCollection;
 import libwasm.bindings.NodeList;

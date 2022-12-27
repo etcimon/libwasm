@@ -2,7 +2,7 @@ module libwasm.bindings.Text;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.CharacterData;
 import libwasm.bindings.DOMPoint;
 import libwasm.bindings.DOMQuad;

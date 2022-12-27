@@ -2,7 +2,7 @@ module libwasm.bindings.ServiceWorker;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.AbstractWorker;
 import libwasm.bindings.Client;
 import libwasm.bindings.EventHandler;

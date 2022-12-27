@@ -22,8 +22,8 @@ nothrow:
 	auto ret = Array!InputFile(FILES_GROUP.expand.length / 2);
 	foreach (i, F; FILES_GROUP.expand) {
 		static if (i % 2 == 0) {
-			ret[i / 2].name[] = FILES_GROUP.expand[i+1];
-			ret[i / 2].contents[] = FILES_GROUP.expand[i];
+			ret[i / 2].name = Array!char(FILES_GROUP.expand[i+1]);
+			ret[i / 2].contents = Array!char(FILES_GROUP.expand[i]);
 		}
 	}
 	return ret;

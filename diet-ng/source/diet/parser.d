@@ -60,10 +60,12 @@ Document parseDiet(alias TR = identity)(string text, string filename = "string")
 	if (is(typeof(TR(string.init)) == string) || is(typeof(TR(string.init, string.init)) == string))
 {
 	pragma(msg, "parseDiet");
-	InputFile[1] f;
-	f[0].name = filename;
-	f[0].contents = text;
-	return parseDiet!TR(f);
+	Array!InputFile f_arr;
+	InputFile f;
+	f.name[] = filename;
+	f.contents[] = text;
+	f_arr ~= f;
+	return parseDiet!TR(f_arr);
 }
 
 /// Ditto
@@ -990,7 +992,7 @@ Node[] parseDietRaw(alias TR)(InputFile file)
 	pragma(msg, "parseDietRaw");
 
 	string indent_style;
-	auto loc = Location(Array!char(file.name), 0);
+	auto loc = Location(Array!char(file.name[]), 0);
 	int prevlevel = -1;
 	string input = file.contents[];
 	Array!Node ret;
@@ -1099,7 +1101,7 @@ Node[] parseDietRaw(alias TR)(InputFile file)
 			stack[level].clear();
 
 
-			string chain;
+			Vector!char chain;
 
 			do {
 				input = input[1 .. $];
@@ -1115,7 +1117,7 @@ Node[] parseDietRaw(alias TR)(InputFile file)
 			chn.name[] = cast(string)Node.SpecialName.filter;
 			chn.attribs = NodeAttribs.textNode;
 			chn.attributes.clear();
-			chn.attributes ~= Attribute(loc, "filterChain", [AttributeContent.text(chain)]);
+			chn.attributes ~= Attribute(loc, "filterChain", AttributeContent.text(chain[]));
 			stack[level] ~= chn;
 
 			/*auto tmploc = loc;
@@ -1210,7 +1212,6 @@ private Node parseTagLine(alias TR)(ref string input, ref Location loc, out bool
 private bool parseTag(ref string input, ref size_t idx, ref Node dst, ref bool has_nested, ref Location loc)
 @safe {
 	pragma(msg, "parseTag");
-	import std.ascii : isWhite;
 
 	dst.name[] = skipIdent(input, idx, ":-_", loc, true);
 
@@ -1579,11 +1580,20 @@ private string skipUntilClosingBracket(in string s, ref size_t idx, in Location 
 	assert(false);
 }
 
+/++
+    Params: c = The character to test.
+    Returns: Whether `c` is an ASCII letter (A .. Z, a .. z).
+  +/
+bool isAlpha(dchar c) @safe pure nothrow @nogc
+{
+    // Optimizer can turn this into a bitmask operation on 64 bit code
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
+
 private string skipIdent(in string s, ref size_t idx, string additional_chars,
 	in Location loc, bool accept_empty = false, bool require_alpha_start = false)
 @safe {
 	pragma(msg, "skipIdent");
-	import std.ascii : isAlpha;
 
 	size_t start = idx;
 	while (idx < s.length) {
@@ -1624,7 +1634,6 @@ private bool isIndentChar(dchar ch) @safe { return ch == ' ' || ch == '\t'; }
 private string skipAnyWhitespace(in string s, ref size_t idx)
 @safe {
 	pragma(msg, "skipAnyWhitespace");
-	import std.ascii : isWhite;
 
 	size_t start = idx;
 	while (idx < s.length) {
@@ -1723,7 +1732,7 @@ private string skipExpression(in string s, ref size_t idx, in Location loc, bool
 		idx++;
 	}
 
-	enforcep(clamp_stack.length == 0, format!"Expected '%s' before end of attribute expression."(clamp_stack[$-1]), loc);
+	enforcep(clamp_stack.length == 0, format!"Expected '%s' before end of attribute expression."(clamp_stack.empty ? '?' : clamp_stack[$-1]), loc);
 	return ctstrip(s[start .. idx]);
 }
 

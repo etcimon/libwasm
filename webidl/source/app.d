@@ -144,7 +144,7 @@ void generateDFiles(IR ir, string dFolder) {
     //writeln("Writing ", dFile);
     std.file.write(dFile, "module libwasm.bindings." ~ name ~ ";\n\n"~
                    "import libwasm.types;\n\n" ~ 
-                   "import std.typecons: tuple;\n");
+                   "import memutils.ct: tuple;\n");
     auto imports = ir.getImports(m);
     if (imports.length > 0)
       std.file.append(dFile, imports.joiner("\n").text~"\n\n");

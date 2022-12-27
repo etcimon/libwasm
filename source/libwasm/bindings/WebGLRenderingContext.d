@@ -2,7 +2,7 @@ module libwasm.bindings.WebGLRenderingContext;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.HTMLCanvasElement;
 import libwasm.bindings.HTMLImageElement;
 import libwasm.bindings.HTMLVideoElement;

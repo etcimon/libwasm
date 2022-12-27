@@ -47,7 +47,7 @@ private extern(C) {
 enum eventemitter;
 
 template ToEvent(EventType type) {
-  import libwasm.ct : capitalize;
+  import memutils.ct : capitalize;
   static if (type == EventType.event)
     alias ToEvent = Event;
   else {
@@ -61,7 +61,7 @@ template ToEvent(EventType type) {
 }
 
 auto toTuple(Delegate)(Delegate d) {
-  import libwasm.ct : tuple;
+  import memutils.ct : tuple;
   auto ctx = cast(uint)d.ptr;
   auto func = cast(uint)d.funcptr;
   return tuple!("ctx","func")(ctx,func);
@@ -103,7 +103,7 @@ template toListenerType(string t) {
 auto removeEventListenerTyped(string name, T)(Handle node, auto ref T t) {
   import std.traits : fullyQualifiedName, Parameters;
   import std.algorithm : findSplitAfter;
-  import libwasm.ct : toLower;
+  import memutils.ct : toLower;
   // TODO: really want to use std.uni.toLower here but prevented by https://issues.dlang.org/show_bug.cgi?id=19268
   enum type = toLower!(name[2..$]);
   enum listenerType = toListenerType!type;
@@ -124,7 +124,7 @@ auto removeEventListenerTyped(string name, T)(Handle node, auto ref T t) {
 auto addEventListenerTyped(string name, T)(Handle node, auto ref T t) {
   import std.traits : fullyQualifiedName, Parameters;
   import std.algorithm : findSplitAfter;
-  import libwasm.ct : toLower;
+  import memutils.ct : toLower;
   // TODO: really want to use std.uni.toLower here but prevented by https://issues.dlang.org/show_bug.cgi?id=19268
   enum type = toLower!(name[2..$]);
   enum listenerType = toListenerType!type;

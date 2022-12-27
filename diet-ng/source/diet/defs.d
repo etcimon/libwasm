@@ -20,6 +20,9 @@ enum dietOutputRangeName = "_diet_output";
 /// Thrown by the parser for malformed input.
 alias DietParserException = Exception;
 
+void put(T, S)(ref T dst, S content) {
+	dst.insertBack(content);
+}
 
 string formattedWrite(string format, T, Args...)(ref T buffer, Args args) @trusted
 {
@@ -28,7 +31,8 @@ string formattedWrite(string format, T, Args...)(ref T buffer, Args args) @trust
 	pragma(msg, format);
 	import fast.format;
 	import ldc.intrinsics;
-	int sz;
+	int sz = format.length;
+	sz -= (args.length*2);
 	static foreach(arg; args) {
 		static if (isIntegral!(typeof(arg)) || isFloatingPoint!(typeof(arg))) {
 			sz += decCharsVal(arg);
@@ -45,15 +49,14 @@ string formattedWrite(string format, T, Args...)(ref T buffer, Args args) @trust
 	buffer.length = sz;
 
 	auto buf = fast.format.formattedWrite!format(buffer.ptr, args);
-
-	return cast(string)buf;
+	return cast(string)buf;	
 }
 
 string format(string fmt, Args...)(Args args) @trusted {
 	pragma(msg, "format");
-	Vector!char err;
-	formattedWrite!fmt(err, args);
-	return err[].copy();
+	Vector!char ret;
+	formattedWrite!fmt(ret, args);
+	return ret[].copy();
 }
 
 /** Throws an exception if the condition evaluates to `false`.

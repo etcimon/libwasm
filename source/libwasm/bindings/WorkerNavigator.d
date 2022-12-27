@@ -2,7 +2,7 @@ module libwasm.bindings.WorkerNavigator;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.MediaCapabilities;
 import libwasm.bindings.Navigator;
 import libwasm.bindings.NetworkInformation;

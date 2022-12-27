@@ -2,7 +2,7 @@ module libwasm.bindings.RTCTrackEvent;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Event;
 import libwasm.bindings.MediaStream;
 import libwasm.bindings.MediaStreamTrack;

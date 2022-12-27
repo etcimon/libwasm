@@ -2,7 +2,7 @@ module libwasm.bindings.Request;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.AbortSignal;
 import libwasm.bindings.Blob;
 import libwasm.bindings.Fetch;

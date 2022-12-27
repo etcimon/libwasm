@@ -2,7 +2,7 @@ module libwasm.bindings.Geolocation;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Position;
 import libwasm.bindings.PositionError;
 

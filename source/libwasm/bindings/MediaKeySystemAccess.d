@@ -2,7 +2,7 @@ module libwasm.bindings.MediaKeySystemAccess;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.MediaKeys;
 
 @safe:

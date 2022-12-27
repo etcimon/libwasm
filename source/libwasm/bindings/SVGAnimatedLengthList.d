@@ -2,7 +2,7 @@ module libwasm.bindings.SVGAnimatedLengthList;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.SVGLengthList;
 
 @safe:

@@ -2067,9 +2067,6 @@ class TypeInfo_Interface : TypeInfo
     TypeInfo_Class info;
 }
 
-class TypeInfo_Struct : TypeInfo
-{
-}
 
 @system unittest
 {
@@ -2089,6 +2086,9 @@ class TypeInfo_Tuple : TypeInfo
 }
 
 +/
+class TypeInfo_Struct : TypeInfo
+{
+}
 class TypeInfo_Const : TypeInfo
 {
 }
@@ -3504,7 +3504,7 @@ int __switch(T, caseLabels...)(/*in*/ const scope T[] condition) pure nothrow @s
     }
     // To be adjusted after measurements
     // Compile-time inlined binary search.
-    else static if (caseLabels.length < 7)
+    else
     {
         int r = void;
         enum mid = cast(int)caseLabels.length / 2;
@@ -3529,20 +3529,6 @@ int __switch(T, caseLabels...)(/*in*/ const scope T[] condition) pure nothrow @s
             // Search the right side
             return __switch!(T, caseLabels[mid + 1 .. $])(condition) + mid + 1;
         }
-    }
-    else
-    {
-        // Need immutable array to be accessible in pure code, but case labels are
-        // currently coerced to the switch condition type (e.g. const(char)[]).
-        static immutable T[][caseLabels.length] cases = {
-            auto res = new immutable(T)[][](caseLabels.length);
-            foreach (i, s; caseLabels)
-                res[i] = s.idup;
-            return res;
-        }();
-
-        // Run-time binary search in a static array of labels.
-        return __switchSearch!T(cases[], condition);
     }
 }
 

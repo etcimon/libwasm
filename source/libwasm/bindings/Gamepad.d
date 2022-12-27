@@ -2,7 +2,7 @@ module libwasm.bindings.Gamepad;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.GamepadHapticActuator;
 import libwasm.bindings.GamepadPose;
 import libwasm.bindings.Performance;

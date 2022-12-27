@@ -2,7 +2,7 @@ module libwasm.bindings.DataTransferItemList;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.DataTransferItem;
 import libwasm.bindings.File;
 

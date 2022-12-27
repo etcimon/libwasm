@@ -2,7 +2,7 @@ module libwasm.bindings.Animatable;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Animation;
 import libwasm.bindings.KeyframeAnimationOptions;
 import libwasm.bindings.KeyframeEffect;

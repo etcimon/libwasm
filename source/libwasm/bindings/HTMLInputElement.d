@@ -2,7 +2,7 @@ module libwasm.bindings.HTMLInputElement;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.AutocompleteInfo;
 import libwasm.bindings.Directory;
 import libwasm.bindings.Element;

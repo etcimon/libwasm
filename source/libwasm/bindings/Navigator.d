@@ -2,7 +2,7 @@ module libwasm.bindings.Navigator;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.BatteryManager;
 import libwasm.bindings.Clipboard;
 import libwasm.bindings.CredentialManagement;

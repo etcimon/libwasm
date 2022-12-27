@@ -2,7 +2,7 @@ module libwasm.bindings.ExtendableMessageEvent;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Client;
 import libwasm.bindings.ExtendableEvent;
 import libwasm.bindings.MessagePort;

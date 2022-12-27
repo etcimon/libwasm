@@ -2,7 +2,7 @@ module libwasm.bindings.SVGGradientElement;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.SVGAnimatedEnumeration;
 import libwasm.bindings.SVGAnimatedString;
 import libwasm.bindings.SVGAnimatedTransformList;

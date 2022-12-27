@@ -2,7 +2,7 @@ module libwasm.bindings.BrowserElement;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 @safe:
 nothrow:
 

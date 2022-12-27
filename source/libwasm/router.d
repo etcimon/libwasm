@@ -19,7 +19,6 @@ enum Direction {
 }
 
 struct RouterEvent {
-    URLRouter* router;
     HashMap!(string, string) parameters;
     string prevURL;
     string newURL;
@@ -53,7 +52,7 @@ private struct Route {
 		size_t i, j;
 
 		// store parameters until a full match is confirmed
-		import std.typecons;
+		import memutils.ct;
 		Tuple!(string, string)[maxRouteParameters] tmpparams;
 		size_t tmppparams_length = 0;
 
@@ -143,7 +142,6 @@ struct URLRouter {
         // defined when concurrent URL changes occur and promises are still pending
         bool m_busy;
         Array!char m_pendingURL;
-        PromiseIterator m_promiseIterator;
 
         Array!char m_title;
 	}
@@ -184,21 +182,26 @@ struct URLRouter {
         }        
     }
 
-    struct PromiseIterator {
+    // struct PromiseIterator {
+    private {
         @safe nothrow:
 
         Array!Route leaving_candidates;
         Array!Route entering_candidates;
         Array!char newPath;
 
-        URLRouter* parent;
+        void setupIterator(Array!Route _leaving_candidates, Array!Route _entering_candidates, Array!char _newPath) {
+            leaving_candidates = _leaving_candidates;
+            entering_candidates = _entering_candidates;
+            newPath = _newPath;
+        }
 
         void iterate() @trusted {
             bool still_busy;
                 import libwasm.bindings.Console;
                 
                 console.log("Iterate: ");
-                console.log(parent.m_title[]);
+                console.log(m_title[]);
                 console.log(newPath[]);
                 console.log(newPath[] == "/home");
             if (!leaving_candidates.empty) {
@@ -207,8 +210,7 @@ struct URLRouter {
                 if (!r.matches(newPath[])) {
                     RouterEvent ev;
                     ev.newURL = newPath[];
-                    ev.prevURL = parent.m_currentURL[];
-                    ev.router = parent;
+                    ev.prevURL = m_currentURL[];
                     r.matches(r.active_url[], ev.parameters);
 
                     Optional!(Promise!void) promise = r.leaving_cb(ev);
@@ -227,20 +229,19 @@ struct URLRouter {
 
                     console.log(newPath[]);
                 import std.algorithm : canFind;
-                if (!parent.m_activeRoutes[].canFind(r))  {
+                if (!m_activeRoutes[].canFind(r))  {
                         console.log(newPath[]);
                     if (r.matches(newPath[], ev.parameters)) {
                         console.log(newPath[]);
                         ev.newURL = newPath[];
-                        ev.prevURL = parent.m_currentURL[];
-                        ev.router = parent;
+                        ev.prevURL = m_currentURL[];
                         console.log(newPath[]);
 
                         Optional!(Promise!void) promise = r.entering_cb(ev);
                         r.active_url[] = cast(char[])newPath[];
                         console.log("Added to active url");
                         console.log(newPath[]);
-                        parent.m_activeRoutes ~= r;
+                        m_activeRoutes ~= r;
                         if (!promise.empty) {
                             console.log("Promise was not empty");
                             promise.front.then(&iterate);
@@ -250,22 +251,22 @@ struct URLRouter {
                 }
             }
             else {
-                parent.m_busy = false;
+                m_busy = false;
                 
                 import libwasm.bindings.Window;
                 import libwasm.bindings.History;
                 import libwasm.dom : window;
                 
                 console.log("Pushing state: ");
-                console.log(parent.m_title[]);
+                console.log(m_title[]);
                 console.log(newPath[]);
-                window().history().pushState(null, parent.m_title[], Optional!string(newPath[]));
+                window().history().pushState(null, m_title[], Optional!string(newPath[]));
 
                 // we finished iteration
-                if (!parent.m_pendingURL.empty()) {
-                    auto url = parent.m_pendingURL;
-                    parent.m_pendingURL.clear();
-                    parent.navigateTo(url[]);
+                if (!m_pendingURL.empty()) {
+                    auto url = m_pendingURL;
+                    m_pendingURL.clear();
+                    navigateTo(url[]);
                 }
                 return;
             }
@@ -275,6 +276,7 @@ struct URLRouter {
             // todo: detect finished iteration and start over for the pendingURL if need be
 
         }
+    //}
     }
     
 	/// Adds a new route for requests matching the specified HTTP method and pattern.
@@ -337,8 +339,8 @@ struct URLRouter {
 
         m_busy = true;
 
-        m_promiseIterator = PromiseIterator(Array!Route(m_activeRoutes[]), Array!Route(m_routes[]), Array!char(new_url), &this);
-        m_promiseIterator.iterate();
+        setupIterator(Array!Route(m_activeRoutes[]), Array!Route(m_routes[]), Array!char(new_url));
+        iterate();
         
 	}
 

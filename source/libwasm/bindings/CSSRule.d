@@ -2,7 +2,7 @@ module libwasm.bindings.CSSRule;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.CSSStyleSheet;
 
 @safe:

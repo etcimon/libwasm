@@ -1616,8 +1616,8 @@ char[] serializeJSON(T)(char[] buf, T t) nothrow @trusted
 		static if (isPublic && hasUDA!(sym, serialize)) {
 			alias ChildType = typeof(sym);
 			enum i = sym.stringof;
-			if (offset > 1) written = formattedWrite!`,"%s":`(buf.ptr + offset, i);
-			else written = formattedWrite!`"%s":`(buf.ptr + offset, i);
+			if (offset > 1) written = formattedWrite!`,"%S":`(buf.ptr + offset, i);
+			else written = formattedWrite!`"%S":`(buf.ptr + offset, i);
 			
 			offset += written.length;
 			static if (isPointer!(typeof(sym))) 
@@ -1704,7 +1704,7 @@ private char[] serializeJSON(T)(char[] buf, T t) nothrow @trusted
 	if (isSomeString!T)
 {	
 	// escape string..?	
-	char[] written = formattedWrite!`"%s"`(buf.ptr, t);
+	char[] written = formattedWrite!`"%S"`(buf.ptr, t);
 	return buf[0 .. written.length];
 }
 

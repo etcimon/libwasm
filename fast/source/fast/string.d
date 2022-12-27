@@ -205,6 +205,10 @@ template concat(Strs...)
 
 
 private:
+bool isWhite(dchar c) @safe pure nothrow @nogc
+{
+    return c == ' ' || (c >= 0x09 && c <= 0x0D);
+}
 
 template SimdMatcher(string match)
 {
@@ -456,7 +460,7 @@ template SimdMatcher(string match)
 							code ~= ")";
 						}
 						i++;
-					} else if (match[i].isWhite) {
+					} else if (match[i]) {
 						i++;
 					} else {
 						throw new Exception(format("Unexpected character at index %s: 0x%02x", i, match[i]));

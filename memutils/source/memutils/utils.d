@@ -8,7 +8,6 @@ import memutils.memory;
 
 import std.traits : hasMember, isPointer, hasIndirections, hasElaborateDestructor, isArray, ReturnType;
 
-pragma(LDC_no_typeinfo):
 struct ThreadMem {
 	nothrow:
 	@trusted:
@@ -77,10 +76,8 @@ nothrow:
 
 nothrow:
 
-pragma(LDC_no_typeinfo):
 struct ObjectAllocator(T, ALLOC = ThreadMem)
 {
-pragma(LDC_no_typeinfo):
 nothrow:
 	enum ElemSize = AllocSize!T;
 
@@ -97,59 +94,61 @@ nothrow:
 	alias TR = RefTypeOf!T;
 	TR alloc(ARGS...)(auto ref ARGS args)
 	{
-		static if (ALLOC.stringof == "CTFE") {
-			pragma(msg, T.stringof);
-			if (__ctfe) return new T(args);
-		}
-		else static if (ALLOC.stringof == "PoolStack") {
-			auto mem = m_getAlloc().alloc(ElemSize);
-		}
-		else static if (ALLOC.stringof == "void") {
-			auto mem = FL_allocate(ElemSize);
+		if (__ctfe) {
+				assert(__ctfe);
+				return new T(args);
 		} else {
-			static if (hasMember!(ALLOC, "ident"))
-				auto allocator_ = getAllocator!(ALLOC.ident)(false);
-			else
-				auto allocator_ = m_allocator;
-			auto mem = allocator_.alloc(ElemSize);
+			static if (ALLOC.stringof == "PoolStack") {
+				auto mem = m_getAlloc().alloc(ElemSize);
+			}
+			else static if (ALLOC.stringof == "void") {
+				auto mem = FL_allocate(ElemSize);
+			} else {
+				static if (hasMember!(ALLOC, "ident"))
+					auto allocator_ = getAllocator!(ALLOC.ident)(false);
+				else
+					auto allocator_ = m_allocator;
+				auto mem = allocator_.alloc(ElemSize);
+			}
+			TR omem = cast(TR)mem;
+			
+			logTrace("ObjectAllocator.alloc initialize");
+			*omem = T(args);
+			return omem;
 		}
-		TR omem = cast(TR)mem;
-		
-		logTrace("ObjectAllocator.alloc initialize");
-		*omem = T(args);
-		return omem;
 
 	}
 
 	void free(TR obj)
 	{
 
+		if (!__ctfe) {
+			TR objc = obj;
+			import memutils.helpers : destructRecurse;
+			static if (is(TR == T*) && hasElaborateDestructor!T) {
+				logTrace("ObjectAllocator.free Pointer destr ", T.stringof);
+				destructRecurse(*objc);
+			} 
+			else static if (hasElaborateDestructor!TR) {
+				logTrace("ObjectAllocator.free other destr ", T.stringof);
+				destructRecurse(objc);
+			} 
 
-		TR objc = obj;
-		import memutils.helpers : destructRecurse;
-		static if (is(TR == T*) && hasElaborateDestructor!T) {
-			logTrace("ObjectAllocator.free Pointer destr ", T.stringof);
-			destructRecurse(*objc);
-		} 
-		else static if (hasElaborateDestructor!TR) {
-			logTrace("ObjectAllocator.free other destr ", T.stringof);
-			destructRecurse(objc);
-		} 
-
-		static if (ALLOC.stringof == "CTFE") {
-			return;
-		} else static if (ALLOC.stringof == "PoolStack") {
-			m_getAlloc().free((cast(void*)obj)[0 .. ElemSize]);
-		}
-		else static if (ALLOC.stringof == "void") {
-			FL_deallocate((cast(void*)obj)[0 .. ElemSize]);
-		}
-		else {
-			static if (hasMember!(ALLOC, "ident"))
-				auto a = getAllocator!(ALLOC.ident)(true);
-			else
-				auto a = m_allocator;
-			a.free((cast(void*)obj)[0 .. ElemSize]);
+			static if (ALLOC.stringof == "CTFE") {
+				return;
+			} else static if (ALLOC.stringof == "PoolStack") {
+				m_getAlloc().free((cast(void*)obj)[0 .. ElemSize]);
+			}
+			else static if (ALLOC.stringof == "void") {
+				FL_deallocate((cast(void*)obj)[0 .. ElemSize]);
+			}
+			else {
+				static if (hasMember!(ALLOC, "ident"))
+					auto a = getAllocator!(ALLOC.ident)(true);
+				else
+					auto a = m_allocator;
+				a.free((cast(void*)obj)[0 .. ElemSize]);
+			}
 		}
 
 	}
@@ -159,60 +158,65 @@ nothrow:
 T[] allocArray(T, ALLOC = ThreadMem)(size_t n, ALLOC* base = null)
 {
 	static enum TSize = T.sizeof;
-	static if (ALLOC.stringof == "void") {
-		auto mem = FL_allocate(TSize * n);
-		return (cast(T*)mem.ptr)[0 .. n];
-	} else {
-		static if (ALLOC.stringof == "CTFE") {
-			//return new T[n];
-		}
-		else static if (ALLOC.stringof == "PoolStack")
-			auto allocator = ALLOC.top;
-		else static if (hasMember!(ALLOC, "ident")) 
-			auto allocator = getAllocator!(ALLOC.ident)(false);
-		else static if (ALLOC.stringof != "void")
-			auto allocator = base;
-		auto mem = allocator.alloc(TSize * n);
-		// logTrace("alloc ", T.stringof, ": ", mem.ptr);
-		auto ret = (cast(T*)mem.ptr)[0 .. n];
-		// logTrace("alloc ", ALLOC.stringof, ": ", mem.ptr, ":", mem.length);
 
-		// don't touch the memory - all practical uses of this function will handle initialization.
-		return ret;
+	if (__ctfe) {
+		assert(__ctfe);
+		return new T[n];
+	} else {
+		static if (ALLOC.stringof == "void") {
+			auto mem = FL_allocate(TSize * n);
+			return (cast(T*)mem.ptr)[0 .. n];
+		} else {
+			static if (ALLOC.stringof == "PoolStack")
+				auto allocator = ALLOC.top;
+			else static if (hasMember!(ALLOC, "ident")) 
+				auto allocator = getAllocator!(ALLOC.ident)(false);
+			else static if (ALLOC.stringof != "void")
+				auto allocator = base;
+			auto mem = allocator.alloc(TSize * n);
+			// logTrace("alloc ", T.stringof, ": ", mem.ptr);
+			auto ret = (cast(T*)mem.ptr)[0 .. n];
+			// logTrace("alloc ", ALLOC.stringof, ": ", mem.ptr, ":", mem.length);
+
+			// don't touch the memory - all practical uses of this function will handle initialization.
+			return ret;
+		}
 	}
+	
 }
 
 T[] reallocArray(T, ALLOC = ThreadMem)(T[] array, size_t n, ALLOC* base = null) {
 	static enum TSize = T.sizeof;
 	assert(n > array.length, "Cannot reallocate to smaller sizes");
-	static if (ALLOC.stringof == "void") {
+	
+	if (__ctfe) {
+		assert(__ctfe);
+		auto arr = new T[n];
+		arr[0 .. array.length] = array[0 .. $];
+		return arr;
+	} else {
+		static if (ALLOC.stringof == "void") {
+			auto mem = FL_reallocate((cast(void*)array.ptr)[0 .. array.length * TSize], TSize * n);
+			return (cast(T*)mem.ptr)[0 .. n];
+		} else {
+			static if (ALLOC.stringof == "PoolStack")
+				auto allocator = ALLOC.top;
+			else static if (hasMember!(ALLOC, "ident")) 
+				auto allocator = getAllocator!(ALLOC.ident)(false);
+			else
+				auto allocator = base;
 
-		auto mem = FL_reallocate((cast(void*)array.ptr)[0 .. array.length * TSize], TSize * n);
-		return (cast(T*)mem.ptr)[0 .. n];
-	}
-	else {
-		static if (ALLOC.stringof == "CTFE") {
-			//auto arr = new T[n];
-			//arr[0 .. array.length] = array;
-			//return arr;
+			// logTrace("realloc before ", ALLOC.stringof, ": ", cast(void*)array.ptr, ":", array.length);
+
+			//logTrace("realloc fre ", T.stringof, ": ", array.ptr);
+			auto mem = allocator.realloc((cast(void*)array.ptr)[0 .. array.length * TSize], TSize * n);
+			//logTrace("realloc ret ", T.stringof, ": ", mem.ptr);
+			auto ret = (cast(T*)mem.ptr)[0 .. n];
+			// logTrace("realloc after ", ALLOC.stringof, ": ", mem.ptr, ":", mem.length);
+
+				
+			return ret;
 		}
-		else static if (ALLOC.stringof == "PoolStack")
-			auto allocator = ALLOC.top;
-		else static if (hasMember!(ALLOC, "ident")) 
-			auto allocator = getAllocator!(ALLOC.ident)(false);
-		else
-			auto allocator = base;
-
-		// logTrace("realloc before ", ALLOC.stringof, ": ", cast(void*)array.ptr, ":", array.length);
-
-		//logTrace("realloc fre ", T.stringof, ": ", array.ptr);
-		auto mem = allocator.realloc((cast(void*)array.ptr)[0 .. array.length * TSize], TSize * n);
-		//logTrace("realloc ret ", T.stringof, ": ", mem.ptr);
-		auto ret = (cast(T*)mem.ptr)[0 .. n];
-		// logTrace("realloc after ", ALLOC.stringof, ": ", mem.ptr, ":", mem.length);
-
-			
-		return ret;
 	}
 }
 
@@ -234,11 +238,8 @@ nothrow void freeArray(T, ALLOC = ThreadMem)(auto ref T[] array, size_t max_dest
 	static if (ALLOC.stringof == "void") {
 		FL_deallocate((cast(void*)array.ptr)[0 .. array.length * TSize]);
 	} 
-	else {
-		static if (ALLOC.stringof == "CTFE") {
-			return;
-		}
-		else static if (ALLOC.stringof == "PoolStack")
+	else static if (ALLOC.stringof != "CTFE") {
+		static if (ALLOC.stringof == "PoolStack")
 			auto allocator = ALLOC.top;
 		else static if (hasMember!(ALLOC, "ident")) {
 			auto allocator = getAllocator!(ALLOC.ident)(true);

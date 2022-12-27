@@ -2,7 +2,7 @@ module libwasm.bindings.ConstantSourceNode;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.AudioParam;
 import libwasm.bindings.AudioScheduledSourceNode;
 

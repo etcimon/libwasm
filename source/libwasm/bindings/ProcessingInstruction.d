@@ -2,7 +2,7 @@ module libwasm.bindings.ProcessingInstruction;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.CharacterData;
 import libwasm.bindings.LinkStyle;
 import libwasm.bindings.StyleSheet;

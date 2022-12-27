@@ -4,11 +4,9 @@ import memutils.allocators;
 import memutils.helpers;
 import memutils.utils;
 import std.traits : hasMember;
-pragma(LDC_no_typeinfo):
 struct RefCounted(T, ALLOC = ThreadMem)
 {
 	
-pragma(LDC_no_typeinfo):
 nothrow:
 @trusted:
 	mixin Embed!(m_object, false);
@@ -20,23 +18,16 @@ nothrow:
 	private TR m_object;
 	private ulong* m_refCount;
 	private void function(void*) m_free;
+	
 	pragma(inline)
 	static RefCounted opCall(ARGS...)(auto ref ARGS args) nothrow
 	{
 		//logTrace("RefCounted opCall");
 		//try { 
 			RefCounted!(T, ALLOC) ret;
-			if (__ctfe) {
-				if (!ret.m_object)
-					ret.m_object = ObjectAllocator!(T, CTFE)().alloc(args);
-				ret.m_refCount = ObjectAllocator!(ulong, CTFE)().alloc();
-
-			} else {
-				if (!ret.m_object)
-					ret.m_object = ObjectAllocator!(T, ALLOC)().alloc(args);
-				ret.m_refCount = ObjectAllocator!(ulong, ALLOC)().alloc();
-
-			}
+			if (!ret.m_object)
+				ret.m_object = ObjectAllocator!(T, ALLOC)().alloc(args);
+			ret.m_refCount = ObjectAllocator!(ulong, ALLOC)().alloc();
 			(*ret.m_refCount) = 1;
 			return ret;
 		//} catch (Throwable e) { assert(false, "RefCounted.opCall(args) Throw: " ~ e.toString()); }
@@ -149,7 +140,7 @@ nothrow:
 
 		static if (!is (U == typeof(this))) {
 			if (!m_free) {
-				static void destr(void* ptr) {
+				static void destr(void* ptr) @trusted {
 					dtor(cast(U*)ptr);
 				}
 				ret.m_free = &destr;
@@ -189,19 +180,11 @@ nothrow:
 		TR obj_ptr = m_object;
 		//static if (!isPointer!T) // call destructors but not for indirections...
 		//	.destroy(m_object);
-		if (__ctfe) {
-			
-			if (obj_ptr !is null)
-				ObjectAllocator!(T, CTFE)().free(obj_ptr);
-			
-			ObjectAllocator!(ulong, CTFE)().free(m_refCount);
-		} else {
-			if (obj_ptr !is null)
-				ObjectAllocator!(T, ALLOC)().free(obj_ptr);
-			
-			ObjectAllocator!(ulong, ALLOC)().free(m_refCount);
-
-		}
+		
+		if (obj_ptr !is null)
+			ObjectAllocator!(T, ALLOC)().free(obj_ptr);
+		
+		ObjectAllocator!(ulong, ALLOC)().free(m_refCount);
 		m_refCount = null;
 		m_object = null;
 	}
@@ -212,8 +195,8 @@ nothrow:
 		if (!m_object) {
 			//logTrace("DefaultInit1");
 			auto newObj = this.opCall(args);
-			(cast(RefCounted*)&this).m_object = newObj.m_object;
-			(cast(RefCounted*)&this).m_refCount = newObj.m_refCount;
+			(cast()this).m_object = newObj.m_object;
+			(cast()this).m_refCount = newObj.m_refCount;
 			newObj.m_object = null;
 			newObj.m_refCount = null;
 		}
@@ -225,8 +208,8 @@ nothrow:
 		if (!m_object) {
 			//logTrace("DefaultInit2");
 			auto newObj = this.opCall();
-			(cast(RefCounted*)&this).m_object = newObj.m_object;
-			(cast(RefCounted*)&this).m_refCount = newObj.m_refCount;
+			(cast()this).m_object = newObj.m_object;
+			(cast()this).m_refCount = newObj.m_refCount;
 			newObj.m_object = null;
 			newObj.m_refCount = null;
 		}

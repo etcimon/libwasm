@@ -2,7 +2,7 @@ module libwasm.bindings.PushEvent;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.ExtendableEvent;
 import libwasm.bindings.PushMessageData;
 

@@ -62,4 +62,4 @@ int main(string[] args)
 	return 0;
 }
 
-struct TranslationKey { Array!char text; Array!char context; }
+struct TranslationKey { Vector!char text; Vector!char context; }

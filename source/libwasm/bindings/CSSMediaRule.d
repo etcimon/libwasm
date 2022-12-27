@@ -2,7 +2,7 @@ module libwasm.bindings.CSSMediaRule;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.CSSConditionRule;
 import libwasm.bindings.MediaList;
 

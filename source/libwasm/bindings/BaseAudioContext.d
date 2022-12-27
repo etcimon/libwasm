@@ -2,7 +2,7 @@ module libwasm.bindings.BaseAudioContext;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.AnalyserNode;
 import libwasm.bindings.AudioBuffer;
 import libwasm.bindings.AudioBufferSourceNode;

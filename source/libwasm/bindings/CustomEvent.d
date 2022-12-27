@@ -2,7 +2,7 @@ module libwasm.bindings.CustomEvent;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Event;
 
 @safe:

@@ -2,7 +2,7 @@ module libwasm.bindings.Client;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Clients;
 import libwasm.bindings.Document;
 import libwasm.bindings.MessagePort;

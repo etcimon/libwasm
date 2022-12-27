@@ -2,7 +2,7 @@ module libwasm.bindings.HTMLSlotElement;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.Element;
 import libwasm.bindings.HTMLElement;
 import libwasm.bindings.Node;

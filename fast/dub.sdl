@@ -5,6 +5,7 @@ authors "Marco Leise"
 copyright "Copyright © 2017, Marco Leise"
 license "GPL-3.0"
 
+dependency "memutils" path="../memutils"
 excludedSourceFiles "source/docs/*.d" "source/unicode/*.d"
 targetPath "generated"
 

@@ -2,7 +2,7 @@ module libwasm.bindings.IntersectionObserver;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.DOMRect;
 import libwasm.bindings.Element;
 import libwasm.bindings.Performance;

@@ -2,7 +2,7 @@ module libwasm.bindings.CanvasCaptureMediaStream;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.HTMLCanvasElement;
 import libwasm.bindings.MediaStream;
 

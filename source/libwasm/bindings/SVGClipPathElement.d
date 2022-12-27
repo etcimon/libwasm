@@ -2,7 +2,7 @@ module libwasm.bindings.SVGClipPathElement;
 
 import libwasm.types;
 
-import std.typecons: tuple;
+import memutils.ct: tuple;
 import libwasm.bindings.SVGAnimatedEnumeration;
 import libwasm.bindings.SVGAnimatedTransformList;
 import libwasm.bindings.SVGElement;
