@@ -46,14 +46,14 @@ mixin template ArrayItemEvents(T) {
   }
 }
 
-void assignEventListeners(T)(ref Array!T arr, ref T item) {
+void assignEventListeners(T)(ref HTMLArray!T arr, ref T item) {
   alias eventPaths = extractEventPaths!(T);
   static foreach(path; eventPaths) {
     mixin("item." ~ join!(".", path.expand) ~ ".add(&arr.__" ~ join!("_", path.expand) ~ ");");
   }
 }
 
-auto getIndexInArray(T)(auto ref Array!T arr, size_t ptr) {
+auto getIndexInArray(T)(auto ref HTMLArray!T arr, size_t ptr) {
   import std.algorithm : countUntil;
   return arr[].countUntil!((ref T* item) {
       auto baseAddr = cast(size_t)(cast(void*)item);
@@ -61,7 +61,7 @@ auto getIndexInArray(T)(auto ref Array!T arr, size_t ptr) {
     });
 }
 
-struct Array(T) {
+struct HTMLArray(T) {
   @child DynamicArray!(T*) appender;
   mixin ArrayItemEvents!T;
   alias appender this;
@@ -150,7 +150,7 @@ bool removeItem(T,U)(ref T app, ref U t) if (isPointer!(U)) {
 
 struct List(T, string tag) {
   mixin Node!tag;
-  @child Array!(T) items;
+  @child HTMLArray!(T) items;
   void put(T* t) {
     items.put(t);
     libwasm.dom.render(node,*items[$-1]);

@@ -550,15 +550,6 @@ auto dropHandle(T)(Handle data) {
   }
 }
 
-struct Any {
-  nothrow:
-  JsHandle handle;
-  alias handle this;
-  this(Handle h) {
-    this.handle = JsHandle(h);
-  }
-}
-
 template libwasmMangle(T) {
   static if (hasMember!(T, "handle") || hasMember!(T, "_parent")) {
     enum libwasmMangle = "handle";
@@ -780,6 +771,7 @@ struct Iterator(T) {
     this.handle = JsHandle(h);
   }
 }
+
 struct Record(T...) {
   nothrow:
   JsHandle handle;
@@ -788,7 +780,17 @@ struct Record(T...) {
     this.handle = JsHandle(h);
   }
 }
+
 struct ArrayPair(T,U) {
+  nothrow:
+  JsHandle handle;
+  alias handle this;
+  this(Handle h) {
+    this.handle = JsHandle(h);
+  }
+}
+
+struct Any {
   nothrow:
   JsHandle handle;
   alias handle this;
@@ -807,6 +809,7 @@ struct JsObject {
   auto opDispatch(string name)() {
     return Any(libwasm_get__field(this.handle, name));
   }
+  // opIndexAssign
 }
 
 struct JSON {

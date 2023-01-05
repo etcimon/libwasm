@@ -12,13 +12,11 @@ import diet.defs;
 import memutils.vector;
 import memutils.scoped;
 
-pragma(msg, "diet.dom");
 @safe:
 nothrow:
 
 string expectText(const(Attribute) att)
 {
-	pragma(msg, "expectText");
 	import diet.defs;
 	if (att.contents.length == 0) return null;
 	enforcep(att.isText, format!"'%s' expected to be a pure text attribute."(att.name[]), att.loc);
@@ -27,7 +25,6 @@ string expectText(const(Attribute) att)
 
 string expectText(const(Node) n)
 {
-	pragma(msg, "expectText");
 	import diet.defs;
 	if (n.contents.length == 0) return null;
 	enforcep(n.contents.length > 0 && n.contents[0].kind == NodeContent.Kind.text &&
@@ -38,7 +35,6 @@ string expectText(const(Node) n)
 
 string expectExpression(const(Attribute) att)
 {
-	pragma(msg, "expectExpression");
 	import diet.defs;
 	enforcep(att.isExpression, format!"'%s' expected to be an expression attribute."(att.name[]), att.loc);
 	return att.contents[0].value[];
@@ -46,7 +42,6 @@ string expectExpression(const(Attribute) att)
 
 Vector!Node clone(in Node[] nodes)
 {
-	pragma(msg, "clone");
 	auto ret = Vector!Node(nodes.length);
 	foreach (i, ref n; ret) n = nodes[i].clone;
 	return ret.move();
@@ -59,7 +54,6 @@ bool isText(const(Attribute) att) { return att.contents.length == 0 || att.conte
 */
 NodeContent[] toNodeContent(in AttributeContent[] contents, Location loc)
 {
-	pragma(msg, "toNodeContent");
 	auto ret = Vector!NodeContent(contents.length);
 	foreach (i, ref c; contents) {
 		final switch (c.kind) {
@@ -85,7 +79,6 @@ NodeContent[] toNodeContent(in AttributeContent[] contents, Location loc)
 */
 /*final*/ struct Node { // non-final because of https://issues.dlang.org/show_bug.cgi?id=17146
 	@safe nothrow:
-	pragma(msg, "Node");
 
 	/// A set of names that identify special-purpose nodes
 	enum SpecialName {
@@ -143,7 +136,6 @@ NodeContent[] toNodeContent(in AttributeContent[] contents, Location loc)
 
 	Node clone()
 	const {
-		pragma(msg, "Node.clone");
 		Node ret;
 		ret.loc.file[] = this.loc.file[];
 		ret.loc.line = this.loc.line;
@@ -171,7 +163,6 @@ NodeContent[] toNodeContent(in AttributeContent[] contents, Location loc)
 	*/
 	void addText(string text, in Location loc)
 	{
-		pragma(msg, "Node.addText");
 		if (contents.length && contents[$-1].kind == NodeContent.Kind.text && contents[$-1].loc == loc)
 			contents[$-1].value ~= text;
 		else contents ~= NodeContent.text(text, loc);
@@ -180,7 +171,6 @@ NodeContent[] toNodeContent(in AttributeContent[] contents, Location loc)
 	/** Removes all content if it conists of only white space. */
 	void stripIfOnlyWhitespace()
 	{
-		pragma(msg, "Node.stripIfOnlyWhitespace");
 		if (!this.hasNonWhitespaceContent)
 			contents.clear();
 	}
@@ -188,7 +178,6 @@ NodeContent[] toNodeContent(in AttributeContent[] contents, Location loc)
 	/** Determines if this node has any non-whitespace contents. */
 	bool hasNonWhitespaceContent()
 	const {
-		pragma(msg, "Node.hasNonWhitespaceContent");
 		foreach (c; contents[]) {
 			if (c.kind != NodeContent.Kind.text || c.value[].ctstrip.length > 0)
 				return true;
@@ -199,7 +188,6 @@ NodeContent[] toNodeContent(in AttributeContent[] contents, Location loc)
 	/** Strips any leading whitespace from the contents. */
 	void stripLeadingWhitespace() 
 	{
-		pragma(msg, "Node.stripLeadingWhitespace");
 		while (contents.length >= 1 && contents[0].kind == NodeContent.Kind.text) {
 			contents[0].value[] = ctstripLeft(contents[0].value[]);
 			if (contents[0].value.length == 0)
@@ -211,7 +199,6 @@ NodeContent[] toNodeContent(in AttributeContent[] contents, Location loc)
 	/** Strips any trailign whitespace from the contents. */
 	void stripTrailingWhitespace() 
 	{
-		pragma(msg, "Node.stripTrailingWhitespace");
 		while (contents.length >= 1 && contents[$-1].kind == NodeContent.Kind.text) {
 			contents[$-1].value[] = ctstripRight(contents[$-1].value[]);
 			if (contents[$-1].value.length == 0)
@@ -247,7 +234,6 @@ NodeContent[] toNodeContent(in AttributeContent[] contents, Location loc)
 	*/
 	inout(Attribute) getAttribute(string name)
 	inout @trusted {
-		pragma(msg, "Node.getAttribute");
 		foreach (ref a; this.attributes[])
 			if (a.name[] == name[])
 				return cast(inout)a;
@@ -270,7 +256,6 @@ NodeContent[] toNodeContent(in AttributeContent[] contents, Location loc)
 
 	/// Outputs a simple string representation of the node.
 	string toString() const {
-		pragma(msg, "Node.toString");
 		return format!"Node(%s, %s)"(loc.file[], name[]);
 	}
 
@@ -298,7 +283,6 @@ enum NodeAttribs {
 	`interpolation` `AttributeContent`).
 */
 struct Attribute {
-	pragma(msg, "Attribute");
 	@safe nothrow:
 
 	/// Location in source file
@@ -423,7 +407,6 @@ struct AttributeContent {
 /** A single piece of node content.
 */
 struct NodeContent {
-	pragma(msg, "NodeContent");
 	@safe nothrow:
 
 	///
@@ -466,7 +449,6 @@ struct NodeContent {
 	/// Compares node content for equality.
 	bool opEquals(const scope NodeContent* other)
 	const scope {
-		pragma(msg, "NodeContent.opEquals");
 		if (this.kind != other.kind) return false;
 		if (this.loc != other.loc) return false;
 		if (this.value != other.value) return false;

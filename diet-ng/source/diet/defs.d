@@ -7,7 +7,6 @@ import memutils.vector;
 import std.traits;
 import memutils.scoped;
 
-pragma(msg, "diet.defs");
 nothrow:
 /** The name of the output range variable within a Diet template.
 
@@ -26,9 +25,6 @@ void put(T, S)(ref T dst, S content) {
 
 string formattedWrite(string format, T, Args...)(ref T buffer, Args args) @trusted
 {
-	pragma(msg, "formattedWrite");
-	pragma(msg, Args.stringof);
-	pragma(msg, format);
 	import fast.format;
 	import ldc.intrinsics;
 	int sz = format.length;
@@ -53,7 +49,6 @@ string formattedWrite(string format, T, Args...)(ref T buffer, Args args) @trust
 }
 
 string format(string fmt, Args...)(Args args) @trusted {
-	pragma(msg, "format");
 	Vector!char ret;
 	formattedWrite!fmt(ret, args);
 	return ret[].copy();
@@ -72,7 +67,6 @@ string format(string fmt, Args...)(Args args) @trusted {
 
 void enforcep(bool cond, string text, in Location loc) @trusted
 {
-	pragma(msg, "enforcep");
 	Vector!char err;
 	err.formattedWrite!"%s (%d): %s"(loc.file[], loc.line+1, text);
 	assert(cond, err[]);

@@ -9,7 +9,6 @@ import diet.internal.string;
 import memutils.vector;
 import memutils.scoped;
 
-	pragma(msg, "diet.input");
 @safe:
 nothrow:
 
@@ -78,7 +77,6 @@ template Group(A...) {
 */
 template localAliasesMixin(int i, ALIASES...)
 {
-	pragma(msg, "localAliasesMixin");
 	import std.traits : hasUDA;
 	static if (i < ALIASES.length) {
 		import std.conv : to;
@@ -126,7 +124,6 @@ private template collectReferencedFiles(string file_name, alias file_contents)
 
 private string[] collectReferences(string content)
 {
-	pragma(msg, "collectReferences");
 	Vector!string ret;
 	// content.stripLeft().splitLines()
 	Vector!char stripped_content;
@@ -149,7 +146,6 @@ private string[] collectReferences(string content)
 
 private Array!InputFile merge(T, U)(ref T a, ref U b)
 {
-	pragma(msg, "merge");
 	auto ret = Array!InputFile(a);
 	foreach (f; b[]) {
 		bool found;
@@ -184,7 +180,6 @@ version(DietUseLive)
 	*/
 	InputFile[] rtGetInputs(string file, string[] source_directories...)
 	{
-		pragma(msg, "rtGetInputs");
 		// for each of the files, import the file, get all the references, and
 		// continually import files until we have them all.
 		import std.range;

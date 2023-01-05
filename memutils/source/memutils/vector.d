@@ -525,7 +525,6 @@ nothrow:
 	/// ditto
 	void opSliceAssign(Stuff)(Stuff value, size_t i, size_t j)
 	{
-		pragma(msg, "opSliceAssign2");
 		auto slice = _data._payload[0 .. _data._length];
 		slice[i .. j] = value;
 	}

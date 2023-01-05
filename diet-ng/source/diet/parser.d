@@ -26,7 +26,6 @@ import diet.internal.string;
 
 import memutils.vector;
 import memutils.scoped;
-pragma(msg, "diet.parser");
 nothrow:
 
 version(unittest)
@@ -59,7 +58,6 @@ version(unittest)
 Document parseDiet(alias TR = identity)(string text, string filename = "string")
 	if (is(typeof(TR(string.init)) == string) || is(typeof(TR(string.init, string.init)) == string))
 {
-	pragma(msg, "parseDiet");
 	Array!InputFile f_arr;
 	InputFile f;
 	f.name[] = filename;
@@ -72,13 +70,11 @@ Document parseDiet(alias TR = identity)(string text, string filename = "string")
 Document parseDiet(alias TR = identity)(Array!InputFile files)
 	if (is(typeof(TR(string.init)) == string) || is(typeof(TR(string.init, string.init)) == string))
 {
-	pragma(msg, "parseDiet");
 	import diet.traits;
 	import std.algorithm.iteration : map;
 
 	assert(files.length > 0, "Empty set of input files");
 
-	pragma(msg, "parseDiet");
 	Vector!FileInfo parsed_files;
 	foreach (f; files[]){
 		parsed_files ~= FileInfo(Array!char(f.name[]), Array!Node(parseDietRaw!TR(f)));
@@ -687,7 +683,6 @@ string identity(string str, string context = null) nothrow @safe @nogc { return 
 private string parseIdent(in string str, ref size_t start,
 	   	string breakChars, in Location loc)
 @safe {
-	pragma(msg, "parseIdent");
 	import std.array : back;
 	/* The stack is used to keep track of opening and
 	closing character pairs, so that when we hit a break char of
@@ -744,7 +739,6 @@ private string parseIdent(in string str, ref size_t start,
 
 private Array!Node parseDietWithExtensions(FileInfo[] files, size_t file_index, ref Vector!BlockInfo blocks, size_t[] import_stack)
 @safe {
-	pragma(msg, "parseDietWithExtensions");
 
 	auto floc = Location(Array!char(files[file_index].name[]), 0);
 	enforcep(!import_stack.ctcanFind(file_index), "Dependency cycle detected for this module.", floc);
@@ -989,7 +983,6 @@ private struct FileInfo {
 */
 Node[] parseDietRaw(alias TR)(InputFile file)
 {
-	pragma(msg, "parseDietRaw");
 
 	string indent_style;
 	auto loc = Location(Array!char(file.name[]), 0);
@@ -1147,7 +1140,6 @@ Node[] parseDietRaw(alias TR)(InputFile file)
 
 private Node parseTagLine(alias TR)(ref string input, ref Location loc, out bool has_nested) @trusted
 {
-	pragma(msg, "parseTagLine");
 	size_t idx = 0;
 
 	auto ret = Node.init;
@@ -1211,7 +1203,6 @@ private Node parseTagLine(alias TR)(ref string input, ref Location loc, out bool
 
 private bool parseTag(ref string input, ref size_t idx, ref Node dst, ref bool has_nested, ref Location loc)
 @safe {
-	pragma(msg, "parseTag");
 
 	dst.name[] = skipIdent(input, idx, ":-_", loc, true);
 
@@ -1334,7 +1325,6 @@ string basenameWithoutExtension(string path) {
 */
 private void parseTextLine(alias TR, bool translate = true)(ref string input, ref Node dst, ref Location loc)
 {
-	pragma(msg, "parseTextLine");
 
 	size_t idx = 0;
 
@@ -1356,7 +1346,6 @@ private void parseTextLine(alias TR, bool translate = true)(ref string input, re
 
 private void parseTextLineRaw(ref string input, ref Node dst, ref Location loc)
 @safe {
-	pragma(msg, "parseTextLineRaw");
 
 	size_t sidx = 0, idx = 0;
 
@@ -1424,7 +1413,6 @@ private void parseTextLineRaw(ref string input, ref Node dst, ref Location loc)
 
 private string skipLine(ref string input, ref size_t idx, ref Location loc)
 @safe {
-	pragma(msg, "skipLine");
 	auto sidx = idx;
 
 	while (idx < input.length) {
@@ -1450,7 +1438,6 @@ private string skipLine(ref string input, ref size_t idx, ref Location loc)
 
 private string skipLine(ref string input, ref Location loc)
 @safe {
-	pragma(msg, "skipLine");
 	size_t idx = 0;
 	auto ret = skipLine(input, idx, loc);
 	input = input[idx .. $];
@@ -1459,7 +1446,6 @@ private string skipLine(ref string input, ref Location loc)
 
 private void parseAttributes(ref string input, ref size_t i, ref Node node, in Location loc)
 @safe {
-	pragma(msg, "parseAttributes");
 	assert(i < input.length && input[i] == '(');
 	i++;
 
@@ -1508,7 +1494,6 @@ private void parseAttributes(ref string input, ref size_t i, ref Node node, in L
 
 private void parseAttributeText(string input, ref Vector!AttributeContent dst, in Location loc)
 @safe {
-	pragma(msg, "parseAttributeText");
 	size_t sidx = 0, idx = 0;
 
 	void flushText()
@@ -1546,7 +1531,6 @@ private void parseAttributeText(string input, ref Vector!AttributeContent dst, i
 
 private string skipUntilClosingBrace(in string s, ref size_t idx, in Location loc)
 @safe {
-	pragma(msg, "skipUntilClosingBrace");
 	import std.algorithm.comparison : among;
 
 	int level = 0;
@@ -1564,7 +1548,6 @@ private string skipUntilClosingBrace(in string s, ref size_t idx, in Location lo
 
 private string skipUntilClosingBracket(in string s, ref size_t idx, in Location loc)
 @safe {
-	pragma(msg, "skipUntilClosingBracket");
 	import std.algorithm.comparison : among;
 
 	int level = 0;
@@ -1593,7 +1576,6 @@ bool isAlpha(dchar c) @safe pure nothrow @nogc
 private string skipIdent(in string s, ref size_t idx, string additional_chars,
 	in Location loc, bool accept_empty = false, bool require_alpha_start = false)
 @safe {
-	pragma(msg, "skipIdent");
 
 	size_t start = idx;
 	while (idx < s.length) {
@@ -1620,7 +1602,6 @@ private string skipIdent(in string s, ref size_t idx, string additional_chars,
 /// Skips all trailing spaces and tab characters of the input string.
 private string skipIndent(ref string input)
 @safe {
-	pragma(msg, "skipIndent");
 	size_t idx = 0;
 	while (idx < input.length && isIndentChar(input[idx]))
 		idx++;
@@ -1633,7 +1614,6 @@ private bool isIndentChar(dchar ch) @safe { return ch == ' ' || ch == '\t'; }
 
 private string skipAnyWhitespace(in string s, ref size_t idx)
 @safe {
-	pragma(msg, "skipAnyWhitespace");
 
 	size_t start = idx;
 	while (idx < s.length) {
@@ -1701,7 +1681,6 @@ private bool isStringLiteral(string str)
 
 private string skipExpression(in string s, ref size_t idx, in Location loc, bool multiline = false)
 @safe {
-	pragma(msg, "skipExpression");
 	Vector!char clamp_stack;
 	size_t start = idx;
 	outer:
@@ -1739,7 +1718,6 @@ private string skipExpression(in string s, ref size_t idx, in Location loc, bool
 
 private string skipAttribString(in string s, ref size_t idx, char delimiter, in Location loc)
 @safe {
-	pragma(msg, "skipAttribString");
 	size_t start = idx;
 	while( idx < s.length ){
 		if( s[idx] == '\\' ){
@@ -1755,7 +1733,6 @@ private string skipAttribString(in string s, ref size_t idx, char delimiter, in 
 
 private bool matchesName(string filename, string logical_name, string parent_name)
 @safe {
-	pragma(msg, "matchesName");
 	if (filename == logical_name) return true;
 	auto ext = parent_name.ctExtension;
 	if (filename.ctendsWith(ext) && filename[0 .. $-ext.length] == logical_name) return true;

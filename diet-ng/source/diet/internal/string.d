@@ -3,7 +3,6 @@ module diet.internal.string;
 import memutils.vector;
 import memutils.scoped;
 import diet.defs;
-pragma(msg, "diet.internal.string");
 
 @safe nothrow:
 Vector!string ctsplit(string s, char c) {

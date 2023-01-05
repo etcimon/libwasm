@@ -8,7 +8,6 @@ import memutils.scoped;
 import diet.defs;
 import diet.internal.string;
 
-pragma(msg, "diet.traits");
 nothrow:
 /** Marks a struct as a Diet traits container.
 
@@ -71,7 +70,6 @@ nothrow:
 */
 string translate(TRAITS...)(string text, string context = null)
 {
-	pragma(msg, "translate");
 	import std.traits : hasUDA;
 
 	foreach (T; TRAITS) {
@@ -95,7 +93,6 @@ string translate(TRAITS...)(string text, string context = null)
 */
 Document applyTraits(TRAITS...)(Document doc)
 {
-	pragma(msg, "applyTraits");
 
 	void processNode(ref Node n, bool in_filter)
 	{
@@ -191,7 +188,6 @@ void filter(ALIASES...)(in char[] input, string filter, CharacterSink output)
 
 private string generateFilterChainMixin(string[] chain, NodeContent*[] contents) @safe
 {
-	pragma(msg, "generateFilterChainMixin");
 	import diet.defs;
 	import diet.internal.string : dstringEscape;
 
@@ -297,7 +293,6 @@ package struct DietTraitsAttribute {}
 
 private bool hasFilterCT(TRAITS...)(string filter)
 {
-	pragma(msg, "hasFilterCT");
 	alias Filters = FiltersFromTraits!TRAITS;
 	static if (Filters.length) {
 		switch (filter) {
@@ -312,7 +307,6 @@ private bool hasFilterCT(TRAITS...)(string filter)
 
 private string runFilterCT(TRAITS...)(string text, string filter)
 {
-	pragma(msg, "runFilterCT");
 	alias Filters = FiltersFromTraits!TRAITS;
 	static if (Filters.length) {
 		switch (filter) {
@@ -327,7 +321,6 @@ private string runFilterCT(TRAITS...)(string text, string filter)
 
 private template FiltersFromTraits(TRAITS...)
 {
-	pragma(msg, "FiltersFromTraits");
 	import std.meta : AliasSeq;
 	template impl(size_t i) {
 		static if (i < TRAITS.length) {
@@ -342,7 +335,6 @@ private template FiltersFromTraits(TRAITS...)
 */
 template DietTraits(ALIASES...)
 {
-	pragma(msg, "DietTraits");
 	import std.meta : AliasSeq;
 	import std.traits : hasUDA;
 
@@ -358,7 +350,6 @@ template DietTraits(ALIASES...)
 
 private template FiltersFromContext(Context)
 {
-	pragma(msg, "FiltersFromContext");
 	import std.meta : AliasSeq;
 	import std.algorithm.searching : startsWith;
 
@@ -375,7 +366,6 @@ private template FiltersFromContext(Context)
 
 private template FilterName(alias FilterFunction)
 {
-	pragma(msg, "FilterName");
 	import std.algorithm.searching : startsWith;
 	import std.ascii : toLower;
 

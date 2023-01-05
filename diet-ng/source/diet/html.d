@@ -12,7 +12,6 @@ import diet.traits;
 import memutils.vector;
 import memutils.scoped;
 
-pragma(msg, "diet.html");
 nothrow:
 private template _dietFileData(string filename)
 {
@@ -121,7 +120,6 @@ version(DietUseLive)
 // time a file is used.
 private template realCompileHTMLDietFileString(string filename, alias contents, TRAITS...)
 {
-	pragma(msg, "realCompileHTMLDietFileString");
 	private static immutable _diet_files = collectFiles!(filename, contents);
 
 	version (DietUseCache)
@@ -199,7 +197,6 @@ private template realCompileHTMLDietFileString(string filename, alias contents, 
 */
 template compileHTMLDietFileString(string filename, alias contents, ALIASES...)
 {
-	pragma(msg, "realCompileHTMLDietFileString");
 	// This import should be REMOVED for 2.0.0, as it was unintentionally
 	// exposed for use inside the mixin. See issue #81
 
@@ -213,7 +210,6 @@ template compileHTMLDietFileString(string filename, alias contents, ALIASES...)
 		private void exec(R)(ref R _diet_output, string[] _diet_html_strings)
 		{
 			mixin(localAliasesMixin!(0, ALIASES));
-			//pragma(msg, _dietParser);
 			mixin(_dietParser);
 		}
 
@@ -235,7 +231,6 @@ template compileHTMLDietFileString(string filename, alias contents, ALIASES...)
 		private void exec(R)(ref R _diet_output)
 		{
 			mixin(localAliasesMixin!(0, ALIASES));
-			//pragma(msg, _dietParser);
 			mixin(_dietParser);
 		}
 
@@ -268,7 +263,6 @@ template compileHTMLDietFileString(string filename, alias contents, ALIASES...)
 */
 template compileHTMLDietString(string contents, ALIASES...)
 {
-	pragma(msg, "compileHTMLDietString");
 	string compileHTMLDietString(R)(ref R dst)
 	{
 		return compileHTMLDietStrings!(Group!(contents, "diet-string"), ALIASES)(dst);
@@ -299,7 +293,6 @@ template compileHTMLDietStrings(alias FILES_GROUP, ALIASES...)
 	private string exec(R)(ref R _diet_output)
 	{
 		mixin(localAliasesMixin!(0, ALIASES));
-		//pragma(msg, getHTMLMixin(_diet_nodes()));
 		mixin(getHTMLMixin(_diet_nodes(), dietOutputRangeName, getHTMLOutputStyle!TRAITS));
 		
 		return getHTMLMixin(_diet_nodes(), dietOutputRangeName, getHTMLOutputStyle!TRAITS);
@@ -395,7 +388,6 @@ unittest {
 		static const n = parseDiet(src);
 		{
 			auto _diet_output = appender!string();
-			//pragma(msg, getHTMLMixin(n));
 			mixin(getHTMLMixin(n));
 			assert(_diet_output.data == expected, _diet_output.data);
 		}
@@ -538,7 +530,6 @@ private string getHTMLMixin(ref CTX ctx, in Node node, bool in_pre) @safe
 
 private string getElementMixin(ref CTX ctx, in Node node, bool in_pre) @safe
 {
-	pragma(msg, "getElementMixin");
 	import std.algorithm : countUntil;
 
 	if (node.name[] == "pre") in_pre = true;
@@ -609,7 +600,7 @@ private string getElementMixin(ref CTX ctx, in Node node, bool in_pre) @safe
 				if (ctx.isHTML5)
 					ret ~= ctx.rawText(node.loc, format!" %s"(att.name[]));
 				else
-					ret ~= ctx.rawText(node.loc, format!" %s = \"%s\""(att.name[], att.name[]));
+					ret ~= ctx.rawText(node.loc, format!" %s=\"%s\""(att.name[], att.name[]));
 
 				ret ~= ctx.statement!"} else static if (is(typeof(%s) : const(char)[])) {{"(node.loc, expr[]);
 				ret ~= ctx.statementCont!"  auto _diet_val = %s;"(node.loc, expr[]);
@@ -621,7 +612,7 @@ private string getElementMixin(ref CTX ctx, in Node node, bool in_pre) @safe
 			ret ~= ctx.statementCont!"}} else {"(node.loc);
 		}
 
-		ret ~= ctx.rawText(node.loc, format!" %s =\""(att.name[]));
+		ret ~= ctx.rawText(node.loc, format!" %s=\""(att.name[]));
 
 		foreach (i, v; att.contents[]) {
 			final switch (v.kind) with (AttributeContent.Kind) {
@@ -790,7 +781,6 @@ private string getCommentMixin(ref CTX ctx, const ref Node node) @safe
 private struct CTX {
 	@safe:
 	nothrow:
-	pragma(msg, "CTX");
 
 	enum NewlineState {
 		none,
@@ -820,7 +810,6 @@ private struct CTX {
 	// trying to cut down on compile time memory, this should help by not formatting very similar lines.
 	@safe const(char)[] getHTMLPiece()
 	{
-		pragma(msg, "getHTMLPiece");
 		if(!piecesMapOutputStr.length)
 		{
 			piecesMapOutputStr[] = format!"put(%s, %s[0x00000000]);\n"(rangeName[], piecesMapName[]);
@@ -849,7 +838,6 @@ private struct CTX {
 	// statement and it.
 	string statementCont(string fmt, ARGS...)(in Location loc, ARGS args)
 	{
-		pragma(msg, "statementCont");
 		with(OutputMode) final switch(mode)
 		{
 		case live:
@@ -865,7 +853,6 @@ private struct CTX {
 
 	string statement(string fmt, ARGS...)(in Location loc, ARGS args)
 	{
-		pragma(msg, "statement");
 		Vector!char ret = flushRawText();
 
 		// Notes on live mode here. This is about to output a statement in D
@@ -933,7 +920,6 @@ private struct CTX {
 
 	string textStatement(string fmt, ARGS...)(in Location loc, ARGS args)
 	{
-		pragma(msg, "textStatement");
 		Vector!char ret;
 		if (newlineState != NewlineState.none) ret ~= rawText(loc, null);
 		ret ~= statement!fmt(loc, args);
@@ -942,7 +928,6 @@ private struct CTX {
 
 	string rawText(ARGS...)(in Location loc, string text)
 	{
-		pragma(msg, "rawText");
 		Vector!char ret;
 		if (!this.inRawText) {
 			with(OutputMode) final switch(mode)
@@ -979,7 +964,6 @@ private struct CTX {
 
 	pure string flushRawText()
 	{
-		pragma(msg, "flushRawText");
 		if (this.inRawText) {
 			this.inRawText = false;
 			if(mode == OutputMode.normal)
@@ -1003,7 +987,6 @@ private struct CTX {
 
 	private string outputPendingNewline()
 	{
-		pragma(msg, "outputPendingNewline");
 		auto st = newlineState;
 		newlineState = NewlineState.none;
 

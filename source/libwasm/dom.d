@@ -454,6 +454,18 @@ void verifyChildParams(Super, string parentField, Params...)() {
     }}
 }
 
+// todo: loadFromHTML
+// parse DOM, iterate structs to find element placement, set values, recur for each child
+// if the child list is equivalent to the parsed dom children, populate each child and attributes
+// otherwise, build an array with the missing child nodes, and match the children using the ID while verifying the ordering
+// if the struct is missing attributes, build an array with the missing attributes
+// if all attributes are missing and there are no children in the struct, use innerHTML
+// call remount after this is done
+// todo: create the logic in render()
+// iterate the children and attributes arrays to load the ones that were missing
+// use a placement array to set the position relative to existing children nodes
+
+// Populates the injected fields
 auto compile(T, Ts...)(auto ref T t, auto ref Ts ts) {
   import std.meta : AliasSeq;
   import std.traits : hasUDA;

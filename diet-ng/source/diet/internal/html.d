@@ -13,7 +13,6 @@ import std.traits;
 import memutils.vector;
 import memutils.scoped;
 import diet.defs;
-pragma(msg, "diet.internal.html");
 nothrow:
 /** Returns the HTML escaped version of a given string.
 */
