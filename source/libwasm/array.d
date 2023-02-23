@@ -2,7 +2,7 @@ module libwasm.array;
 
 import libwasm.event;
 import libwasm.node;
-import memutils.ct;
+import libwasm.memory.ct;
 import libwasm.node;
 import libwasm.dom;
 import libwasm.types;
@@ -22,7 +22,7 @@ template extractEventPaths(T, Ts...) {
     alias recur = extractEventPaths!(typeof(__traits(getMember, T, NextT)), AliasSeq!(Ts, NextT));
   }
   template prefixNames(string Event) {
-    import memutils.ct : tuple;
+    import libwasm.memory.ct : tuple;
     enum prefixNames = tuple(Ts, Event);
   }
   alias eventNames = staticMap!(getName, AliasSeq!(events));

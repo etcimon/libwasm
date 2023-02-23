@@ -5,7 +5,7 @@ nothrow:
 public import optional;
 public import libwasm.sumtype;
 public import libwasm.lodash;
-import memutils.vector;
+import libwasm.memory.vector;
 import std.traits : hasMember, isCallable, isBasicType, isSomeString;
 import libwasm.event : toTuple;
 import libwasm.bindings.EventHandler;
@@ -196,9 +196,9 @@ void jsCallback(uint ctx, uint fun, Handle arg) @trusted {
 {
   import fast.json;
   import libwasm.rt.allocator;
-  char[] buf = cast(char[]) ThreadMemAllocator.allocate(serializationLength(tupleArgs));
+  char[] buf = cast(char[]) AppMemAllocator.allocate(serializationLength(tupleArgs));
   scope(exit)
-    ThreadMemAllocator.deallocate(buf);
+    AppMemAllocator.deallocate(buf);
   auto args = cast(string) serializeJSON(buf, tupleArgs);
   static if (is(R == string))
     return Object_VarArgCall__string(hndl, method, argsdef, args);

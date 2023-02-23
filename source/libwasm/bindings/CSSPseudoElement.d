@@ -2,7 +2,7 @@ module libwasm.bindings.CSSPseudoElement;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.Animatable;
 import libwasm.bindings.Animation;
 import libwasm.bindings.Element;

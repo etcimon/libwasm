@@ -2,7 +2,7 @@ module libwasm.bindings.SVGFEComponentTransferElement;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.SVGAnimatedLength;
 import libwasm.bindings.SVGAnimatedString;
 import libwasm.bindings.SVGElement;

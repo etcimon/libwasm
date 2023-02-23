@@ -2,7 +2,7 @@ module libwasm.bindings.XSLTProcessor;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.Document;
 import libwasm.bindings.DocumentFragment;
 import libwasm.bindings.Node;

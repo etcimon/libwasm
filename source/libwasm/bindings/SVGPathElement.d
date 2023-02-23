@@ -2,7 +2,7 @@ module libwasm.bindings.SVGPathElement;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.SVGAnimatedPathData;
 import libwasm.bindings.SVGGeometryElement;
 import libwasm.bindings.SVGPathSegList;

@@ -2,7 +2,7 @@ module libwasm.bindings.SVGAElement;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.DOMTokenList;
 import libwasm.bindings.SVGAnimatedString;
 import libwasm.bindings.SVGGraphicsElement;

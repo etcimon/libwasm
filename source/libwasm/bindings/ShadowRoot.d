@@ -2,7 +2,7 @@ module libwasm.bindings.ShadowRoot;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.DocumentFragment;
 import libwasm.bindings.DocumentOrShadowRoot;
 import libwasm.bindings.Element;

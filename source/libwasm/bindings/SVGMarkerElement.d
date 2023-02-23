@@ -2,7 +2,7 @@ module libwasm.bindings.SVGMarkerElement;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.SVGAngle;
 import libwasm.bindings.SVGAnimatedAngle;
 import libwasm.bindings.SVGAnimatedEnumeration;

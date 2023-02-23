@@ -2,7 +2,7 @@ module libwasm.bindings.SVGImageElement;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.HTMLImageElement;
 import libwasm.bindings.SVGAnimatedLength;
 import libwasm.bindings.SVGAnimatedPreserveAspectRatio;

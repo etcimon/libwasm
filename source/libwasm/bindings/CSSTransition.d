@@ -2,7 +2,7 @@ module libwasm.bindings.CSSTransition;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.Animation;
 
 @safe:

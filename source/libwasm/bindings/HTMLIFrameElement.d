@@ -2,7 +2,7 @@ module libwasm.bindings.HTMLIFrameElement;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.BrowserElement;
 import libwasm.bindings.DOMTokenList;
 import libwasm.bindings.Document;

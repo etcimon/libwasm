@@ -2,7 +2,7 @@ module libwasm.bindings.HTMLAnchorElement;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.DOMTokenList;
 import libwasm.bindings.HTMLElement;
 import libwasm.bindings.HTMLHyperlinkElementUtils;

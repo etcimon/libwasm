@@ -2,7 +2,7 @@ module libwasm.bindings.AudioWorkletNode;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.AudioNode;
 import libwasm.bindings.AudioParamMap;
 import libwasm.bindings.EventHandler;

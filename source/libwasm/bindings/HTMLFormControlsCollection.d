@@ -2,7 +2,7 @@ module libwasm.bindings.HTMLFormControlsCollection;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.Element;
 import libwasm.bindings.HTMLCollection;
 import libwasm.bindings.RadioNodeList;

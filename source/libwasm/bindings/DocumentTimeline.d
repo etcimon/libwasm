@@ -2,7 +2,7 @@ module libwasm.bindings.DocumentTimeline;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.AnimationTimeline;
 import libwasm.bindings.Performance;
 

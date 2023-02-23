@@ -2,7 +2,7 @@ module libwasm.bindings.NotifyPaintEvent;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.DOMRect;
 import libwasm.bindings.DOMRectList;
 import libwasm.bindings.Event;

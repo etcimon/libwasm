@@ -2,7 +2,7 @@ module libwasm.bindings.CanvasCaptureMediaStream;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.HTMLCanvasElement;
 import libwasm.bindings.MediaStream;
 

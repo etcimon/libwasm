@@ -2,7 +2,7 @@ module libwasm.bindings.Worker;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.AbortSignal;
 import libwasm.bindings.AbstractWorker;
 import libwasm.bindings.Blob;

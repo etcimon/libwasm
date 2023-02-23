@@ -2,7 +2,7 @@ module libwasm.bindings.TouchEvent;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.Touch;
 import libwasm.bindings.TouchList;
 import libwasm.bindings.UIEvent;

@@ -2,7 +2,7 @@ module libwasm.bindings.TrackEvent;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.AudioTrack;
 import libwasm.bindings.Event;
 import libwasm.bindings.TextTrack;

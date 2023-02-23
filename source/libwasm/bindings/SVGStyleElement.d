@@ -2,7 +2,7 @@ module libwasm.bindings.SVGStyleElement;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.LinkStyle;
 import libwasm.bindings.SVGElement;
 import libwasm.bindings.StyleSheet;

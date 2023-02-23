@@ -2,7 +2,7 @@ module libwasm.bindings.HTMLQuoteElement;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.HTMLElement;
 
 @safe:

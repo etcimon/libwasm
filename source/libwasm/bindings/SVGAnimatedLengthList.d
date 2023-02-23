@@ -2,7 +2,7 @@ module libwasm.bindings.SVGAnimatedLengthList;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.SVGLengthList;
 
 @safe:

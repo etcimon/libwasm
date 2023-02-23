@@ -2,7 +2,7 @@ module libwasm.bindings.PaymentRequestUpdateEvent;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.Event;
 import libwasm.bindings.PaymentRequest;
 

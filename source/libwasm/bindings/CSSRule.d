@@ -2,7 +2,7 @@ module libwasm.bindings.CSSRule;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.CSSStyleSheet;
 
 @safe:

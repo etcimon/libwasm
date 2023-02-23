@@ -2,7 +2,7 @@ module libwasm.bindings.LinkStyle;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.StyleSheet;
 
 @safe:

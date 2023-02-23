@@ -2,7 +2,7 @@ module libwasm.bindings.PointerEvent;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.MouseEvent;
 
 @safe:

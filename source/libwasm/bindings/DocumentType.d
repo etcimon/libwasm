@@ -2,7 +2,7 @@ module libwasm.bindings.DocumentType;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.ChildNode;
 import libwasm.bindings.Node;
 

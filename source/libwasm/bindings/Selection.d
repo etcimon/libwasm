@@ -2,7 +2,7 @@ module libwasm.bindings.Selection;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.LegacyQueryInterface;
 import libwasm.bindings.Node;
 import libwasm.bindings.Range;

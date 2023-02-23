@@ -2,7 +2,7 @@ module libwasm.bindings.Presentation;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.PresentationReceiver;
 import libwasm.bindings.PresentationRequest;
 

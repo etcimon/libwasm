@@ -2,7 +2,7 @@ module libwasm.bindings.PeerConnectionImpl;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.MediaStreamTrack;
 import libwasm.bindings.PeerConnectionImplEnums;
 import libwasm.bindings.PeerConnectionObserver;

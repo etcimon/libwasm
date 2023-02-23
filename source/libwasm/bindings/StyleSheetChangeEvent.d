@@ -2,7 +2,7 @@ module libwasm.bindings.StyleSheetChangeEvent;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.CSSStyleSheet;
 import libwasm.bindings.Event;
 

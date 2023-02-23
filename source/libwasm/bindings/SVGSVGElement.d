@@ -2,7 +2,7 @@ module libwasm.bindings.SVGSVGElement;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.Element;
 import libwasm.bindings.SVGAngle;
 import libwasm.bindings.SVGAnimatedLength;

@@ -2,7 +2,7 @@ module libwasm.bindings.IDBDatabase;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.DOMStringList;
 import libwasm.bindings.EventHandler;
 import libwasm.bindings.EventTarget;

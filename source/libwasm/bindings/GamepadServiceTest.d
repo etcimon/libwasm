@@ -2,7 +2,7 @@ module libwasm.bindings.GamepadServiceTest;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.Gamepad;
 
 @safe:

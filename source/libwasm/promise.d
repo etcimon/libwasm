@@ -16,9 +16,9 @@ module libwasm.promise;
 import std.functional;
 import std.meta : allSatisfy, AliasSeq;
 import std.traits : CommonType;
-import memutils.refcounted;
-import memutils.vector;
-import memutils.scoped;
+import libwasm.memory.refcounted;
+import libwasm.memory.vector;
+import libwasm.memory.scoped;
 import libwasm.types;
 
 @safe nothrow:

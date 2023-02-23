@@ -2,7 +2,7 @@ module libwasm.bindings.XULElement;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.BoxObject;
 import libwasm.bindings.CSSStyleDeclaration;
 import libwasm.bindings.Element;

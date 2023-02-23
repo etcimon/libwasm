@@ -2,7 +2,7 @@ module libwasm.bindings.RTCRtpSender;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.MediaStream;
 import libwasm.bindings.MediaStreamTrack;
 import libwasm.bindings.RTCDTMFSender;

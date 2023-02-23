@@ -1,0 +1,17 @@
+name "memory"
+description "Overhead allocators, allocator-aware containers and lifetime management for D objects targeted at WebAssembly."
+authors "Etienne Cimon" "Sönke Ludwig"
+copyright "Copyright © 2018-2023, Etienne Cimon"
+license "MIT"
+targetType "staticLibrary"
+dependency "libwasm:runtime" version="*" path="../"
+configuration "default" { 
+	dflags ""
+}
+configuration "wasm" {
+	dflags "-mtriple=wasm32-unknown-unknown-wasm"
+}
+
+dflags "-betterC"
+sourcePaths "."
+importPaths "."

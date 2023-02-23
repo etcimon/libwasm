@@ -1,13 +1,13 @@
 module libwasm.router;
 
-import memutils.hashmap;
+import libwasm.memory.hashmap;
 import libwasm.promise;
 import libwasm.types;
 import libwasm.bindings.MouseEvent;
 import libwasm.bindings.Event;
 import std.traits : isPointer,isAggregateType;
-import memutils.vector;
-import memutils.scoped;
+import libwasm.memory.vector;
+import libwasm.memory.scoped;
 import optional;
 
 // Match setup in compile
@@ -28,7 +28,7 @@ struct RouterEvent {
 
 }
 
-todo: Write Promise on ThreadMemAllocator
+todo: Write Promise on AppMemAllocator
 
 
 
@@ -52,7 +52,7 @@ private struct Route {
 		size_t i, j;
 
 		// store parameters until a full match is confirmed
-		import memutils.ct;
+		import libwasm.memory.ct;
 		Tuple!(string, string)[maxRouteParameters] tmpparams;
 		size_t tmppparams_length = 0;
 

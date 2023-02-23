@@ -2,7 +2,7 @@ module libwasm.bindings.FormData;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.Blob;
 import libwasm.bindings.Directory;
 

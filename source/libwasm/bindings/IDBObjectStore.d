@@ -2,7 +2,7 @@ module libwasm.bindings.IDBObjectStore;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.DOMStringList;
 import libwasm.bindings.IDBCursor;
 import libwasm.bindings.IDBIndex;

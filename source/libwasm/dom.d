@@ -1,7 +1,7 @@
 module libwasm.dom;
 
 import libwasm.types;
-import memutils.ct;
+import libwasm.memory.ct;
 import std.traits : hasMember, isAggregateType;
 import std.traits : TemplateArgsOf, staticMap, isPointer, PointerTarget, getUDAs, EnumMembers, isInstanceOf, isBasicType, isIntegral;
 import std.traits : getSymbolsByUDA, getUDAs;
@@ -561,7 +561,7 @@ auto isChildVisible(string child, Parent)(auto ref Parent parent) {
 }
 
 auto callMember(string fun, T)(auto ref T t) {
-  import memutils.ct : ParameterIdentifierTuple;
+  import libwasm.memory.ct : ParameterIdentifierTuple;
   import std.meta : staticMap, AliasSeq;
   alias params = ParameterIdentifierTuple!(__traits(getMember, t, fun));
   static if (params.length == 0) {
@@ -941,7 +941,7 @@ void setVisible(string field, Parent)(auto ref Parent parent, bool visible) {
 template update(alias field) {
   import std.traits : isPointer;
   static void updateDom(Parent, T)(auto ref Parent parent, auto ref T t) {
-    import memutils.ct : ParameterIdentifierTuple;
+    import libwasm.memory.ct : ParameterIdentifierTuple;
     import std.traits : hasUDA, isCallable, getUDAs;
     import std.meta : AliasSeq;
     import std.meta : staticMap;

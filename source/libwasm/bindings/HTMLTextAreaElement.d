@@ -2,7 +2,7 @@ module libwasm.bindings.HTMLTextAreaElement;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.HTMLElement;
 import libwasm.bindings.HTMLFormElement;
 import libwasm.bindings.HTMLInputElement;

@@ -2,7 +2,7 @@ module libwasm.bindings.Worklet;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.Request;
 
 @safe:

@@ -2,7 +2,7 @@ module libwasm.bindings.OfflineAudioContext;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.AudioBuffer;
 import libwasm.bindings.BaseAudioContext;
 import libwasm.bindings.EventHandler;

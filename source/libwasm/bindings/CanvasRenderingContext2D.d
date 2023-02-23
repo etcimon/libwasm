@@ -2,7 +2,7 @@ module libwasm.bindings.CanvasRenderingContext2D;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.Element;
 import libwasm.bindings.HTMLCanvasElement;
 import libwasm.bindings.HTMLImageElement;

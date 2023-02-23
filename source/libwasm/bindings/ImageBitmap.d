@@ -2,7 +2,7 @@ module libwasm.bindings.ImageBitmap;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.Blob;
 import libwasm.bindings.CanvasRenderingContext2D;
 import libwasm.bindings.ImageData;

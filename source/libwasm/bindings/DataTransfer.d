@@ -2,7 +2,7 @@ module libwasm.bindings.DataTransfer;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.DOMStringList;
 import libwasm.bindings.DataTransferItemList;
 import libwasm.bindings.Directory;

@@ -2,7 +2,7 @@ module libwasm.bindings.SVGFitToViewBox;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.SVGAnimatedPreserveAspectRatio;
 import libwasm.bindings.SVGAnimatedRect;
 

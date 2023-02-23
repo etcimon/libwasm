@@ -2,7 +2,7 @@ module libwasm.bindings.ChromeNodeList;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.Node;
 import libwasm.bindings.NodeList;
 

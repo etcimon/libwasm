@@ -2,7 +2,7 @@ module libwasm.bindings.SVGRect;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 @safe:
 nothrow:
 

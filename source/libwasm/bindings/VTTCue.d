@@ -2,7 +2,7 @@ module libwasm.bindings.VTTCue;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.DocumentFragment;
 import libwasm.bindings.HTMLDivElement;
 import libwasm.bindings.TextTrackCue;

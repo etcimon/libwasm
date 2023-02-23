@@ -20,10 +20,10 @@ nothrow:
   console.error(msg);
 }
 char[] parse_int(long num) nothrow @trusted {
-  import libwasm.rt.allocator : ThreadMemAllocator;
+  import libwasm.rt.allocator : AppMemAllocator;
   // used only for debugging memutils (for now)
   import fast.format;
-  char[] buf = cast(char[]) ThreadMemAllocator.allocate(decCharsVal(num));
+  char[] buf = cast(char[]) AppMemAllocator.allocate(decCharsVal(num));
   return formattedWrite!"%d"(buf.ptr, num);
 }
 
@@ -83,7 +83,7 @@ mixin template Spa(Application, Theme) {
   @trusted void _start(uint heap_base) {
     import libwasm.rt.memory;
     import fast.internal.helpers : logInfo, logError;
-    import memutils.constants : writeln, parseInt;
+    import libwasm.memory.constants : writeln, parseInt;
     alloc_init(heap_base);
     auto root = getRoot();
     addApplicationCss!(Application, Theme)();

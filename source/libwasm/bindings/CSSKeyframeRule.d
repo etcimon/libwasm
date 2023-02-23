@@ -2,7 +2,7 @@ module libwasm.bindings.CSSKeyframeRule;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.CSSRule;
 import libwasm.bindings.CSSStyleDeclaration;
 

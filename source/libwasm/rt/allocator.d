@@ -5,11 +5,11 @@ nothrow:
 import std.typecons : Flag, Yes, No;
 import std.traits : isFloatingPoint, isIntegral, isSigned, isNumeric;
 
-import memutils.utils;
-import memutils.scoped;
-import memutils.pool;
-import memutils.freelist;
-import memutils.hashmap;
+import libwasm.memory.utils;
+import libwasm.memory.scoped;
+import libwasm.memory.pool;
+import libwasm.memory.freelist;
+import libwasm.memory.hashmap;
 import libwasm.rt.allocator;
 import libwasm.types;
 
@@ -157,22 +157,8 @@ struct WasmAllocator {
   return cast(size_t) ptr % alignment == 0;
 }
 
-
-// used in libwasm Lodash
-@trusted extern(C) {
-    void[] FL_allocate(size_t n) {
-        return ThreadMemAllocator.allocate(n);
-    }
-    void[] FL_reallocate(void[] mem, size_t n){
-        return ThreadMemAllocator.reallocate(mem, n);
-    }
-    void FL_deallocate(void[] mem){
-        ThreadMemAllocator.deallocate(mem);
-    }
-}
-
 @trusted extern(C) export @assumeUsed ubyte* allocString(uint bytes) {
-  import memutils.scoped;
+  import libwasm.memory.scoped;
   auto ret = PoolStack.top.alloc(bytes+1);
   *cast(ubyte*)(ret.ptr + ret.length - 1) = '\0'; // always return zero-ended. wrong size can be sent because this is not freed
   return cast(ubyte*)ret.ptr;
@@ -184,7 +170,7 @@ struct WasmAllocator {
 // maybe in some outer scope
 extern (C) export void* _d_allocmemory(size_t sz)
 {
-    import memutils.scoped;
+    import libwasm.memory.scoped;
     return PoolStack.top.alloc(sz).ptr;
 }
 
@@ -192,44 +178,4 @@ extern(C) export @assumeUsed void _d_freememory(void* mem) {
     // Since they were allocated on a pool stack, we can't be sure if it's still the top,
     // let the pool free memory in its destructor instead
     
-}
-
-struct ThreadMemAllocator {
-static:
-nothrow:
-@trusted:
-    void[] allocate(size_t n) {
-        return ThreadMem.alloc!(void[])(n);
-    }
-
-    void[] reallocate(void[] data, size_t n, bool free_mem = true) {
-        if (data.length == 0)
-            return allocate(n);
-        return ThreadMem.realloc(data, n, free_mem);
-    }
-
-    bool deallocate(void[] data, bool free_mem = true) {
-        ThreadMem.free(data, free_mem);
-        return true;
-    }
-}
-
-struct PoolStackAllocator {
-static:
-nothrow:
-@trusted:
-    void[] allocate(size_t n) {
-        return PoolStack.top.alloc(n);
-    }
-
-    void[] reallocate(void[] data, size_t n, bool free_mem = true) {
-        if (data.length == 0)
-            return allocate(n);
-        return PoolStack.top.realloc(data, n, free_mem);
-    }
-
-    bool deallocate(void[] data, bool free_mem = true) {
-        PoolStack.top.free(data, free_mem);
-        return true;
-    }
 }

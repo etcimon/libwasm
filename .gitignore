@@ -5,6 +5,9 @@ __dummy.html
 *.obj
 __test__*__
 *.a
+*.exe
+*.pdb
+*.lib
 Dockerfile.build
 package-lock.json
 dub.selections.json

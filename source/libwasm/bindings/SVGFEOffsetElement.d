@@ -2,7 +2,7 @@ module libwasm.bindings.SVGFEOffsetElement;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.SVGAnimatedLength;
 import libwasm.bindings.SVGAnimatedNumber;
 import libwasm.bindings.SVGAnimatedString;

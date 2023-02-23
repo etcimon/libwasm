@@ -2,7 +2,7 @@ module libwasm.bindings.HTMLElement;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.CSSStyleDeclaration;
 import libwasm.bindings.DOMStringMap;
 import libwasm.bindings.Element;

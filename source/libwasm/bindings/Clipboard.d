@@ -2,7 +2,7 @@ module libwasm.bindings.Clipboard;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.DataTransfer;
 import libwasm.bindings.EventTarget;
 

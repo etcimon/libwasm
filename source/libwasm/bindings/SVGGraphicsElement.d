@@ -2,7 +2,7 @@ module libwasm.bindings.SVGGraphicsElement;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.SVGAnimatedTransformList;
 import libwasm.bindings.SVGElement;
 import libwasm.bindings.SVGMatrix;

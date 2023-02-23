@@ -2,7 +2,7 @@ module libwasm.bindings.FetchEvent;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.Event;
 import libwasm.bindings.ExtendableEvent;
 import libwasm.bindings.Request;

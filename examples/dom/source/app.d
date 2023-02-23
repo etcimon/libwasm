@@ -8,9 +8,9 @@ import libwasm.bindings.Node;
 import libwasm.bindings.Function;
 import libwasm.rt.allocator;
 
-import memutils.utils;
-import memutils.vector;
-import memutils.scoped;
+import libwasm.memory.utils;
+import libwasm.memory.vector;
+import libwasm.memory.scoped;
 import fast.json;
 import fast.format;
 import libwasm.moment;
@@ -95,7 +95,7 @@ struct Main {
     JSON parsed = JSON.parse("[56542654262544562,452345435345423,34352435245254,243253254352435,1345242534543254,23452345342543243425430]");
     setTimeout(() { console.log("setTimeout called"); }, 10000);
     console.log("Returned from setTimeout");
-    import libwasm.rt.allocator : ThreadMemAllocator;
+    import libwasm.rt.allocator : AppMemAllocator;
     // used only for debugging memutils (for now)
     //auto ld = parsed.lodash();
 /*    
@@ -219,10 +219,10 @@ console.log(valadd);
     
     start = getTimeStamp();
     for(int i = 0; i < 10000; i++) {
-      char[] buf = cast(char[]) ThreadMemAllocator.allocate(serializationLength(tuple("Some")));
+      char[] buf = cast(char[]) AppMemAllocator.allocate(serializationLength(tuple("Some")));
       auto args = serializeJSON(buf, tuple("Some"));
       Object_VarArgCall__string(window()._parent.handle.handle, "btoa", "string", cast(string)args);
-      ThreadMemAllocator.deallocate(buf);
+      AppMemAllocator.deallocate(buf);
     }
     end = getTimeStamp();
     console.log("Spread btoa");

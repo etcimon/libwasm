@@ -2,7 +2,7 @@ module libwasm.bindings.MediaKeys;
 
 import libwasm.types;
 
-import memutils.ct: tuple;
+import libwasm.memory.ct: tuple;
 import libwasm.bindings.MediaKeySession;
 import libwasm.bindings.MediaKeyStatusMap;
 
