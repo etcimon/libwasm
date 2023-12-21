@@ -1,7 +1,7 @@
 name "libwasm"
 description "A framework for writing webassembly single page applications"
 authors "Sebastiaan Koppe" "Etienne Cimon"
-copyright "Copyright © 2018-2022, Sebastiaan Koppe, Etienne Cimon"
+copyright "Copyright © 2018-2023, Sebastiaan Koppe, Etienne Cimon"
 license "MIT"
 dependency "memutils-wasm" path="./memutils"
 dependency "fast-wasm" path="./fast"

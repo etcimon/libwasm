@@ -6,7 +6,7 @@ license "MIT"
 dependency "libwasm" path="../../"
 dependency "memutils-wasm" path="../../memutils"
 dependency "fast-wasm" path="../../fast"
-dflags "-mtriple=wasm32-unknown-unknown-wasm" "-betterC" #"-Oz" "-fvisibility=hidden" "-dip1000"
+dflags "--nogc" "--fno-exceptions" "-fvisibility=hidden" #"-Oz" "-fvisibility=hidden" "-dip1000"
 #lflags "-strip-all"
 
 buildRequirements "allowWarnings"
