@@ -102,7 +102,6 @@ template toListenerType(string t) {
 // TODO: please combine with function below
 auto removeEventListenerTyped(string name, T)(Handle node, auto ref T t) {
   import std.traits : fullyQualifiedName, Parameters;
-  import std.algorithm : findSplitAfter;
   import memutils.ct : toLower;
   // TODO: really want to use std.uni.toLower here but prevented by https://issues.dlang.org/show_bug.cgi?id=19268
   enum type = toLower!(name[2..$]);
@@ -123,7 +122,6 @@ auto removeEventListenerTyped(string name, T)(Handle node, auto ref T t) {
 
 auto addEventListenerTyped(string name, T)(Handle node, auto ref T t) {
   import std.traits : fullyQualifiedName, Parameters;
-  import std.algorithm : findSplitAfter;
   import memutils.ct : toLower;
   // TODO: really want to use std.uni.toLower here but prevented by https://issues.dlang.org/show_bug.cgi?id=19268
   enum type = toLower!(name[2..$]);

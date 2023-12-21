@@ -1,5 +1,15 @@
-const abort = (what,file,line) => {
-    throw `ABORT: $what @ $file:$line`;
+const abort = (what,file,line, msg) => {
+    console.error(`ABORT: ${what} @ ${file}:${line} ${msg}`)
+    throw `ABORT: ${what} @ ${file}:${line} ${msg}`;
+}
+
+const sliceError = (what, file, line, lower, upper, length) => {
+    let msg = ` slice[${lower} .. ${upper}] invalid on len ${length}`
+    abort(what, file, line, msg);
+}
+const indexError = (what, file, line, idx, length) => {
+    let msg = ` indx[${idx}] invalid on len ${length}`
+    abort(what, file, line, msg);
 }
 
 const utf8Decoder = new TextDecoder('utf-8');
@@ -42,6 +52,7 @@ const setupMemory = (memory) => {
     libwasm.buffer = memory.buffer;
 }
 const libwasm = {
+    nativeFunctions: {},
     lastPtr: 2,
     lastPromisePtr: 65536,
     instance: null,
@@ -57,6 +68,15 @@ const libwasm = {
             window.ao = libwasm.addObject;
             window.es = encoders.string;
             window.nodes = libwasm.objects;
+            window.callNative = (fct_name, val) => {
+                let fct = libwasm.nativeFunctionMap[fct_name];
+                if (fct && fct.fun) {
+                    let handle = addObject(val);
+                    libwasm.instance.exports.jsCallback(ctx, fun, handle);
+                }
+                else
+                    console.error(`Function ${fct_name} is not registered.`)
+            };
         }
         if ('undefined' === typeof WebAssembly.instantiateStreaming) {
             fetch('dom')
@@ -124,7 +144,6 @@ let decoders = {
         //console.log(offset + ' ' + str)
         
         if (offset < heap_base_value) {
-            console.log("Got heap base: " + heap_base_value+ ' and offset ' + offset + ', caching value')
             wasm_constants_decoded[offset] = str;
         }
         return str;
@@ -135,6 +154,12 @@ let jsExports = {
     env: {
         onOutOfMemoryError: () => abort("Out of memory exception"),
         _d_assert: (file,line) => abort("assert",file,line),
+        _d_assert_msg: (file,line,msg) => abort("assert",file,line,msg),
+        _d_arraybounds_slice: (file, line, lower, upper, length) => sliceError("_d_arraybounds_slice", file, line, lower, upper, length),
+        _d_arraybounds_index: (file, line, lower, upper, length) => indexError("_d_arraybounds_index", file, line, idx, length),
+        _D4core8internal5array11arrayassign27enforceRawArraysConformableFNaNbNiNexAaxkxAvxQdxbZv: ()=>{},
+        _D6object10_xopEqualsFIPvIQdZb: (ptr1,ptr2) => abort("opEquals not implemented"),
+        _D6object7_xopCmpFIPvIQdZb: (ptr1,ptr2) => abort("opCmp not implemented"),
         doLog: arg => console.log(arg),
         memory: libwasm.memory,
         __assert: () => {},
@@ -159,6 +184,10 @@ let jsExports = {
         libwasm_add__string: (len, offset) => {
             let str = decoders.string(len, offset);
             return addObject(str);
+        },
+        libwasm_set__function: (len, offset, ctx, fun) => {
+            let fct_name = decoders.string(len, offset);
+            libwasm.nativeFunctionMap[fct_name] = {ctx, fun};
         },
         libwasm_get__field: (handle, len, offset) => {
             return addObject(getObject(handle)[decoders.string(len,offset)]);

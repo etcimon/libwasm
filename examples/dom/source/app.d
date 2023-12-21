@@ -237,6 +237,28 @@ console.log(valadd);
     console.log("window.btoa");
     console.log(start-end);
     */
+    
+    import diet.html : compileHTMLDietString;
+    Vector!char output;
+    string ret = compileHTMLDietString!(`doctype html
+- auto title = "Hello, <World>";
+html
+	head
+		title #{title} - example page
+	body
+		h1= title
+		h2 Index
+		ol.pageindex
+			- foreach (i; 0 .. 3)
+				li: a(href="##{i}") Point #{i}
+		- foreach (i; 0 .. 3)
+			h2(id=i) Point #{i}
+			p.
+				These are the #[em contents] of point #{i}. Multiple
+				lines of text are contained in this paragraph.`)(output);
+        console.log(format!"Output length is %d"(output.length)[]);
+      console.log(output[]);
+      console.log(ret);
   }
   @connect!("field.input") void input() {
     console.log("Input pressed");

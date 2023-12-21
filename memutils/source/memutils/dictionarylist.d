@@ -447,6 +447,7 @@ dchar decode(const scope char[] s, ref size_t idx)
       return '?';
     //return V; // dummy return
     }
+	
 /// Special version of icmp() with optimization for ASCII characters
 int icmp2(in string a, in string b)
 @safe pure {
@@ -472,10 +473,15 @@ int icmp2(in string a, in string b)
 		} else {
 			dchar acp = decode(a, i);
 			dchar bcp = decode(b, j);
-			if( acp != bcp ){
-				import std.string : toLower;
-				acp = toLower(acp);
-				bcp = toLower(bcp);
+			if( acp != bcp ){					
+				if(acp >= 'A' && acp <= 'Z')
+				{
+					acp += ('a' - 'A');
+				}
+				if(bcp >= 'A' && bcp <= 'Z')
+				{
+					bcp += ('a' - 'A');
+				}
 				if( acp < bcp ) return -1;
 				else if( acp > bcp ) return 1;
 			}

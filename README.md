@@ -70,7 +70,7 @@ Make sure to run `dub run libwasm:webidl -- --bindgen` after compiling to ensure
 
 Make sure to have at least ldc 1.17.0 installed. Also, make sure that `ldc2 --version` returns the `wasm32` among its target types. If not, you may need to install ldc from official sources or run one in docker (e.g. `dlang2/ldc-ubuntu:1.20.0`).
 
-Run `dub build --compiler=ldc2 --build=release` to compile your application, then run `npx webpack` to generate the `index.html`.
+Run `dub build --arch=wasm32-unknown-wasi --compiler=ldc2 --build=release` to compile your application, then run `npx webpack` to generate the `index.html`.
 
 You can also `npm run start` to start a webpack development server that serves your application on localhost:3000.
 

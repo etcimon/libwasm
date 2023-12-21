@@ -1,0 +1,21 @@
+{
+	"authors": [
+		"Ali Akhtarzada"
+	],
+	"copyright": "Copyright © 2018, Ali Akhtarzada",
+	"dependencies": {
+		"bolts": "~>0.11.0"
+	},
+	"description": "An optional/maybe type with safe dispatchingrange semantics",
+	"importPaths": [
+		"source/"
+	],
+	"license": "MIT",
+	"name": "optional-wasm",
+	"sourcePaths": [
+		"source/"
+	],
+	"targetPath": "bin",
+	"version": "0.16.0",
+    "dflags": [ "--nogc", "--fno-exceptions"]
+}

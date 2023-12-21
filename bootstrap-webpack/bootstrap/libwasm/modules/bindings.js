@@ -119,14 +119,16 @@ const Object_VarArgCall = (nodePtr, propLen, propOffset, argsdefLen, argsdefOffs
       //console.log(j);
       //console.log(argsdef_arr[i]);
       if (argsdef_arr[i].startsWith("Optional!")) {
-          if (args[j]) next_val_is_null = true;
-          argsdef_arr[i].replace("Optional!", "");
+        //console.log(args[j]);
+          if (!args[j]) next_val_is_null = true;
+          argsdef_arr[i] = argsdef_arr[i].replace("Optional!", "");
           if (argsdef_arr[i].startsWith("("))
-              argsdef_arr[i] = substr(argsdef_arr[j], 1, argsdef_arr[j].length - 2);
+              argsdef_arr[i] = argsdef_arr[i].substr(1, argsdef_arr[j].length - 2);
+          
           j++;
-          continue;
       }
-
+      
+      //console.log(argsdef_arr[i]);
       if (argsdef_arr[i].startsWith("SumType!")) {
           let str = argsdef_arr[j];
           let argsdef_sumtype_arr = str.substr(str.lastIndexOf("(") + 1, str.indexOf(")") - str.lastIndexOf("(") - 1).split(",");
@@ -141,18 +143,22 @@ const Object_VarArgCall = (nodePtr, propLen, propOffset, argsdefLen, argsdefOffs
               //console.log("Pushing");
               if (argsdef_sumtype_arr[k].startsWith("Handle")) {
                   //console.log("Pushing: ", args[j][k], " j: ", j, " k: ", k);
-                  args_arr.push(libwasm.objects[args[j][k]]);
+                  if (!next_val_is_null)
+                    args_arr.push(libwasm.objects[args[j][k]]);
               } else {
                   //console.log("Pushing: ", args[j][k], " j: ", j, " k: ", k);
-                  args_arr.push(args[j][k]);
+                  if (!next_val_is_null)
+                    args_arr.push(args[j][k]);
               }
               break;
           }
           j++;
       } else if (argsdef_arr[i].startsWith("Handle")) {
+        if(!next_val_is_null)
           args_arr.push(libwasm.objects[args[j]]);
           j++;
       } else {
+        if (!next_val_is_null)
           args_arr.push(args[j]);
           j++;
       }
@@ -163,7 +169,7 @@ const Object_VarArgCall = (nodePtr, propLen, propOffset, argsdefLen, argsdefOffs
   }
   
   //console.log(`_.spread(${node[prop]}, ${JSON.stringify(args_arr)})`)
-  let ret_obj = window._.spread(node[prop])(args_arr);
+  let ret_obj = node[prop].call(node, ...args_arr);
   return ret_obj;
 };
 
@@ -403,7 +409,7 @@ export let jsExports = {
       setupMemory([libwasm.MemoryIdentifiers.i32u]);
       libwasm.objects[ctx].removeEventListener(libwasm_decode_string(typeLen, typePtr), (event)=>{encode_handle(0, event);libwasm_indirect_function_get(callbackPtr)(callbackCtx, 0)});
     },
-    Object_Call_OptionalEventHandler__void: (ctx, propLen, propOffset, hasCallback, callbackCtx, callbackPtr) => {
+    Object_Call_EventHandler__void: (ctx, propLen, propOffset, hasCallback, callbackCtx, callbackPtr) => {
       let node = libwasm.objects[ctx];
       if (typeof(node) === undefined) return;  
       setupMemory([libwasm.MemoryIdentifiers.i32u]);
@@ -441,9 +447,7 @@ export let jsExports = {
         node[prop] = null; // delete the event handler
       }
     },
-    Object_Call_EventHandler__void: (ctx, propLen, propOffset, callbackCtx, callbackPtr) => {
-      jsExports.env.Object_Call_OptionalEventHandler__void(ctx, propLen, propOffset, true, callbackCtx, callbackPtr);
-    },
+    // todo: test this:
     Object_Getter__EventHandler: (rawResult, ctx, propLen, propOffset) => {
       let node = libwasm.objects[ctx];    
       if (typeof(node) === undefined) return;  
@@ -453,14 +457,16 @@ export let jsExports = {
 
       if (node.wasmEvents && node.wasmEvents[listenerType]) {
         let cb = node.wasmEvents[listenerType].cbs[0];
-        ops.setUInt(rawResult, cb.ctx);
-        ops.setUInt(rawResult+4, cb.fun);
+        ops.setUInt(rawResult, cb.fun);
+        ops.setUInt(rawResult+4, cb.ctx);
+        ops.setBool(rawResult+8, ops.isDefined(cb.fun));
       } 
       else if (node.wasmEventHandlers && typeof(node.wasmEventHandlers[listenerType]) === "object")
       {
         let cb = node.wasmEventHandlers[listenerType];
-        ops.setUInt(rawResult, cb.ctx);
-        ops.setUInt(rawResult+4, cb.fun);
+        ops.setUInt(rawResult, cb.fun);
+        ops.setUInt(rawResult+4, cb.ctx);
+        ops.setBool(rawResult+8, ops.isDefined(cb.fun)); // does the bool go after?
       }
     },
     Object_Getter__OptionalString: (rawResult, ctx, propLen, propOffset) => {
@@ -641,6 +647,7 @@ export let jsExports = {
         const commands_str = decoder.string(commandsLen, commandsOffset, memory.heapi32u);
         const commands = JSON.parse(commands_str);
         //
+        console.log(commands_str);
         // find locals
         for(let idx in commands) {
           if (commands[idx]['local'] !== undefined) {

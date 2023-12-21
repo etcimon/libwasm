@@ -11,7 +11,7 @@ module memutils.freelist;
 
 import memutils.allocators;
 import memutils.memory;
-import memutils.helpers : destructRecurse, min, memset;
+import memutils.helpers : destructRecurse, min, memset, memcpy;
 import memutils.utils : ObjectAllocator, Malloc;
 import std.typetuple;
 
@@ -90,7 +90,7 @@ nothrow:
 				auto newd = alloc(sz);
 				assert(newd.ptr+sz <= data.ptr || newd.ptr >= data.ptr+data.length, "New block overlaps old one!?");
 				auto len = min(data.length, sz);
-				newd[0 .. len] = data[0 .. len];
+				memcpy(newd.ptr, data.ptr, len);
 				
 				free(data);
 				if (must_zeroise) memset(newd.ptr + len, 0, sz - len);

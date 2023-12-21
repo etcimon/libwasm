@@ -1,11 +1,11 @@
-name "fast"
+name "fast-wasm"
 description "A library that aims to provide the fastest possible implementation of some every day routines."
 homepage "http://github.com/mleise/fast"
 authors "Marco Leise"
 copyright "Copyright © 2017, Marco Leise"
 license "GPL-3.0"
 
-dependency "memutils" path="../memutils"
+dependency "memutils-wasm" path="../memutils"
 excludedSourceFiles "source/docs/*.d" "source/unicode/*.d"
 targetPath "generated"
 
@@ -13,4 +13,4 @@ configuration "library" {
 	targetType "library"
 }
 
-dflags "-betterC" "-mtriple=wasm32-unknown-unknown-wasm"
+dflags "-fvisibility=hidden" "--nogc" "--fno-exceptions"

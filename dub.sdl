@@ -3,21 +3,21 @@ description "A framework for writing webassembly single page applications"
 authors "Sebastiaan Koppe" "Etienne Cimon"
 copyright "Copyright © 2018-2022, Sebastiaan Koppe, Etienne Cimon"
 license "MIT"
-dependency "memutils" path="./memutils"
-dependency "fast" path="./fast"
-dependency "diet-ng" path="./diet-ng"
-dependency "optional" version="~>0.16.0"
+dependency "memutils-wasm" path="./memutils"
+dependency "fast-wasm" path="./fast"
+dependency "diet-wasm" path="./diet-ng"
+dependency "optional-wasm" path="./optional"
 #target "library"
 subPackage "bootstrap-webpack"
 subPackage "webidl"
 dflags "-dip1000"
 
-toolchainRequirements ldc=">=1.17.0"
+toolchainRequirements ldc=">=1.35.0"
 
 buildRequirements "allowWarnings" # required for ldc 1.16
 
 configuration "library" {
-              dflags "-mtriple=wasm32-unknown-unknown-wasm" "-betterC" "-fvisibility=hidden" "--vtemplates" "--vcolumns" "--v-cg" "--verrors-context"
+              dflags "--nogc" "--fno-exceptions" "-fvisibility=hidden" 
               lflags "-allow-undefined" "--export-table" "--export=domEvent" "--export=allocString" "-export=__heap_base"
               importPaths "source" "includes"
 }
@@ -29,10 +29,4 @@ configuration "unittest" {
               sourcePaths "source" "tests/ut"
               importPaths "source" "tests/ut"
               mainSourceFile "tests/ut/test_main.d"
-}
-
-# this configuration only exists to compile libwasm on dmd nightly, so to get warnings about druntime breaking changes early on
-configuration "dmd" {
-              dflags "-betterC"
-              targetType "library"
 }

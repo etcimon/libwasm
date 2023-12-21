@@ -14,7 +14,6 @@ import memutils.pool;
 import memutils.memory;
 import memutils.freelist;
 import memutils.utils : Malloc;
-import std.algorithm : swap;
 
 
 alias LocklessAllocator = AutoFreeListAllocator!MallocAllocator;
@@ -65,13 +64,6 @@ nothrow:
 size_t alignedSize(size_t sz)
 {
 	return ((sz + Allocator.alignment - 1) / Allocator.alignment) * Allocator.alignment;
-}
-
-void ensureValidMemory(void[] mem)
-{
-	auto bytes = cast(ubyte[])mem;
-	swap(bytes[0], bytes[$-1]);
-	swap(bytes[0], bytes[$-1]);
 }
 
 void* extractUnalignedPointer(void* base)

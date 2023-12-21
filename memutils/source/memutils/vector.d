@@ -1,6 +1,5 @@
 ﻿module memutils.vector;
 
-import std.algorithm : swap;
 import std.traits : ForeachType, isNumeric, isSomeString, hasElaborateDestructor, isPointer, hasIndirections;
 import std.range : popFront, front, ElementEncodingType, empty, isInputRange, isForwardRange, isRandomAccessRange, ElementType, refRange, RefRange, hasLength;
 
@@ -298,6 +297,28 @@ nothrow:
 		}
 	}
 
+	void swap(ref Vector!(T, ALLOC) other) {
+		import std.algorithm : swap;
+		
+		Vector!(T, ALLOC) vec = Vector!(T, ALLOC)(length);
+		// swap each element with a duplicate
+		foreach (size_t i, ref el; _data._payload[0 .. _data._length]) {
+			T t = el;
+			memmove(vec._data._payload + i, &t, TSize);
+			memset(&t, 0, TSize);
+		}
+		this.swap(cast(T[])other[]);
+		other.swap(cast(T[])vec[]);
+				
+		foreach (size_t i, ref el; vec._data._payload[0 .. _data._length]) {
+			memset(vec._data._payload + i, 0, TSize);
+		}
+		vec._data._length = 0;
+	}
+
+	void swap(T[] other) {
+		this[] = other;
+	}
 	/**
         Duplicates the container. The elements themselves are not transitively
         duplicated.

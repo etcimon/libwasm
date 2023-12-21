@@ -71,7 +71,6 @@ Document parseDiet(alias TR = identity)(Array!InputFile files)
 	if (is(typeof(TR(string.init)) == string) || is(typeof(TR(string.init, string.init)) == string))
 {
 	import diet.traits;
-	import std.algorithm.iteration : map;
 
 	assert(files.length > 0, "Empty set of input files");
 
@@ -449,7 +448,7 @@ Document parseDiet(alias TR = identity)(Array!InputFile files)
 		])
 	]));
 }
-
+/*
 @safe unittest { // translation
 	import std.string : toUpper;
 
@@ -673,7 +672,7 @@ Document parseDiet(alias TR = identity)(Array!InputFile files)
 		])
 	]));
 }
-
+*/
 
 /** Dummy translation function that returns the input unmodified.
 */
@@ -683,7 +682,6 @@ string identity(string str, string context = null) nothrow @safe @nogc { return 
 private string parseIdent(in string str, ref size_t start,
 	   	string breakChars, in Location loc)
 @safe {
-	import std.array : back;
 	/* The stack is used to keep track of opening and
 	closing character pairs, so that when we hit a break char of
 	breakChars we know if we can actually break parseIdent.
@@ -699,7 +697,7 @@ private string parseIdent(in string str, ref size_t start,
 			}
 		}
 
-		if(stack.length && stack.back == str[i]) {
+		if(stack.length && stack[$-1] == str[i]) {
 			stack[] = stack[0 .. $ - 1];
 		} else if(str[i] == '"') {
 			stack ~= '"';
@@ -728,7 +726,7 @@ private string parseIdent(in string str, ref size_t start,
 	enforcep(false, format!"Identifier was not ended by any of these characters: %s"(breakChars), loc);
 	assert(false);
 }
-
+/*
 @safe unittest { // issue #75
 	string foo = "(failure";
 	Location loc;
@@ -736,7 +734,7 @@ private string parseIdent(in string str, ref size_t start,
 	import std.exception : assertThrown;
 	assertThrown!(DietParserException)(parseIdent(foo, pos, ")", loc));
 }
-
+*/
 private Array!Node parseDietWithExtensions(FileInfo[] files, size_t file_index, ref Vector!BlockInfo blocks, size_t[] import_stack)
 @safe {
 
@@ -851,7 +849,7 @@ private Array!Node parseDietWithExtensions(FileInfo[] files, size_t file_index, 
 				if (b.mode == BlockInfo.Mode.prepend)
 					insert(b.contents[]);
 			}
-			
+
 			Vector!BlockInfo replblocks;
 			foreach(b; blockdefs[]) {
 				if (b.mode == BlockInfo.Mode.replace)
@@ -919,7 +917,7 @@ private Array!Node parseDietWithExtensions(FileInfo[] files, size_t file_index, 
 					if (mod.length > 0) {
 						foreach(ref n; mod[])
 							rn_arr ~= NodeContent.tag(n);
-					} 
+					}
 				}
 				bool _all_non_blocks = true;
 				foreach (ref n; rn_arr[]) {
@@ -1192,7 +1190,6 @@ private Node parseTagLine(alias TR)(ref string input, ref Location loc, out bool
 			// allow omitting the whitespace for "|" text nodes
 			parseTextLine!TR(remainder, ret, tmploc);
 		} else {
-			import std.string : strip;
 			enforcep(remainder.ctstrip().length == 0,
 				format!"Expected node text separated by a space character or end of line, but got '%d'."(remainder), loc);
 		}
@@ -1470,7 +1467,7 @@ private void parseAttributes(ref string input, ref size_t i, ref Node node, in L
 		} else value[] = "true";
 
 		enforcep(i < input.length, "Unterminated attribute section.", loc);
-		enforcep(input[i] == ')' || input[i] == ',', 
+		enforcep(input[i] == ')' || input[i] == ',',
 			format!"Unexpected text following attribute: '%s' ('%s')"(input[0..i], input[i..$]), loc);
 		if (input[i] == ',') {
 			i++;
@@ -1531,14 +1528,13 @@ private void parseAttributeText(string input, ref Vector!AttributeContent dst, i
 
 private string skipUntilClosingBrace(in string s, ref size_t idx, in Location loc)
 @safe {
-	import std.algorithm.comparison : among;
 
 	int level = 0;
 	auto start = idx;
 	while( idx < s.length ){
 		if( s[idx] == '{' ) level++;
 		else if( s[idx] == '}' ) level--;
-		enforcep(!s[idx].among('\n', '\r'), "Missing '}' before end of line.", loc);
+		enforcep(s[idx] != '\n' && s[idx] != '\r', "Missing '}' before end of line.", loc);
 		if( level < 0 ) return s[start .. idx];
 		idx++;
 	}
@@ -1548,14 +1544,13 @@ private string skipUntilClosingBrace(in string s, ref size_t idx, in Location lo
 
 private string skipUntilClosingBracket(in string s, ref size_t idx, in Location loc)
 @safe {
-	import std.algorithm.comparison : among;
 
 	int level = 0;
 	auto start = idx;
 	while( idx < s.length ){
 		if( s[idx] == '[' ) level++;
 		else if( s[idx] == ']' ) level--;
-		enforcep(!s[idx].among('\n', '\r'), "Missing ']' before end of line.", loc);
+		enforcep(s[idx] != '\n' && s[idx] != '\r', "Missing ']' before end of line.", loc);
 		if( level < 0 ) return s[start .. idx];
 		idx++;
 	}

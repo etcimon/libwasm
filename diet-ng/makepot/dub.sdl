@@ -5,4 +5,4 @@ copyright "Copyright © 2021 Sönke Ludwig"
 license "MIT"
 targetName "makepot"
 
-dependency "diet-ng" path=".."
+dependency "diet-wasm" path=".."

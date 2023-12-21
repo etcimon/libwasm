@@ -8,3 +8,4 @@ __test__*__
 Dockerfile.build
 package-lock.json
 dub.selections.json
+*.lib

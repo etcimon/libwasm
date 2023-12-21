@@ -105,7 +105,7 @@ nothrow:
 		} else {
 			auto ret = alloc(newsize);
 			assert(ret.ptr >= arr.ptr+aligned_sz || ret.ptr+ret.length <= arr.ptr, "New block overlaps old one!?");
-			ret[0 .. min(arr.length, newsize)] = arr[0 .. min(arr.length, newsize)];
+			memcpy(ret.ptr, arr.ptr, min(arr.length, newsize));
 			if (must_zeroise) memset(arr.ptr, 0, arr.length);
 			return ret;
 		}

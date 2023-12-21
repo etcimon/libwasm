@@ -659,7 +659,6 @@ template renderNestedChild(string field) {
   import std.meta : AliasSeq;
   import std.meta : staticMap;
   import std.traits : isCallable, getSymbolsByUDA, isPointer;
-  import std.conv : text;
   enum hasNode = hasMember!(T, "node");
   static if (hasNode) {
     bool shouldRender = t.getNamedNode().node == invalidHandle;
@@ -916,9 +915,7 @@ auto update(T)(ref T node) if (hasMember!(T, "node")){
 }
 
 void update(Range, Sink)(auto ref Range source, ref Sink sink) {
-  import std.range : ElementType;
-  import std.algorithm : copy;
-  alias E = ElementType!Range;
+  
   auto output = Updater!(Sink)(&sink);
   foreach(i; source)
     output.put(i);
@@ -1110,8 +1107,6 @@ template indexOf(alias Pred, args...) {
 }
 
 template domName(string name) {
-  import std.algorithm : stripRight;
-  import std.conv : text;
   static if (name[$-1] == '_')
     enum domName = name[0..$-1];
   else

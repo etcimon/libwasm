@@ -2,7 +2,6 @@ module libwasm.lodash;
 
 import libwasm.types;
 import libwasm.rt.memory;
-import std.string : indexOf;
 import std.traits;
 
 nothrow: @safe:

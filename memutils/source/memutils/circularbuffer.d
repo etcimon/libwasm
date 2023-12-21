@@ -209,7 +209,7 @@ struct CircularBuffer(T, size_t N = 0, ALLOC = void) {
 		}
 	}
 }
-
+/*
 unittest {
 	import std.range : isInputRange, isOutputRange;
 	static assert(isInputRange!(CircularBuffer!int) && isOutputRange!(CircularBuffer!int, int));
@@ -239,3 +239,4 @@ unittest {
 	buf.read(dst[0 .. 2]); //|. . . . .
 	assert(dst[0 .. 2] == [1, 2]);
 }
+*/

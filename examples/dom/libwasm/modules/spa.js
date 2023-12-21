@@ -15,8 +15,6 @@ const eventHandler = (event) => {
 export let jsExports = {
     env: {
         KeyboardEvent_key_Get: (rawResult, ctx) => {
-          console.log(ctx);
-          console.log(libwasm.objects);
           encoder.string(rawResult, libwasm.objects[ctx].key);
         },
         appendChild: (parent, child) => {
@@ -82,9 +80,6 @@ export let jsExports = {
         },       
         addEventListener: (nodePtr, listenerType, ctx, fun, eventType) => {
             let events = ['click','change','input','keydown','keyup','dblclick','blur','mousemove','mouseup','mousedown','keypress','focus'];
-            console.log("Add event listener");
-            console.log(listenerType);
-            console.log(events[listenerType]);
             let listenerTypeStr = events[listenerType];
             let node = libwasm.objects[nodePtr];
             let existing_cb;

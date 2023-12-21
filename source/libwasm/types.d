@@ -606,7 +606,7 @@ struct JsPromise(T) {
     alias RejectCallback = extern(C) void delegate(U) nothrow;
   }
   
-  auto then(ResultType)(ResultType delegate(T) nothrow cb) @trusted {
+  auto then(ResultType)(scope ResultType delegate(T) nothrow cb) @trusted {
     enum TMangled = libwasmMangle!T;
     enum ResultTypeMangled = libwasmMangle!ResultType;
     enum funName = "promise_then_"~TMangled.length.stringof~TMangled~ResultTypeMangled;
@@ -614,7 +614,7 @@ struct JsPromise(T) {
     mixin("return JsPromise!(ResultType)("~funName~"(handle, cast(JoinedCallback!(BridgeType!ResultType))cb));");
   }
   
-  auto error(void delegate(U) nothrow cb) @trusted {
+  auto error(scope void delegate(U) nothrow cb) @trusted {
     enum TMangled = libwasmMangle!U;
     enum funName = "promise_error_"~TMangled.length.stringof~TMangled;
     mixin ExternPromiseCallback!(funName, U);

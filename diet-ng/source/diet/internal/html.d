@@ -115,7 +115,6 @@ string htmlEscapeMin(R)(R str)
 
 void htmlEscape(R, T)(ref R dst, T val)
 {
-	import std.format : formattedWrite;
 	auto r = HTMLEscapeOutputRange!R(dst, HTMLEscapeFlags.defaults);
 	r.put(format!"%s"(val));
 }
@@ -130,7 +129,6 @@ void htmlEscape(R, T)(ref R dst, T val)
 
 void htmlAttribEscape(R, T)(ref R dst, T val)
 {
-	import std.format : formattedWrite;
 	auto r = HTMLEscapeOutputRange!R(dst, HTMLEscapeFlags.attribute);
 	r.put(format!"%s"(val));
 }
@@ -356,8 +354,8 @@ private struct HTMLEscapeOutputRange(R)
 		}
 	}
 	void put(dchar ch) { filterHTMLEscape(*dst, ch, flags); }
-	void put(in char[] str) { 
-		
+	void put(in char[] str) {
+
 		for (size_t i = 0; i < str.length; )
 		{
 			dchar d = str[i];

@@ -6,8 +6,6 @@ import memutils.ct;
 import libwasm.node;
 import libwasm.dom;
 import libwasm.types;
-import std.range : only;
-import std.algorithm : joiner;
 import libwasm.rt.array;
 
 nothrow:

@@ -540,20 +540,10 @@ if (distinctFieldNames!(Specs))
         ref Tuple opAssign(R)(auto ref R rhs)
         if (areCompatibleTuples!(typeof(this), R, "="))
         {
-            import std.algorithm.mutation : swap;
 
             static if (is(R : Tuple!Types) && !__traits(isRef, rhs))
             {
-                if (__ctfe)
-                {
-                    // Cannot use swap at compile time
-                    field[] = rhs.field[];
-                }
-                else
-                {
-                    // Use swap-and-destroy to optimize rvalue assignment
-                    swap!(Tuple!Types)(this, rhs);
-                }
+                field[] = rhs.field[];
             }
             else
             {
@@ -594,7 +584,7 @@ if (distinctFieldNames!(Specs))
                     import std.array : empty;
                     static if (idx < nT)
                         alias GetItem = Alias!(Types[idx]);
-                    else static if (allNames[idx - nT].empty)
+                    else static if (allNames[idx - nT].length == 0)
                         alias GetItem = AliasSeq!();
                     else
                         alias GetItem = Alias!(allNames[idx - nT]);

@@ -732,26 +732,24 @@ auto signedToTempString(long value, uint radix = 10) @safe
   return r;
 }
 
-import std.traits : isIntegral;
-import std.range.primitives : isOutputRange;
+import std.traits : isIntegral, isArray;
 // TODO: std.range.put doesn't do scope on second args therefor compiler thinks buf escapes. resolve it and we can avoid the @trusted
 @trusted
 void toTextRange(T, W)(T value, auto ref W writer)
-    if (isIntegral!T && isOutputRange!(W, char))
+    if (isIntegral!T && isArray!T)
 {
   import core.internal.string : SignedStringBuf,
     UnsignedStringBuf;
-  import std.range.primitives : put;
 
   if (value < 0)
   {
     SignedStringBuf buf = void;
-    put(writer, signedToTempString(value, buf, 10));
+    writer.put(signedToTempString(value, buf, 10));
   }
   else
   {
     UnsignedStringBuf buf = void;
-    put(writer, unsignedToTempString(value, buf, 10));
+    writer.put(unsignedToTempString(value, buf, 10));
   }
 }
 

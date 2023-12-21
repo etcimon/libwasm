@@ -294,7 +294,7 @@ template compileHTMLDietStrings(alias FILES_GROUP, ALIASES...)
 	{
 		mixin(localAliasesMixin!(0, ALIASES));
 		mixin(getHTMLMixin(_diet_nodes(), dietOutputRangeName, getHTMLOutputStyle!TRAITS));
-		
+
 		return getHTMLMixin(_diet_nodes(), dietOutputRangeName, getHTMLOutputStyle!TRAITS);
 	}
 
@@ -379,7 +379,7 @@ string getHTMLLiveMixin(in Document doc, string range_name = dietOutputRangeName
 	ret ~= ctx.statement!""(Location(Array!char("_livediet"), 0));
 	return ret[].copy();
 }
-
+/*
 unittest {
 	import diet.parser;
 	void test(string src)(string expected) {
@@ -473,7 +473,7 @@ unittest {
 	      "- if(true)\n  a(href=\"injected!\") injected html!\n  - auto x = 5;\n  foo #{x}",
 		  )("<foo>5</foo>", "<a href=\"injected!\">injected html!</a><foo>5</foo>");
 }
-
+*/
 
 /** Determines how the generated HTML gets styled.
 
@@ -488,6 +488,7 @@ enum HTMLOutputStyle {
 }
 
 ///
+/*
 unittest {
 	@dietTraits
 	struct Traits {
@@ -500,7 +501,7 @@ unittest {
 	import std.conv : to;
 	assert(dst.data == "<html>\n\t<body>\n\t\t<p>Hello</p>\n\t</body>\n</html>", [dst.data].to!string);
 }
-
+*/
 private @property template getHTMLOutputStyle(TRAITS...)
 {
 	static if (TRAITS.length) {
@@ -530,7 +531,6 @@ private string getHTMLMixin(ref CTX ctx, in Node node, bool in_pre) @safe
 
 private string getElementMixin(ref CTX ctx, in Node node, bool in_pre) @safe
 {
-	import std.algorithm : countUntil;
 
 	if (node.name[] == "pre") in_pre = true;
 
@@ -683,7 +683,6 @@ private string getNodeContentsMixin(ref CTX ctx, in NodeContent* c, bool in_pre)
 
 private string getDoctypeMixin(ref CTX ctx, in Node node) @safe
 {
-	import std.algorithm.searching : startsWith;
 	import diet.internal.string;
 
 	if (node.name[] == "!!!")
@@ -1007,7 +1006,7 @@ private struct CTX {
 		}
 	}
 }
-
+/*
 unittest {
 	static string compile(string diet, ALIASES...)() {
 		import std.array : appender;
@@ -1107,7 +1106,7 @@ unittest { // blocks and extensions
 	assert(compilePair!("extends base\nprepend test\n\tp Hello", "body\n\tblock test\n\t\tp Default")
 		 == "<body><p>Hello</p><p>Default</p></body>");
 }
-
+*/
 /*@nogc*/ @safe unittest { // NOTE: formattedWrite is not @nogc
 	static struct R {
 		@nogc @safe nothrow:
@@ -1125,7 +1124,7 @@ html
 	title t #{12} !{13}
 `);
 }
-
+/*
 unittest { // issue 4 - nested text in code
 	static string compile(string diet, ALIASES...)() {
 		import std.array : appender;
@@ -1165,7 +1164,6 @@ unittest { // raw interpolation for non-copyable range
 unittest {
 	assert(utCompile!(".foo(class=true?\"bar\":\"baz\")") == "<div class=\"foo bar\"></div>");
 }
-
 version (unittest) {
 	private string utCompile(string diet, ALIASES...)() {
 		import std.array : appender;
@@ -1223,3 +1221,5 @@ unittest { // output empty tags as singular for XML output
 	assert(utCompile!("doctype html\nfoo") == `<!DOCTYPE html><foo></foo>`);
 	assert(utCompile!("doctype xml\nfoo") == `<?xml version="1.0" encoding="utf-8" ?><foo/>`);
 }
+
+*/

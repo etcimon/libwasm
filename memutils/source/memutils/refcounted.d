@@ -66,7 +66,7 @@ nothrow:
 			//checkInvariants();
 		}
 
-		if (m_object) {
+		else if (m_object) {
 			//logTrace("copyctr ++", *m_refCount);
 			(*m_refCount)++;
 		} 	
