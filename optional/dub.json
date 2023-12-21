@@ -17,5 +17,5 @@
 	],
 	"targetPath": "bin",
 	"version": "0.16.0",
-    "dflags": [ "--nogc", "--fno-exceptions"]
+    "dflags": [ "--nogc"]
 }

@@ -17,7 +17,7 @@ toolchainRequirements ldc=">=1.35.0"
 buildRequirements "allowWarnings" # required for ldc 1.16
 
 configuration "library" {
-              dflags "--nogc" "--fno-exceptions" "-fvisibility=hidden" 
+              dflags "--nogc" "-fvisibility=hidden" 
               lflags "-allow-undefined" "--export-table" "--export=domEvent" "--export=allocString" "-export=__heap_base"
               importPaths "source" "includes"
 }

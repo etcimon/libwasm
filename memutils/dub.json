@@ -15,6 +15,6 @@
 			"versions": ["EnableDebugger", "MemutilsTests", "HasDebuggerEnabled"]
 	    }
 	],
-	"dflags": ["--nogc", "--fno-exceptions", "-fvisibility=hidden"]
+	"dflags": ["--nogc", "-fvisibility=hidden"]
 
 }

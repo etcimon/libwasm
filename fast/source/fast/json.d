@@ -1033,11 +1033,11 @@ public:
 
 	private bool skipBoolean(bool skipInter, bool validate = isValidateAll)()
 	{
-		static immutable char[4][2] keywords = [ "true", "alse" ];
 		auto isFalse = *m_text == 'f';
-		static if (validate)
-			if (*cast(char[4]*) &m_text[isFalse] != keywords[isFalse])
+		static if (validate) {
+			if (*cast(char[4]*) m_text != "true" && *cast(char[4]*) m_text != "fals")
 				handleError("`true` or `false` expected.");
+		}
 		m_text += isFalse ? 5 : 4;
 		skipWhitespace!skipInter();
 		return !isFalse;
