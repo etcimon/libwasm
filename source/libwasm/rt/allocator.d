@@ -188,11 +188,6 @@ extern (C) export void* _d_allocmemory(size_t sz)
     return PoolStack.top.alloc(sz).ptr;
 }
 
-extern(C) export @assumeUsed void _d_freememory(void* mem) {
-    // Since they were allocated on a pool stack, we can't be sure if it's still the top,
-    // let the pool free memory in its destructor instead
-    
-}
 
 struct ThreadMemAllocator {
 static:

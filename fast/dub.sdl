@@ -13,4 +13,4 @@ configuration "library" {
 	targetType "library"
 }
 
-dflags "-fvisibility=hidden" "--nogc" "--fno-exceptions"
+dflags "-fvisibility=hidden" "-fno-exceptions" 

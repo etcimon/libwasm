@@ -7,7 +7,7 @@ dependency "memutils-wasm" path="../memutils"
 dependency "fast-wasm" path="../fast"
 
 x:ddoxFilterArgs "--ex" "diet.internal."
-#dflags "-fvisibility=hidden" "--vv" "--vtemplates" "--vcolumns" "--v-cg" "--verrors-context" #"--verrors-spec" #"-Oz" "-fvisibility=hidden" "-dip1000"
+dflags "-fvisibility=hidden" "-fno-exceptions" #"--vv" "--vtemplates" "--vcolumns" "--v-cg" "--verrors-context" #"--verrors-spec" #"-Oz" "-fvisibility=hidden" "-dip1000"
 
 targetType "library"
 subPackage "makepot"
