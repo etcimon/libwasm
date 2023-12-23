@@ -192,14 +192,29 @@ void jsCallback(uint ctx, uint fun, Handle arg) @trusted {
 
 @trusted extern(C) export @assumeUsed ubyte* allocString(uint bytes);
 
-@trusted R Serialize_Object_VarArgCall(R, TupleArgs)(Handle hndl, string method, string argsdef, TupleArgs tupleArgs)
+@trusted R Serialize_Object_VarArgCall(R, TupleArgs)(Handle hndl, string method, string argsdef, scope TupleArgs tupleArgs)
 {
   import fast.json;
   import libwasm.rt.allocator;
+  import libwasm.bindings.Console;
+  console.log("Got args:");
+  foreach (scope arg; tupleArgs) {
+    import std.traits : isIterable;
+    static if (isIterable!(typeof(arg))) {
+    foreach (scope subarg; arg) {
+        console.log(subarg);
+      }
+    } else {
+      console.log(arg);
+    }
+  }
+  console.log("Done list");
   char[] buf = cast(char[]) ThreadMemAllocator.allocate(serializationLength(tupleArgs));
   scope(exit)
     ThreadMemAllocator.deallocate(buf);
   auto args = cast(string) serializeJSON(buf, tupleArgs);
+  console.log("Sending args: ");
+  console.log(args);
   static if (is(R == string))
     return Object_VarArgCall__string(hndl, method, argsdef, args);
   else static if (is(R == void))
@@ -606,7 +621,7 @@ struct JsPromise(T) {
     alias RejectCallback = extern(C) void delegate(U) nothrow;
   }
   
-  auto then(ResultType)(scope ResultType delegate(T) nothrow cb) @trusted {
+  auto then(ResultType)(ResultType delegate(T) nothrow cb) @trusted {
     enum TMangled = libwasmMangle!T;
     enum ResultTypeMangled = libwasmMangle!ResultType;
     enum funName = "promise_then_"~TMangled.length.stringof~TMangled~ResultTypeMangled;
@@ -614,7 +629,7 @@ struct JsPromise(T) {
     mixin("return JsPromise!(ResultType)("~funName~"(handle, cast(JoinedCallback!(BridgeType!ResultType))cb));");
   }
   
-  auto error(scope void delegate(U) nothrow cb) @trusted {
+  auto error(void delegate(U) nothrow cb) @trusted {
     enum TMangled = libwasmMangle!U;
     enum funName = "promise_error_"~TMangled.length.stringof~TMangled;
     mixin ExternPromiseCallback!(funName, U);

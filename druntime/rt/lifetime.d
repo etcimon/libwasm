@@ -13,8 +13,6 @@
 module rt.lifetime;
 
 
-pragma(msg, "lifetime");
-
 import core.attribute : weak;
 //import core.internal.array.utils : __arrayStart, __arrayClearPad;
 debug(PRINTF) import core.stdc.stdio;

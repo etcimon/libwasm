@@ -31,7 +31,7 @@ module fast.json;
 import std.exception;
 import std.range;
 import std.traits;
-import std.typecons : isTuple;
+import memutils.ct : isTuple;
 
 import fast.buffer;
 import fast.cstring;

@@ -10,14 +10,12 @@
 module core.exception;
 
 import druntime.internal.stdio;
-pragma(msg, "exception");
 
 // todo: Make this work with console.error
 
 // Compiler lowers final switch default case to this (which is a runtime error)
 void __switch_errorT()(string file = __FILE__, size_t line = __LINE__) @trusted
 {
-    pragma(msg, "_switch_Error");
     // Consider making this a compile time check.
     version (D_Exceptions)
         throw staticError!SwitchError("No appropriate switch clause found", file, line, null);

@@ -1,6 +1,5 @@
 module core.demangle;
 
-pragma(msg, "demangle");
 
 private struct NoHooks
 {
@@ -2093,7 +2092,6 @@ pure @safe nothrow:
  */
 char[] demangle(return scope const(char)[] buf, return scope char[] dst = null ) nothrow pure @safe
 {
-    pragma(msg, "demangle");
     auto d = Demangle!()(buf, dst);
     // fast path (avoiding throwing & catching exception) for obvious
     // non-D mangled names
@@ -2679,7 +2677,6 @@ private struct Buffer
 
     char[] append(scope const(char)[] val) return scope
     {
-    pragma(msg, "buffer append");
         version (DigitalMars) pragma(inline, false); // tame dmd inliner
 
         if (val.length)

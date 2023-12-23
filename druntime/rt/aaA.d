@@ -7,7 +7,6 @@
  * Source: $(DRUNTIMESRC rt/_aaA.d)
  */
 module rt.aaA;
-pragma(msg, "aaA");
 
 /// AA version for debuggers, bump whenever changing the layout
 extern (C) immutable int _aaVersion = 1;
@@ -43,7 +42,6 @@ version (LDC)
 
     private bool empty(scope const AA impl) pure nothrow @nogc
     {
-        pragma(msg, "empty");
         return impl is null || !impl.length;
     }
 }
@@ -67,7 +65,6 @@ private struct Impl
 private:
     this(scope const TypeInfo_AssociativeArray ti, size_t sz = INIT_NUM_BUCKETS) nothrow
     {
-        pragma(msg, "impl.this");
         initialize(ti, sz);
     }
     void initialize(scope const TypeInfo_AssociativeArray ti, size_t sz = INIT_NUM_BUCKETS) nothrow
@@ -228,7 +225,6 @@ Bucket[] allocBuckets(size_t dim) @trusted pure nothrow
 
 private void* allocEntry(scope const Impl* aa, scope const void* pkey)
 {
-    pragma(msg, "allocEntry");
     import rt.lifetime : _d_newitemU;
     import core.stdc.string : memcpy, memset;
 
@@ -250,7 +246,6 @@ private void* allocEntry(scope const Impl* aa, scope const void* pkey)
 
 package void entryDtor(void* p, const TypeInfo_Struct sti)
 {
-    pragma(msg, "entryDtor");
     // key and value type info stored after the TypeInfo_Struct by tiEntry()
     auto sizeti = __traits(classInstanceSize, TypeInfo_Struct);
     auto extra = cast(const(TypeInfo)*)(cast(void*) sti + sizeti);
@@ -520,7 +515,6 @@ export:
  */
 extern (C) Impl* _aaNew(const TypeInfo_AssociativeArray ti)
 {
-    pragma(msg, "aaNew");
     
     auto init = ti.initializer;
     void* p = _d_allocmemory(ti.tsize());
@@ -533,7 +527,6 @@ extern (C) Impl* _aaNew(const TypeInfo_AssociativeArray ti)
 /// Determine number of entries in associative array.
 extern (C) size_t _aaLen(scope const AA aa) pure nothrow @nogc
 {
-    pragma(msg, "aaLen");
     return aa ? aa.length : 0;
 }
 
@@ -574,7 +567,6 @@ extern (C) void* _aaGetY(scope AA* paa, const TypeInfo_AssociativeArray ti,
 extern (C) void* _aaGetX(scope AA* paa, const TypeInfo_AssociativeArray ti,
     const size_t valsz, scope const void* pkey, out bool found)
 {
-    pragma(msg, "aaGetX");
     // lazily alloc implementation
     AA aa = *paa;
     if (aa is null)

@@ -1,6 +1,5 @@
 module core.internal.hash;
 import core.internal.traits : Unconst;
-pragma(msg, "hash");
 
 // If true ensure that positive zero and negative zero have the same hash.
 // Historically typeid(float).getHash did this but hashOf(float) did not.
@@ -684,7 +683,6 @@ Params:
 @nogc nothrow pure @trusted
 private size_t bytesHash(bool dataKnownToBeAligned)(scope const(ubyte)[] bytes, size_t seed)
 {
-    pragma(msg, "bytesHash");
     auto len = bytes.length;
     auto data = bytes.ptr;
     auto nblocks = len / 4;

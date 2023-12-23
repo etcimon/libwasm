@@ -9,7 +9,6 @@
  */
 
 module object;
-pragma(msg, "object");
 // NOTE: For some reason, this declaration method doesn't work
 //       in this particular file (and this file only).  It must
 //       be a DMD thing.
@@ -1418,7 +1417,6 @@ class TypeInfo_Enum : TypeInfo
 
     override bool opEquals(Object o)
     {
-    pragma(msg, "TypeInfo_enum");
         if (this is o)
             return true;
         auto c = cast(const TypeInfo_Enum)o;

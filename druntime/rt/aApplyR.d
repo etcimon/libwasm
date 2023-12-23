@@ -7,7 +7,6 @@
  * Source: $(DRUNTIMESRC rt/_aApplyR.d)
  */
 module rt.aApplyR;
-pragma(msg, "aApplyR");
 
 import core.internal.utf;
 

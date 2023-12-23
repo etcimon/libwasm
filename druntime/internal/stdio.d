@@ -1,6 +1,5 @@
 module druntime.internal.stdio;
 
-pragma(msg, "stdio");
 // Authors:   tspike (github.com/tspike2k)
 // Copyright: Copyright (c) 2020
 // License:   Boost Software License 1.0 (https://www.boost.org/LICENSE_1_0.txt)

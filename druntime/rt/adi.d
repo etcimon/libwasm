@@ -10,7 +10,6 @@
  */
 
 module rt.adi;
-pragma(msg, "adi");
 
 //debug=adi;            // uncomment to turn on debugging printf's
 

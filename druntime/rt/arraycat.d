@@ -10,7 +10,6 @@
 
 module rt.arraycat;
 
-pragma(msg, "arraycat");
 private
 {
     import core.stdc.string;

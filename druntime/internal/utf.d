@@ -20,7 +20,6 @@
  */
 
 module core.internal.utf;
-pragma(msg, "utf");
 
 extern (C) void onUnicodeError( string msg, size_t idx, string file = __FILE__, size_t line = __LINE__ ) @safe pure;
 
