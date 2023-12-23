@@ -43,6 +43,7 @@ version (LDC)
 
     private bool empty(scope const AA impl) pure nothrow @nogc
     {
+        pragma(msg, "empty");
         return impl is null || !impl.length;
     }
 }
@@ -66,6 +67,11 @@ private struct Impl
 private:
     this(scope const TypeInfo_AssociativeArray ti, size_t sz = INIT_NUM_BUCKETS) nothrow
     {
+        pragma(msg, "impl.this");
+        initialize(ti, sz);
+    }
+    void initialize(scope const TypeInfo_AssociativeArray ti, size_t sz = INIT_NUM_BUCKETS) nothrow
+    {        
         keysz = cast(uint) ti.key.tsize;
         valsz = cast(uint) ti.value.tsize;
         buckets = allocBuckets(sz);
@@ -82,15 +88,14 @@ private:
 
         entryTI = fakeEntryTI(this, ti.key, ti.value);
     }
-
     Bucket[] buckets;
     uint used;
     uint deleted;
     TypeInfo_Struct entryTI;
     uint firstUsed;
-    immutable uint keysz;
-    immutable uint valsz;
-    immutable uint valoff;
+    /*immutable*/uint keysz;
+    /*immutable*/uint valsz;
+    /*immutable*/uint valoff;
     Flags flags;
 
     // function that calculates hash of a key. Set on creation
@@ -223,6 +228,7 @@ Bucket[] allocBuckets(size_t dim) @trusted pure nothrow
 
 private void* allocEntry(scope const Impl* aa, scope const void* pkey)
 {
+    pragma(msg, "allocEntry");
     import rt.lifetime : _d_newitemU;
     import core.stdc.string : memcpy, memset;
 
@@ -244,6 +250,7 @@ private void* allocEntry(scope const Impl* aa, scope const void* pkey)
 
 package void entryDtor(void* p, const TypeInfo_Struct sti)
 {
+    pragma(msg, "entryDtor");
     // key and value type info stored after the TypeInfo_Struct by tiEntry()
     auto sizeti = __traits(classInstanceSize, TypeInfo_Struct);
     auto extra = cast(const(TypeInfo)*)(cast(void*) sti + sizeti);
@@ -513,12 +520,20 @@ export:
  */
 extern (C) Impl* _aaNew(const TypeInfo_AssociativeArray ti)
 {
-    return new Impl(ti);
+    pragma(msg, "aaNew");
+    
+    auto init = ti.initializer;
+    void* p = _d_allocmemory(ti.tsize());
+    p[0 .. init.length] = init[];
+    (cast(Impl*) p).initialize(ti);
+    return cast(Impl*)p;
+
 }
 
 /// Determine number of entries in associative array.
 extern (C) size_t _aaLen(scope const AA aa) pure nothrow @nogc
 {
+    pragma(msg, "aaLen");
     return aa ? aa.length : 0;
 }
 
@@ -559,11 +574,12 @@ extern (C) void* _aaGetY(scope AA* paa, const TypeInfo_AssociativeArray ti,
 extern (C) void* _aaGetX(scope AA* paa, const TypeInfo_AssociativeArray ti,
     const size_t valsz, scope const void* pkey, out bool found)
 {
+    pragma(msg, "aaGetX");
     // lazily alloc implementation
     AA aa = *paa;
     if (aa is null)
     {
-        aa = new Impl(ti);
+        aa = _aaNew(ti);
         *paa = aa;
     }
 
@@ -788,7 +804,11 @@ extern (C) Impl* _d_assocarrayliteralTX(const TypeInfo_AssociativeArray ti, void
     if (!length)
         return null;
 
-    auto aa = new Impl(ti, nextpow2(INIT_DEN * length / INIT_NUM));
+    auto init = ti.initializer;
+    void* aap = _d_allocmemory(ti.tsize());
+    aap[0 .. init.length] = init[];
+    (cast(Impl*) aap).initialize(ti, nextpow2(INIT_DEN * length / INIT_NUM));
+    Impl* aa = cast(Impl*)aap;
 
     void* pkey = keys.ptr;
     void* pval = vals.ptr;

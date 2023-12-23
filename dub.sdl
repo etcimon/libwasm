@@ -17,7 +17,7 @@ toolchainRequirements ldc=">=1.35.0"
 buildRequirements "allowWarnings" # required for ldc 1.16
 sourcePaths "source" "druntime"
 configuration "library" {
-              dflags "-fvisibility=hidden" "-fno-exceptions" "--vv" "--vtemplates" "--vcolumns" "--v-cg" "--verrors-context"
+              dflags "-fvisibility=hidden" "-fno-exceptions"
               lflags "-allow-undefined" "--export-table" "--export=domEvent" "--export=allocString" "-export=__heap_base"
 }
 

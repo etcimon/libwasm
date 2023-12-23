@@ -529,7 +529,7 @@ pure @safe nothrow:
 
         tbuf[tlen] = 0;
         debug(info) printf( "got (%s)\n", tbuf.ptr );
-        pureReprintReal( tbuf[] );
+        //pureReprintReal( tbuf[] );
         debug(info) printf( "converted (%.*s)\n", cast(int) tlen, tbuf.ptr );
         put( tbuf[0 .. tlen] );
     }
@@ -2093,6 +2093,7 @@ pure @safe nothrow:
  */
 char[] demangle(return scope const(char)[] buf, return scope char[] dst = null ) nothrow pure @safe
 {
+    pragma(msg, "demangle");
     auto d = Demangle!()(buf, dst);
     // fast path (avoiding throwing & catching exception) for obvious
     // non-D mangled names
@@ -2418,23 +2419,6 @@ char[] mangleFunc(T:FT*, FT)(return scope const(char)[] fqn, return scope char[]
 
 private enum hasTypeBackRef = (int function(void**,void**)).mangleof[$-4 .. $] == "QdZi";
 
-// locally purified for internal use here only
-extern (C) private
-{
-    pure @trusted @nogc nothrow pragma(mangle, "fakePureReprintReal") void pureReprintReal(char[] nptr);
-
-    void fakePureReprintReal(char[] nptr)
-    {
-        import core.stdc.stdlib : strtold;
-        import core.stdc.stdio : snprintf;
-        import core.stdc.errno : errno;
-
-        const err = errno;
-        real val = strtold(nptr.ptr, null);
-        snprintf(nptr.ptr, nptr.length, "%#Lg", val);
-        errno = err;
-    }
-}
 private template isExternD(FT) if (is(FT == function))
 {
     enum isExternD = __traits(getLinkage, FT) == "D";
@@ -2546,44 +2530,6 @@ private string toStringConsume (immutable ManglingFlagInfo[] infos, ref ushort b
 private shared CXX_DEMANGLER __cxa_demangle;
 
 /**
- * Returns:
- *  a CXX_DEMANGLER if a C++ stdlib is loaded
- */
-
-CXX_DEMANGLER getCXXDemangler() nothrow @trusted
-{
-    import core.atomic : atomicLoad, atomicStore;
-    if (__cxa_demangle is null)
-    version (Posix)
-    {
-        import core.sys.posix.dlfcn : dlsym;
-        version (DragonFlyBSD) import core.sys.dragonflybsd.dlfcn : RTLD_DEFAULT;
-        version (FreeBSD) import core.sys.freebsd.dlfcn : RTLD_DEFAULT;
-        version (linux) import core.sys.linux.dlfcn : RTLD_DEFAULT;
-        version (NetBSD) import core.sys.netbsd.dlfcn : RTLD_DEFAULT;
-        version (OpenBSD) import core.sys.openbsd.dlfcn : RTLD_DEFAULT;
-        version (Darwin) import core.sys.darwin.dlfcn : RTLD_DEFAULT;
-        version (Solaris) import core.sys.solaris.dlfcn : RTLD_DEFAULT;
-
-        if (auto found = cast(CXX_DEMANGLER) dlsym(RTLD_DEFAULT, "__cxa_demangle"))
-            atomicStore(__cxa_demangle, found);
-    }
-
-    if (__cxa_demangle is null)
-    {
-        static extern(C) char* _(const char* mangled_name, char* output_buffer,
-             size_t* length, int* status) nothrow pure @trusted
-        {
-            *status = -1;
-            return null;
-        }
-        atomicStore(__cxa_demangle, &_);
-    }
-
-    return atomicLoad(__cxa_demangle);
-}
-
-/**
  * Demangles C++ mangled names.  If it is not a C++ mangled name, it
  * returns its argument name.
  *
@@ -2598,28 +2544,7 @@ CXX_DEMANGLER getCXXDemangler() nothrow @trusted
  */
 private char[] demangleCXX(return scope const(char)[] buf, CXX_DEMANGLER __cxa_demangle, return scope char[] dst = null,) nothrow pure @trusted
 {
-    char[] c_string = dst; // temporarily use dst buffer if possible
-    c_string.length = buf.length + 1;
-    c_string[0 .. buf.length] = buf[0 .. buf.length];
-    c_string[buf.length] = '\0';
-
-    int status;
-    size_t demangled_length;
-    auto demangled = __cxa_demangle(&c_string[0], null, &demangled_length, &status);
-    scope (exit) {
-        import core.memory;
-        pureFree(cast(void*) demangled);
-    }
-    if (status == 0)
-    {
-        dst.length = demangled_length;
-        dst[] = demangled[0 .. demangled_length];
-        return dst;
-    }
-
-    dst.length = buf.length;
-    dst[] = buf[];
-    return dst;
+    assert(false, "Not implemented");
 }
 
 /**
@@ -2754,6 +2679,7 @@ private struct Buffer
 
     char[] append(scope const(char)[] val) return scope
     {
+    pragma(msg, "buffer append");
         version (DigitalMars) pragma(inline, false); // tame dmd inliner
 
         if (val.length)

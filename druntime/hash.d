@@ -684,6 +684,7 @@ Params:
 @nogc nothrow pure @trusted
 private size_t bytesHash(bool dataKnownToBeAligned)(scope const(ubyte)[] bytes, size_t seed)
 {
+    pragma(msg, "bytesHash");
     auto len = bytes.length;
     auto data = bytes.ptr;
     auto nblocks = len / 4;

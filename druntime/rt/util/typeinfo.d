@@ -19,6 +19,7 @@ pragma(inline, true)
 private int cmp3(T)(const T lhs, const T rhs)
 if (__traits(isIntegral, T))
 {
+    pragma(msg, "cmp3");
     static if (T.sizeof < int.sizeof)
         // Taking the difference will always fit in an int.
         return int(lhs) - int(rhs);
@@ -307,3 +308,5 @@ class TypeInfo_n : TypeInfo
 
     override @property immutable(void)* rtInfo() { return rtinfoNoPointers; }
 }
+
+pragma(msg, "end typeinfo");

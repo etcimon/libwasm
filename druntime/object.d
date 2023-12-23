@@ -15,11 +15,7 @@ pragma(msg, "object");
 //       be a DMD thing.
 //alias typeof(int.sizeof)                    size_t;
 //alias typeof(cast(void*)0 - cast(void*)0)   ptrdiff_t;
-export extern(C) void _d_assert(string file, uint line)
-    {
-        import core.exception : onAssertError;
-        onAssertError(file, line);
-    }
+
 version (D_LP64)
 {
     alias size_t = ulong;
@@ -1422,6 +1418,7 @@ class TypeInfo_Enum : TypeInfo
 
     override bool opEquals(Object o)
     {
+    pragma(msg, "TypeInfo_enum");
         if (this is o)
             return true;
         auto c = cast(const TypeInfo_Enum)o;
@@ -4379,18 +4376,267 @@ string _d_assert_fail(string comp, A, B)(A a, B b) @nogc @safe nothrow pure
 // }
 
 
+/**
+ * Create a new class instance.
+ * Allocates memory and sets fields to their initial value, but does not call a
+ * constructor.
+ * ---
+ * new C() // _d_newclass!(C)()
+ * ---
+ * Returns: newly created object
+ */
+T _d_newclassT(T)() @trusted
+if (is(T == class))
+{
+    import core.internal.traits : hasIndirections;
+    import core.exception : onOutOfMemoryError;
+    import core.memory : pureMalloc;
+    import core.memory : GC;
 
-public import core.internal.entrypoint : _d_cmain;
+    alias BlkAttr = GC.BlkAttr;
+
+    auto init = __traits(initSymbol, T);
+    void* p;
+
+    static if (__traits(getLinkage, T) == "Windows")
+    {
+        p = pureMalloc(init.length);
+        if (!p)
+            onOutOfMemoryError();
+    }
+    else
+    {
+        BlkAttr attr = BlkAttr.NONE;
+
+        /* `extern(C++)`` classes don't have a classinfo pointer in their vtable,
+         * so the GC can't finalize them.
+         */
+        static if (__traits(hasMember, T, "__dtor") && __traits(getLinkage, T) != "C++")
+            attr |= BlkAttr.FINALIZE;
+        static if (!hasIndirections!T)
+            attr |= BlkAttr.NO_SCAN;
+
+        p = GC.malloc(init.length, attr, typeid(T));
+        debug(PRINTF) printf(" p = %p\n", p);
+    }
+
+    debug(PRINTF)
+    {
+        printf("p = %p\n", p);
+        printf("init.ptr = %p, len = %llu\n", init.ptr, cast(ulong)init.length);
+        printf("vptr = %p\n", *cast(void**) init);
+        printf("vtbl[0] = %p\n", (*cast(void***) init)[0]);
+        printf("vtbl[1] = %p\n", (*cast(void***) init)[1]);
+        printf("init[0] = %x\n", (cast(uint*) init)[0]);
+        printf("init[1] = %x\n", (cast(uint*) init)[1]);
+        printf("init[2] = %x\n", (cast(uint*) init)[2]);
+        printf("init[3] = %x\n", (cast(uint*) init)[3]);
+        printf("init[4] = %x\n", (cast(uint*) init)[4]);
+    }
+
+    // initialize it
+    p[0 .. init.length] = init[];
+
+    debug(PRINTF) printf("initialization done\n");
+    return cast(T) p;
+}
+
+/**
+ * TraceGC wrapper around $(REF _d_newclassT, core,lifetime).
+ */
+T _d_newclassTTrace(T)(string file, int line, string funcname) @trusted
+{
+    version (D_TypeInfo)
+    {
+        import core.internal.array.utils : TraceHook, gcStatsPure, accumulatePure;
+        mixin(TraceHook!(T.stringof, "_d_newclassT"));
+
+        return _d_newclassT!T();
+    }
+    else
+        assert(0, "Cannot create new class if compiling without support for runtime type information!");
+}
+
+/**
+ * Allocate an initialized non-array item.
+ *
+ * This is an optimization to avoid things needed for arrays like the __arrayPad(size).
+ * Used to allocate struct instances on the heap.
+ *
+ * ---
+ * struct Sz {int x = 0;}
+ * struct Si {int x = 3;}
+ *
+ * void main()
+ * {
+ *     new Sz(); // uses zero-initialization
+ *     new Si(); // uses Si.init
+ * }
+ * ---
+ *
+ * Returns:
+ *     newly allocated item
+ */
+T* _d_newitemT(T)() @trusted
+{
+    import core.internal.lifetime : emplaceInitializer;
+    import core.internal.traits : hasIndirections;
+    import core.memory : GC;
+
+    auto flags = !hasIndirections!T ? GC.BlkAttr.NO_SCAN : GC.BlkAttr.NONE;
+    immutable tiSize = TypeInfoSize!T;
+    immutable itemSize = T.sizeof;
+    immutable totalSize = itemSize + tiSize;
+    if (tiSize)
+        flags |= GC.BlkAttr.STRUCTFINAL | GC.BlkAttr.FINALIZE;
+
+    auto blkInfo = GC.qalloc(totalSize, flags, null);
+    auto p = blkInfo.base;
+
+    if (tiSize)
+    {
+        // The GC might not have cleared the padding area in the block.
+        *cast(TypeInfo*) (p + (itemSize & ~(size_t.sizeof - 1))) = null;
+        *cast(TypeInfo*) (p + blkInfo.size - tiSize) = cast() typeid(T);
+    }
+
+    emplaceInitializer(*(cast(T*) p));
+
+    return cast(T*) p;
+}
+
+/**
+ * Allocate an exception of type `T` from the exception pool.
+ * `T` must be `Throwable` or derived from it and cannot be a COM or C++ class.
+ *
+ * Note:
+ *  This function does not call the constructor of `T` because that would require
+ *  `forward!args`, which causes errors with -dip1008. This inconvenience will be
+ *  removed once -dip1008 works as intended.
+ *
+ * Returns:
+ *   allocated instance of type `T`
+ */
+T _d_newThrowable(T)() @trusted
+    if (is(T : Throwable) && __traits(getLinkage, T) == "D")
+{
+    debug(PRINTF) printf("_d_newThrowable(%s)\n", cast(char*) T.stringof);
+
+    import core.memory : pureMalloc;
+    auto init = __traits(initSymbol, T);
+    void* p = pureMalloc(init.length);
+    if (!p)
+    {
+        import core.exception : onOutOfMemoryError;
+        onOutOfMemoryError();
+    }
+
+    debug(PRINTF) printf(" p = %p\n", p);
+
+    // initialize it
+    p[0 .. init.length] = init[];
+
+    import core.internal.traits : hasIndirections;
+    if (hasIndirections!T)
+    {
+        // Inform the GC about the pointers in the object instance
+        import core.memory : GC;
+        GC.addRange(p, init.length);
+    }
+
+    debug(PRINTF) printf("initialization done\n");
+
+    (cast(Throwable) p).refcount() = 1;
+
+    return cast(T) p;
+}
+
+
+/// Implementation of `_d_delstruct` and `_d_delstructTrace`
+template _d_delstructImpl(T)
+{
+    private void _d_delstructImpure(ref T p)
+    {
+        debug(PRINTF) printf("_d_delstruct(%p)\n", p);
+
+        import core.memory : GC;
+
+        destroy(*p);
+        GC.free(p);
+        p = null;
+    }
+
+    /**
+     * This is called for a delete statement where the value being deleted is a
+     * pointer to a struct with a destructor but doesn't have an overloaded
+     * `delete` operator.
+     *
+     * Params:
+     *   p = pointer to the value to be deleted
+     *
+     * Bugs:
+     *   This function template was ported from a much older runtime hook that
+     *   bypassed safety, purity, and throwabilty checks. To prevent breaking
+     *   existing code, this function template is temporarily declared
+     *   `@trusted` until the implementation can be brought up to modern D
+     *   expectations.
+     */
+    void _d_delstruct(ref T p) @trusted @nogc pure nothrow
+    {
+        if (p)
+        {
+            alias Type = void function(ref T P) @nogc pure nothrow;
+            (cast(Type) &_d_delstructImpure)(p);
+        }
+    }
+
+    version (D_ProfileGC)
+    {
+        import core.internal.array.utils : _d_HookTraceImpl;
+
+        private enum errorMessage = "Cannot delete struct if compiling without support for runtime type information!";
+
+        /**
+         * TraceGC wrapper around $(REF _d_delstruct, core,lifetime,_d_delstructImpl).
+         *
+         * Bugs:
+         *   This function template was ported from a much older runtime hook that
+         *   bypassed safety, purity, and throwabilty checks. To prevent breaking
+         *   existing code, this function template is temporarily declared
+         *   `@trusted` until the implementation can be brought up to modern D
+         *   expectations.
+         */
+        alias _d_delstructTrace = _d_HookTraceImpl!(T, _d_delstruct, errorMessage);
+    }
+}
+
+template TypeInfoSize(T)
+{
+    import core.internal.traits : hasElaborateDestructor;
+    enum TypeInfoSize = hasElaborateDestructor!T ? size_t.sizeof : 0;
+}
+
+export extern(C) void _D9invariant12_d_invariantFC6ObjectZv(Object o)
+{   ClassInfo c;
+
+    //printf("__d_invariant(%p)\n", o);
+
+    // BUG: needs to be filename/line of caller, not library routine
+    assert(o !is null); // just do null check, not invariant check
+
+    c = typeid(o);
+    do
+    {
+        if (c.classInvariant)
+        {
+            (*c.classInvariant)(o);
+        }
+        c = c.base;
+    } while (c);
+}
 
 public import core.internal.array.appending : _d_arrayappendT;
-version (D_ProfileGC)
-{
-    public import core.internal.array.appending : _d_arrayappendTTrace;
-    public import core.internal.array.appending : _d_arrayappendcTXTrace;
-    public import core.internal.array.concatenation : _d_arraycatnTXTrace;
-    public import core.lifetime : _d_newitemTTrace;
-    public import core.internal.array.construction : _d_newarrayTTrace;
-}
+
 public import core.internal.array.appending : _d_arrayappendcTX;
 //public import core.internal.array.comparison : __cmp;
 //public import core.internal.array.equality : __equals;
@@ -4408,16 +4654,7 @@ public import core.internal.array.capacity: _d_arraysetlengthTImpl;
 
 //public import core.internal.destruction: __ArrayDtor;
 
-public import core.internal.moving: __move_post_blt;
-
 //public import core.internal.postblit: __ArrayPostblit;
 
 //public import core.internal.switch_: __switch;
 //public import core.internal.switch_: __switch_error;
-
-public import core.lifetime : _d_delstructImpl;
-public import core.lifetime : _d_newThrowable;
-public import core.lifetime : _d_newclassT;
-public import core.lifetime : _d_newclassTTrace;
-public import core.lifetime : _d_newitemT;
-
