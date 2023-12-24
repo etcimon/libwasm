@@ -12,6 +12,7 @@
 
 module rt.lifetime;
 
+// version (CRuntime_LIBWASM) This was made mostly nothrow and non-reliant on BlkInfo
 
 import core.attribute : weak;
 //import core.internal.array.utils : __arrayStart, __arrayClearPad;

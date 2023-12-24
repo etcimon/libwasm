@@ -20,6 +20,7 @@
  */
 
 module core.internal.utf;
+// version (CRuntime_LIBWASM) This was changed to be mostly nothrow
 
 extern (C) void onUnicodeError( string msg, size_t idx, string file = __FILE__, size_t line = __LINE__ ) @safe pure;
 

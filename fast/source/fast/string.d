@@ -18,7 +18,6 @@ import core.simd;
 
 version (GNU) import gcc.attribute;
 
-import std.algorithm;
 import std.range;
 import std.traits;
 

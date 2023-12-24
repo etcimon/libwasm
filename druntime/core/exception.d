@@ -9,9 +9,9 @@
  */
 module core.exception;
 
-import druntime.internal.stdio;
+import core.internal.stdio;
 
-// todo: Make this work with console.error
+// version (CRuntime_LIBWASM) Everything was redirected to onAssertErrorMsg for Javascript handling
 
 // Compiler lowers final switch default case to this (which is a runtime error)
 void __switch_errorT()(string file = __FILE__, size_t line = __LINE__) @trusted

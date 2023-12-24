@@ -15,6 +15,7 @@
 			"versions": ["EnableDebugger", "MemutilsTests", "HasDebuggerEnabled"]
 	    }
 	],
+	"importPaths": ["../druntime"],
 	"dflags": ["-fvisibility=hidden", "--fno-exceptions"]
 
 }

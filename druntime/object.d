@@ -9,6 +9,11 @@
  */
 
 module object;
+
+/// Pretend we use CRuntime_Glibc and Posix
+
+version(WASI) {} else static assert(0, "WASI interface required. You must compile with wasmXX-unknown-wasi.");
+
 // NOTE: For some reason, this declaration method doesn't work
 //       in this particular file (and this file only).  It must
 //       be a DMD thing.
@@ -217,115 +222,8 @@ if (!__traits(isScalar, T1) && !__traits(isScalar, T2))
     return s1.length < s2.length ? -1 : (s1.length > s2.length);
 }
 
-// `lhs == rhs` lowers to `__equals(lhs, rhs)` for dynamic arrays
-bool __equals(T1, T2)(T1[] lhs, T2[] rhs)
-{
-    import core.internal.traits : Unqual;
-    alias U1 = Unqual!T1;
-    alias U2 = Unqual!T2;
 
-    static @trusted ref R at(R)(R[] r, size_t i) { return r.ptr[i]; }
-    static @trusted R trustedCast(R, S)(S[] r) { return cast(R) r; }
 
-    if (lhs.length != rhs.length)
-        return false;
-
-    if (lhs.length == 0 && rhs.length == 0)
-        return true;
-
-    static if (is(U1 == void) && is(U2 == void))
-    {
-        return __equals(trustedCast!(ubyte[])(lhs), trustedCast!(ubyte[])(rhs));
-    }
-    else static if (is(U1 == void))
-    {
-        return __equals(trustedCast!(ubyte[])(lhs), rhs);
-    }
-    else static if (is(U2 == void))
-    {
-        return __equals(lhs, trustedCast!(ubyte[])(rhs));
-    }
-    else static if (!is(U1 == U2))
-    {
-        // This should replace src/object.d _ArrayEq which
-        // compares arrays of different types such as long & int,
-        // char & wchar.
-        // Compiler lowers to __ArrayEq in dmd/src/opover.d
-        foreach (const u; 0 .. lhs.length)
-        {
-            if (at(lhs, u) != at(rhs, u))
-                return false;
-        }
-        return true;
-    }
-    else static if (__traits(isIntegral, U1))
-    {
-
-        if (!__ctfe)
-        {
-            import core.stdc.string : memcmp;
-            return () @trusted { return memcmp(cast(void*)lhs.ptr, cast(void*)rhs.ptr, lhs.length * U1.sizeof) == 0; }();
-        }
-        else
-        {
-            foreach (const u; 0 .. lhs.length)
-            {
-                if (at(lhs, u) != at(rhs, u))
-                    return false;
-            }
-            return true;
-        }
-    }
-    else
-    {
-        foreach (const u; 0 .. lhs.length)
-        {
-            static if (__traits(compiles, __equals(at(lhs, u), at(rhs, u))))
-            {
-                if (!__equals(at(lhs, u), at(rhs, u)))
-                    return false;
-            }
-            else static if (__traits(isFloating, U1))
-            {
-                if (at(lhs, u) != at(rhs, u))
-                    return false;
-            }
-            else static if (is(U1 : Object) && is(U2 : Object))
-            {
-                if (!(cast(Object)at(lhs, u) is cast(Object)at(rhs, u)
-                    || at(lhs, u) && (cast(Object)at(lhs, u)).opEquals(cast(Object)at(rhs, u))))
-                    return false;
-            }
-            else static if (__traits(hasMember, U1, "opEquals"))
-            {
-                if (!at(lhs, u).opEquals(at(rhs, u)))
-                    return false;
-            }
-            else static if (is(U1 == delegate))
-            {
-                if (at(lhs, u) != at(rhs, u))
-                    return false;
-            }
-            else static if (is(U1 == U11*, U11))
-            {
-                if (at(lhs, u) != at(rhs, u))
-                    return false;
-            }
-            else static if (__traits(isAssociativeArray, U1))
-            {
-                if (at(lhs, u) != at(rhs, u))
-                    return false;
-            }
-            else
-            {
-                if (at(lhs, u).tupleof != at(rhs, u).tupleof)
-                    return false;
-            }
-        }
-
-        return true;
-    }
-}
 /**
 Destroys the given object and optionally resets to initial state. It's used to
 _destroy an object, calling its destructor or finalizer so it no longer
@@ -2951,14 +2849,6 @@ class Error : Throwable
     }
 }
 
-/* Used in Exception Handling LSDA tables to 'wrap' C++ type info
- * so it can be distinguished from D TypeInfo
- */
-class __cpp_type_info_ptr
-{
-    void* ptr;          // opaque pointer to C++ RTTI type info
-}
-
 extern (C)
 {
     // from druntime/src/rt/aaA.d
@@ -4336,284 +4226,6 @@ TTo[] __ArrayCast(TFrom, TTo)(TFrom[] from) @nogc pure @trusted
         assert(v == cast(short) 0xabab);
 }
 
-// Allows customized assert error messages
-string _d_assert_fail(string comp, A, B)(A a, B b) @nogc @safe nothrow pure
-{
-    import core.internal.dassert : invertCompToken, miniFormatFakeAttributes, pureAlloc;
-    /*
-    The program will be terminated after the assertion error message has
-    been printed and its not considered part of the "main" program.
-    Also, catching an AssertError is Undefined Behavior
-    Hence, we can fake purity and @nogc-ness here.
-    */
-
-    auto valA = miniFormatFakeAttributes(a);
-    auto valB = miniFormatFakeAttributes(b);
-    enum token = invertCompToken(comp);
-
-    const totalLen = valA.length + token.length + valB.length + 2;
-    char[] buffer = cast(char[]) pureAlloc(totalLen)[0 .. totalLen];
-    // @nogc-concat of "<valA> <comp> <valB>"
-    auto n = valA.length;
-    buffer[0 .. n] = valA;
-    buffer[n++] = ' ';
-    buffer[n .. n + token.length] = token;
-    n += token.length;
-    buffer[n++] = ' ';
-    buffer[n .. n + valB.length] = valB;
-    return (() @trusted => cast(string) buffer)();
-}
-
-// Tarr _d_arrayassign_l(Tarr : T[], T)(return scope Tarr to, scope Tarr from) @trusted
-// {
-//     import core.stdc.string : memcpy;
-//     const min_val = (to.length < from.length ? to.length : from.length);   
-//     assert(from.length <= to.length, "Cannot slice a larger array into a smaller one");
-//     memcpy(cast(void*)to.ptr, cast(void*)from.ptr, min_val * T.sizeof);
-//     return to;
-// }
-
-
-/**
- * Create a new class instance.
- * Allocates memory and sets fields to their initial value, but does not call a
- * constructor.
- * ---
- * new C() // _d_newclass!(C)()
- * ---
- * Returns: newly created object
- */
-T _d_newclassT(T)() @trusted
-if (is(T == class))
-{
-    import core.internal.traits : hasIndirections;
-    import core.exception : onOutOfMemoryError;
-    import core.memory : pureMalloc;
-    import core.memory : GC;
-
-    alias BlkAttr = GC.BlkAttr;
-
-    auto init = __traits(initSymbol, T);
-    void* p;
-
-    static if (__traits(getLinkage, T) == "Windows")
-    {
-        p = pureMalloc(init.length);
-        if (!p)
-            onOutOfMemoryError();
-    }
-    else
-    {
-        BlkAttr attr = BlkAttr.NONE;
-
-        /* `extern(C++)`` classes don't have a classinfo pointer in their vtable,
-         * so the GC can't finalize them.
-         */
-        static if (__traits(hasMember, T, "__dtor") && __traits(getLinkage, T) != "C++")
-            attr |= BlkAttr.FINALIZE;
-        static if (!hasIndirections!T)
-            attr |= BlkAttr.NO_SCAN;
-
-        p = GC.malloc(init.length, attr, typeid(T));
-        debug(PRINTF) printf(" p = %p\n", p);
-    }
-
-    debug(PRINTF)
-    {
-        printf("p = %p\n", p);
-        printf("init.ptr = %p, len = %llu\n", init.ptr, cast(ulong)init.length);
-        printf("vptr = %p\n", *cast(void**) init);
-        printf("vtbl[0] = %p\n", (*cast(void***) init)[0]);
-        printf("vtbl[1] = %p\n", (*cast(void***) init)[1]);
-        printf("init[0] = %x\n", (cast(uint*) init)[0]);
-        printf("init[1] = %x\n", (cast(uint*) init)[1]);
-        printf("init[2] = %x\n", (cast(uint*) init)[2]);
-        printf("init[3] = %x\n", (cast(uint*) init)[3]);
-        printf("init[4] = %x\n", (cast(uint*) init)[4]);
-    }
-
-    // initialize it
-    p[0 .. init.length] = init[];
-
-    debug(PRINTF) printf("initialization done\n");
-    return cast(T) p;
-}
-
-/**
- * TraceGC wrapper around $(REF _d_newclassT, core,lifetime).
- */
-T _d_newclassTTrace(T)(string file, int line, string funcname) @trusted
-{
-    version (D_TypeInfo)
-    {
-        import core.internal.array.utils : TraceHook, gcStatsPure, accumulatePure;
-        mixin(TraceHook!(T.stringof, "_d_newclassT"));
-
-        return _d_newclassT!T();
-    }
-    else
-        assert(0, "Cannot create new class if compiling without support for runtime type information!");
-}
-
-/**
- * Allocate an initialized non-array item.
- *
- * This is an optimization to avoid things needed for arrays like the __arrayPad(size).
- * Used to allocate struct instances on the heap.
- *
- * ---
- * struct Sz {int x = 0;}
- * struct Si {int x = 3;}
- *
- * void main()
- * {
- *     new Sz(); // uses zero-initialization
- *     new Si(); // uses Si.init
- * }
- * ---
- *
- * Returns:
- *     newly allocated item
- */
-T* _d_newitemT(T)() @trusted
-{
-    import core.internal.lifetime : emplaceInitializer;
-    import core.internal.traits : hasIndirections;
-    import core.memory : GC;
-
-    auto flags = !hasIndirections!T ? GC.BlkAttr.NO_SCAN : GC.BlkAttr.NONE;
-    immutable tiSize = TypeInfoSize!T;
-    immutable itemSize = T.sizeof;
-    immutable totalSize = itemSize + tiSize;
-    if (tiSize)
-        flags |= GC.BlkAttr.STRUCTFINAL | GC.BlkAttr.FINALIZE;
-
-    auto blkInfo = GC.qalloc(totalSize, flags, null);
-    auto p = blkInfo.base;
-
-    if (tiSize)
-    {
-        // The GC might not have cleared the padding area in the block.
-        *cast(TypeInfo*) (p + (itemSize & ~(size_t.sizeof - 1))) = null;
-        *cast(TypeInfo*) (p + blkInfo.size - tiSize) = cast() typeid(T);
-    }
-
-    emplaceInitializer(*(cast(T*) p));
-
-    return cast(T*) p;
-}
-
-/**
- * Allocate an exception of type `T` from the exception pool.
- * `T` must be `Throwable` or derived from it and cannot be a COM or C++ class.
- *
- * Note:
- *  This function does not call the constructor of `T` because that would require
- *  `forward!args`, which causes errors with -dip1008. This inconvenience will be
- *  removed once -dip1008 works as intended.
- *
- * Returns:
- *   allocated instance of type `T`
- */
-T _d_newThrowable(T)() @trusted
-    if (is(T : Throwable) && __traits(getLinkage, T) == "D")
-{
-    debug(PRINTF) printf("_d_newThrowable(%s)\n", cast(char*) T.stringof);
-
-    import core.memory : pureMalloc;
-    auto init = __traits(initSymbol, T);
-    void* p = pureMalloc(init.length);
-    if (!p)
-    {
-        import core.exception : onOutOfMemoryError;
-        onOutOfMemoryError();
-    }
-
-    debug(PRINTF) printf(" p = %p\n", p);
-
-    // initialize it
-    p[0 .. init.length] = init[];
-
-    import core.internal.traits : hasIndirections;
-    if (hasIndirections!T)
-    {
-        // Inform the GC about the pointers in the object instance
-        import core.memory : GC;
-        GC.addRange(p, init.length);
-    }
-
-    debug(PRINTF) printf("initialization done\n");
-
-    (cast(Throwable) p).refcount() = 1;
-
-    return cast(T) p;
-}
-
-
-/// Implementation of `_d_delstruct` and `_d_delstructTrace`
-template _d_delstructImpl(T)
-{
-    private void _d_delstructImpure(ref T p)
-    {
-        debug(PRINTF) printf("_d_delstruct(%p)\n", p);
-
-        import core.memory : GC;
-
-        destroy(*p);
-        GC.free(p);
-        p = null;
-    }
-
-    /**
-     * This is called for a delete statement where the value being deleted is a
-     * pointer to a struct with a destructor but doesn't have an overloaded
-     * `delete` operator.
-     *
-     * Params:
-     *   p = pointer to the value to be deleted
-     *
-     * Bugs:
-     *   This function template was ported from a much older runtime hook that
-     *   bypassed safety, purity, and throwabilty checks. To prevent breaking
-     *   existing code, this function template is temporarily declared
-     *   `@trusted` until the implementation can be brought up to modern D
-     *   expectations.
-     */
-    void _d_delstruct(ref T p) @trusted @nogc pure nothrow
-    {
-        if (p)
-        {
-            alias Type = void function(ref T P) @nogc pure nothrow;
-            (cast(Type) &_d_delstructImpure)(p);
-        }
-    }
-
-    version (D_ProfileGC)
-    {
-        import core.internal.array.utils : _d_HookTraceImpl;
-
-        private enum errorMessage = "Cannot delete struct if compiling without support for runtime type information!";
-
-        /**
-         * TraceGC wrapper around $(REF _d_delstruct, core,lifetime,_d_delstructImpl).
-         *
-         * Bugs:
-         *   This function template was ported from a much older runtime hook that
-         *   bypassed safety, purity, and throwabilty checks. To prevent breaking
-         *   existing code, this function template is temporarily declared
-         *   `@trusted` until the implementation can be brought up to modern D
-         *   expectations.
-         */
-        alias _d_delstructTrace = _d_HookTraceImpl!(T, _d_delstruct, errorMessage);
-    }
-}
-
-template TypeInfoSize(T)
-{
-    import core.internal.traits : hasElaborateDestructor;
-    enum TypeInfoSize = hasElaborateDestructor!T ? size_t.sizeof : 0;
-}
-
 export extern(C) void _D9invariant12_d_invariantFC6ObjectZv(Object o)
 {   ClassInfo c;
 
@@ -4637,7 +4249,7 @@ public import core.internal.array.appending : _d_arrayappendT;
 
 public import core.internal.array.appending : _d_arrayappendcTX;
 //public import core.internal.array.comparison : __cmp;
-//public import core.internal.array.equality : __equals;
+public import core.internal.array.equality : __equals;
 //public import core.internal.array.casting: __ArrayCast;
 public import core.internal.array.concatenation : _d_arraycatnTX;
 public import core.internal.array.construction : _d_arrayctor;
@@ -4656,3 +4268,101 @@ public import core.internal.array.capacity: _d_arraysetlengthTImpl;
 
 //public import core.internal.switch_: __switch;
 //public import core.internal.switch_: __switch_error;
+
+public import core.lifetime : _d_delstructImpl;
+public import core.lifetime : _d_newThrowable;
+public import core.lifetime : _d_newclassT;
+public import core.lifetime : _d_newclassTTrace;
+public import core.lifetime : _d_newitemT;
+
+// Used in Exception Handling LSDA tables to 'wrap' C++ type info
+// so it can be distinguished from D TypeInfo
+class __cpp_type_info_ptr
+{
+    void* ptr;          // opaque pointer to C++ RTTI type info
+}
+
+// Compiler hook into the runtime implementation of array (vector) operations.
+template _arrayOp(Args...)
+{
+    import core.internal.array.operations;
+    alias _arrayOp = arrayOp!Args;
+}
+
+public import core.builtins : __ctfeWrite;
+
+/**
+
+Provides an "inline import", i.e. an `import` that is only available for a
+limited lookup. For example:
+
+---
+void fun(imported!"std.stdio".File input)
+{
+    ... use File from std.stdio normally ...
+}
+---
+
+There is no need to import `std.stdio` at top level, so `fun` carries its own
+dependencies. The same approach can be used for template constraints:
+
+---
+void fun(T)(imported!"std.stdio".File input, T value)
+if (imported!"std.traits".isIntegral!T)
+{
+    ...
+}
+---
+
+An inline import may be used in conjunction with the `with` statement as well.
+Inside the scope controlled by `with`, all symbols in the imported module are
+made available:
+
+---
+void fun()
+{
+    with (imported!"std.datetime")
+    with (imported!"std.stdio")
+    {
+        Clock.currTime.writeln;
+    }
+}
+---
+
+The advantages of inline imports over top-level uses of the `import` declaration
+are the following:
+
+$(UL
+$(LI The `imported` template specifies dependencies at declaration level, not at
+module level. This allows reasoning about the dependency cost of declarations in
+separation instead of aggregated at module level.)
+$(LI Declarations using `imported` are easier to move around because they don't
+require top-level context, making for simpler and quicker refactorings.)
+$(LI Declarations using `imported` scale better with templates. This is because
+templates that are not instantiated do not have their parameters and constraints
+instantiated, so additional modules are not imported without necessity. This
+makes the cost of unused templates negligible. Dependencies are pulled on a need
+basis depending on the declarations used by client code.)
+)
+
+The use of `imported` also has drawbacks:
+
+$(UL
+$(LI If most declarations in a module need the same imports, then factoring them
+at top level, outside the declarations, is simpler than repeating them.)
+$(LI Traditional dependency-tracking tools such as make and other build systems
+assume file-level dependencies and need special tooling (such as rdmd) in order
+to work efficiently.)
+$(LI Dependencies at the top of a module are easier to inspect quickly than
+dependencies spread throughout the module.)
+)
+
+See_Also: The $(HTTP forum.dlang.org/post/tzqzmqhankrkbrfsrmbo@forum.dlang.org,
+forum discussion) that led to the creation of the `imported` facility. Credit is
+due to Daniel Nielsen and Dominikus Dittes Scherkl.
+
+*/
+template imported(string moduleName)
+{
+    mixin("import imported = " ~ moduleName ~ ";");
+}

@@ -16,7 +16,7 @@ module fast.parsing;
 
 import std.traits;
 import fast.internal.sysdef;
-import std.array : staticArray;
+//import std.array : staticArray;
 
 static enum isAMD64 = false;
 
@@ -560,47 +560,47 @@ static if (isAMD64 && (isLDC || isGDC))
  *   0 = not equal, but string not exhausted, 1 = string equals key.
  *
  **************************************/
-int fixedTermStrCmp(C, immutable C[] key, immutable C[] terminators, immutable C[] special = null)
-	(ref const(C)* p_str, scope bool delegate(ref immutable(char)*, ref const(char)*) callback = null)
-in
-{
-	assert(special.length == 0 || callback !is null);
-}
-body
-{
-	import std.algorithm, std.range;
+// int fixedTermStrCmp(C, immutable C[] key, immutable C[] terminators, immutable C[] special = null)
+// 	(ref const(C)* p_str, scope bool delegate(ref immutable(char)*, ref const(char)*) callback = null)
+// in
+// {
+// 	assert(special.length == 0 || callback !is null);
+// }
+// body
+// {
+// 	import std.algorithm, std.range;
 	
-	static immutable byte[256] classify =
-		iota(256).map!(c => terminators.canFind(c) ? byte(-1) : special.canFind(c) ? 1 : 0).staticArray;
+// 	static immutable byte[256] classify =
+// 		iota(256).map!(c => terminators.canFind(c) ? byte(-1) : special.canFind(c) ? 1 : 0).staticArray;
 	
-	immutable(C)* p_key = key.ptr;
-	immutable C* e_key = p_key + key.length;
+// 	immutable(C)* p_key = key.ptr;
+// 	immutable C* e_key = p_key + key.length;
 	
-	while (p_key !is e_key)
-	{
-		int clazz = *p_str <= 0xFF ? classify[*p_str] : 0;
+// 	while (p_key !is e_key)
+// 	{
+// 		int clazz = *p_str <= 0xFF ? classify[*p_str] : 0;
 		
-		if (clazz < 0)
-		{
-			return clazz;
-		}
-		else if (clazz == 0)
-		{
-			if (*p_str != *p_key)
-				return clazz;
+// 		if (clazz < 0)
+// 		{
+// 			return clazz;
+// 		}
+// 		else if (clazz == 0)
+// 		{
+// 			if (*p_str != *p_key)
+// 				return clazz;
 			
-			p_str++;
-			p_key++;
-		}
-		else if (clazz > 0)
-		{
-			if (!callback(p_key, p_str))
-				return 0;
-		}
-	}
+// 			p_str++;
+// 			p_key++;
+// 		}
+// 		else if (clazz > 0)
+// 		{
+// 			if (!callback(p_key, p_str))
+// 				return 0;
+// 		}
+// 	}
 	
-	return classify[*p_str & 0xFF] < 0;
-}
+// 	return classify[*p_str & 0xFF] < 0;
+// }
 
 
 /*
@@ -786,8 +786,6 @@ void skipToNextLine(ref const(char)* p)
 
 private enum sanitizeChars(string cs)
 {
-	import std.exception;
-
 	bool has0 = false;
 	foreach (c; cs) if (!c) { has0 = true; break; }
 	assert(has0, "Parsers are required to also check for \0 when looking for specific chars.");
@@ -798,8 +796,6 @@ private enum sanitizeChars(string cs)
 
 private enum sanitizeRanges(string cs)
 {
-	import std.exception;
-
 	bool has0 = false;
 	foreach (i; 0 .. cs.length / 2) if (!cs[2*i]) { has0 = true; break; }
 	assert(has0, "Parsers are required to also check for \0 when looking for specific chars.");

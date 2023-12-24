@@ -395,7 +395,6 @@ void formattedWriteItem(string format, T)(ref char* buffer, T t)
 	*cast(RT*) buffer = hexStrUpper!T(t);
 	buffer += RT.length;
 }
-import std.format;
 
 nothrow 
 void formattedWriteItem(string format, T)(ref char* buffer, T t)

@@ -27,8 +27,6 @@
 module fast.json;
 
 //import core.stdc.string;
-
-import std.exception;
 import std.range;
 import std.traits;
 import memutils.ct : isTuple;
@@ -241,7 +239,7 @@ public:
 		if (!allowNull || peek == DataType.string)
 		{
 			auto borrowed = borrowString();
-			return borrowed.assumeUnique();
+			return cast(string)borrowed;
 		}
 		return readNull();
 	}
@@ -390,10 +388,6 @@ public:
 	}
 
 
-	private int matchString(string key)()
-	{
-		return m_text.fixedTermStrCmp!(char, key, "\"\0", "\\")(&stringCompareCallback);
-	}
 
 
 	private bool stringCompareCallback(ref immutable(char)* key, ref const(char)* str)

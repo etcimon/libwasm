@@ -8,6 +8,10 @@
  */
 module rt.aaA;
 
+// version (CRuntime_LIBWASM) {} else 
+/// This file has interactions with the GC removed in favor of a _d_allocmemory
+/// that relies on PoolStack from libwasm
+
 /// AA version for debuggers, bump whenever changing the layout
 extern (C) immutable int _aaVersion = 1;
 extern (C) void* _d_allocmemory(size_t sz) pure nothrow;

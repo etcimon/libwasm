@@ -1,5 +1,6 @@
 module core.demangle;
 
+// version (CRuntime_LIBWASM) This was made mostly nothrow
 
 private struct NoHooks
 {

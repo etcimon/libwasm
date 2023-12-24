@@ -252,7 +252,7 @@ pure nothrow @nogc
 	body { return (n & n - 1) == 0; }
 
 	version (LDC) {
-		import core.simd;
+		import core.simd : ubyte16;
 		pragma(LDC_intrinsic, "llvm.x86.sse2.pmovmskb.128")
 			uint moveMask(ubyte16);
 	} else version (GNU) {

@@ -13,19 +13,21 @@ subPackage "webidl"
 dflags "-dip1000"
 
 toolchainRequirements ldc=">=1.35.0"
-
+versions "CRuntime_LIBWASM"
 buildRequirements "allowWarnings" # required for ldc 1.16
-sourcePaths "source" "druntime"
+sourcePaths "source" "druntime/core" "druntime/rt"
+sourceFiles "druntime/object.d"
+importPaths "druntime"
 configuration "library" {
-              dflags "-fvisibility=hidden" "-fno-exceptions"
-              lflags "-allow-undefined" "--export-table" "--export=domEvent" "--export=allocString" "-export=__heap_base"
+    dflags "-fvisibility=hidden" "-fno-exceptions"
+    lflags "-allow-undefined" "--export-table" "--export=domEvent" "--export=allocString" "-export=__heap_base"
 }
 
 configuration "unittest" {
-              #targetName "ut"
-              #targetType "executable"
-              dependency "unit-threaded" version="*"
-              sourcePaths "source" "tests/ut"
-              importPaths "source" "tests/ut"
-              mainSourceFile "tests/ut/test_main.d"
+    #targetName "ut"
+    #targetType "executable"
+    dependency "unit-threaded" version="*"
+    sourcePaths "source" "tests/ut"
+    importPaths "source" "tests/ut"
+    mainSourceFile "tests/ut/test_main.d"
 }

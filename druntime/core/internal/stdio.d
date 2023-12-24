@@ -1,4 +1,4 @@
-module druntime.internal.stdio;
+module core.internal.stdio;
 
 // Authors:   tspike (github.com/tspike2k)
 // Copyright: Copyright (c) 2020
@@ -447,7 +447,13 @@ uint stringToUint(const(char)[] str)
     uint n = 0;
     foreach_reverse(ref c; str)
     {
-        result += (c - '0') * (10 ^^ n);
+        uint pow = 10;
+        if (n == 0)
+            pow = 1;
+        else for (int i = 1; i < n; i++) {
+            pow *= 10;
+        }
+        result += (c - '0') * pow;
         n++;
     }
     return result;
@@ -1232,10 +1238,7 @@ struct stbsp__digitpair_t
 const stbsp__digitpair_t stbsp__digitpair =
 stbsp__digitpair_t(
   0,
-   "00010203040506070809101112131415161718192021222324" ~
-   "25262728293031323334353637383940414243444546474849" ~
-   "50515253545556575859606162636465666768697071727374" ~
-   "75767778798081828384858687888990919293949596979899"
+   "00010203040506070809101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899"
 );
 
 void stbsp__raise_to_power10(double *ohi, double *olo, double d, stbsp__int32 power) // power can be -323 to +350

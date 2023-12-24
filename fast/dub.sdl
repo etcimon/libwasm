@@ -2,12 +2,13 @@ name "fast-wasm"
 description "A library that aims to provide the fastest possible implementation of some every day routines."
 homepage "http://github.com/mleise/fast"
 authors "Marco Leise"
-copyright "Copyright © 2017, Marco Leise"
-license "GPL-3.0"
+copyright "Copyright © 2017-2023, Marco Leise, Etienne Cimon"
+license "MIT"
 
 dependency "memutils-wasm" path="../memutils"
 excludedSourceFiles "source/docs/*.d" "source/unicode/*.d"
 targetPath "generated"
+importPaths "../druntime" "../memutils/source" "source"
 
 configuration "library" {
 	targetType "library"

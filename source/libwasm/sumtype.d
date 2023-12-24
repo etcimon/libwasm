@@ -122,7 +122,6 @@ version (D_BetterC) {} else
 }
 +/
 /// `This` placeholder, for use in self-referential types.
-public import std.variant: This;
 
 import std.meta: NoDuplicates;
 

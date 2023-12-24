@@ -341,7 +341,7 @@ public template match(handlers...) if (handlers.length == 2) {
             alias noHandler = handlers[0];
         }
 
-        import bolts: isFunctionOver;
+        import optional.bolts: isFunctionOver;
 
         static assert(
             isFunctionOver!(someHandler, T) && isFunctionOver!(noHandler),
