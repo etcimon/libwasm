@@ -62,6 +62,7 @@ const libwasm = {
             var tmp = {};
             modules.map(m=>m.jsExports).filter(a=>!!a).map(e=>Object.entries(e).forEach(e=>tmp[e[0]] = Object.assign.apply(null,[tmp[e[0]] || {}, e[1]])));
             libwasm.exports = tmp;
+            libwasm.nativeFunctionMap = {};
 
             // for lodash
             window.sifg = (ptr)=>libwasm.instance.exports.__indirect_function_table.get(ptr),
@@ -72,7 +73,7 @@ const libwasm = {
                 let fct = libwasm.nativeFunctionMap[fct_name];
                 if (fct && fct.fun) {
                     let handle = addObject(val);
-                    libwasm.instance.exports.jsCallback(ctx, fun, handle);
+                    libwasm.instance.exports.jsCallback(fct.ctx, fct.fun, handle);
                 }
                 else
                     console.error(`Function ${fct_name} is not registered.`)
@@ -152,23 +153,9 @@ let decoders = {
 }
 let jsExports = {
     env: {
-        onOutOfMemoryError: () => abort("Out of memory exception"),
-        _d_assert: (file,line) => abort("assert",file,line),
-        _d_assert_msg: (file,line,msg) => abort("assert",file,line,msg),
-        _d_arraybounds_slice: (file, line, lower, upper, length) => sliceError("_d_arraybounds_slice", file, line, lower, upper, length),
-        _d_arraybounds_index: (file, line, idx, length) => indexError("_d_arraybounds_index", file, line, idx, length),
-        _D4core8internal5array11arrayassign27enforceRawArraysConformableFNaNbNiNexAaxkxAvxQdxbZv: ()=>{},
-        _D6object10_xopEqualsFIPvIQdZb: (ptr1,ptr2) => abort("opEquals not implemented"),
-        _D6object7_xopCmpFIPvIQdZb: (ptr1,ptr2) => abort("opCmp not implemented"),
+        onAssertErrorMsg: (file, line, msg) => abort("assert",file,line,msg),
         doLog: arg => console.log(arg),
         memory: libwasm.memory,
-        __assert: () => {},
-        _Unwind_Resume: () => {
-            console.log(arguments);
-        },
-        _d_dynamic_cast: () => {
-            console.log(arguments)
-        },
         libwasm_add__bool: (b)=>addObject(!!b),
         libwasm_add__int: addObject,
         libwasm_add__uint: addObject,
@@ -187,7 +174,14 @@ let jsExports = {
         },
         libwasm_set__function: (len, offset, ctx, fun) => {
             let fct_name = decoders.string(len, offset);
+            if (libwasm.nativeFunctionMap[fct_name]) {
+                console.warn(`Function ${fct_name} already registerd, did you forget to unexportDelegate?`);
+            }
             libwasm.nativeFunctionMap[fct_name] = {ctx, fun};
+        },
+        libwasm_unset__function: (len, offset) => {
+            let fct_name = decoders.string(len, offset);
+            delete libwasm.nativeFunctionMap[fct_name];
         },
         libwasm_get__field: (handle, len, offset) => {
             return addObject(getObject(handle)[decoders.string(len,offset)]);

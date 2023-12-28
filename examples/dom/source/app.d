@@ -85,6 +85,7 @@ struct Main {
   }
 
   @connect!("field.enter") void enter() @trusted {
+    
     console.log("Construct called? ");
     console.log(m_construct_called ? "yes":"no");
     auto sp = ScopedPool(m_pool);

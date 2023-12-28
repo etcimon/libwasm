@@ -102,13 +102,21 @@ const setupMemory = (cond) => {
 }
 
 const Object_VarArgCall = (nodePtr, propLen, propOffset, argsdefLen, argsdefOffset, jsonArgsLen, jsonArgsOffset) => { 
+  console.log(nodePtr);
+  console.log(propLen);
+  console.log(propOffset);
+  console.log(argsdefLen);
+  console.log(argsdefOffset);
+  console.log(jsonArgsLen);
+  console.log(jsonArgsOffset);
+  
   setupMemory([libwasm.MemoryIdentifiers.i32u]);
   let node = libwasm.objects[nodePtr];
   let prop = decoder.string(propLen, propOffset, memory.heapi32u);
   let argsdef = decoder.string(argsdefLen, argsdefOffset, memory.heapi32u);
-  //console.log(argsdef);
+  console.log(argsdef);
   let jsonArgs = decoder.string(jsonArgsLen, jsonArgsOffset, memory.heapi32u);
-  //console.log(jsonArgs);
+  console.log(jsonArgs);
   let args = JSON.parse(jsonArgs);
   let argsdef_arr = argsdef.split(";");
   let args_arr = [];
