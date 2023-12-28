@@ -145,7 +145,7 @@ NodeContent[] toNodeContent(in AttributeContent[] contents, Location loc)
 		ret.attributes.length = this.attributes.length;
 		foreach (i, ref a; ret.attributes[]) {
 			a.copyFrom(this.attributes[i]);
-		} 
+		}
 		ret.contents.length = this.contents.length;
 		foreach (i, ref c; ret.contents[]) c = this.contents[i].clone;
 		return ret;
@@ -186,7 +186,7 @@ NodeContent[] toNodeContent(in AttributeContent[] contents, Location loc)
 	}
 
 	/** Strips any leading whitespace from the contents. */
-	void stripLeadingWhitespace() 
+	void stripLeadingWhitespace()
 	{
 		while (contents.length >= 1 && contents[0].kind == NodeContent.Kind.text) {
 			contents[0].value[] = ctstripLeft(contents[0].value[]);
@@ -197,7 +197,7 @@ NodeContent[] toNodeContent(in AttributeContent[] contents, Location loc)
 	}
 
 	/** Strips any trailign whitespace from the contents. */
-	void stripTrailingWhitespace() 
+	void stripTrailingWhitespace()
 	{
 		while (contents.length >= 1 && contents[$-1].kind == NodeContent.Kind.text) {
 			contents[$-1].value[] = ctstripRight(contents[$-1].value[]);
@@ -211,7 +211,7 @@ NodeContent[] toNodeContent(in AttributeContent[] contents, Location loc)
 	bool isTextNode() const { return contents.length == 1 && contents[0].kind == NodeContent.Kind.text; }
 
 	/// Tests if the node consists only of text and interpolations, but doesn't contain child nodes.
-	bool isProceduralTextNode() const { 
+	bool isProceduralTextNode() const {
 		foreach(ref c; contents[]) {
 			if (c.kind == NodeContent.Kind.node)
 				return false;
@@ -259,7 +259,7 @@ NodeContent[] toNodeContent(in AttributeContent[] contents, Location loc)
 		return format!"Node(%s, %s)"(loc.file[], name[]);
 	}
 
-	bool opEquals(scope const Node other) scope const { return this.tupleof == other.tupleof; }
+	bool opEquals()(scope const Node other) scope const { return this.tupleof == other.tupleof; }
 }
 
 
@@ -373,7 +373,7 @@ struct Attribute {
 			content.kind = c.kind;
 			this.contents ~= content;
 		}
-		
+
 	}
 }
 
@@ -447,7 +447,7 @@ struct NodeContent {
 	}
 
 	/// Compares node content for equality.
-	bool opEquals(const scope NodeContent* other)
+	bool opEquals()(const scope NodeContent* other)
 	const scope {
 		if (this.kind != other.kind) return false;
 		if (this.loc != other.loc) return false;
