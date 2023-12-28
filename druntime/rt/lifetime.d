@@ -15,46 +15,12 @@ module rt.lifetime;
 // version (CRuntime_LIBWASM) This was made mostly nothrow and non-reliant on BlkInfo
 
 import core.attribute : weak;
-//import core.internal.array.utils : __arrayStart, __arrayClearPad;
+import core.internal.array.utils : __arrayStart, __arrayClearPad;
 debug(PRINTF) import core.stdc.stdio;
 
-/**
- * Get the start of the array for the given block.
- *
- * Params:
- *  info = array metadata
- * Returns:
- *  pointer to the start of the array
- */
-void *__arrayStart()(return scope BlkInfo info) nothrow pure
-{
-    return info.base + ((info.size & BIGLENGTHMASK) ? LARGEPREFIX : 0);
-}
-
-/**
- * Clear padding that might not be zeroed by the GC (it assumes it is within the
- * requested size from the start, but it is actually at the end of the allocated
- * block).
- *
- * Params:
- *  info = array allocation data
- *  arrSize = size of the array in bytes
- *  padSize = size of the padding in bytes
- */
-void __arrayClearPad()(ref BlkInfo info, size_t arrSize, size_t padSize) nothrow pure
-{
-}
-
-
-struct BlkInfo_
-{
-    void*  base;
-    size_t size;
-    uint   attr;
-}
-
-alias BlkInfo = BlkInfo_;
-alias BlkAttr = uint;
+import core.memory: GC;
+alias BlkInfo = GC.BlkInfo;
+alias BlkAttr = GC.BlkAttr;
 private
 {
     alias bool function(Object) CollectHandler;
@@ -469,7 +435,7 @@ private BlkInfo __arrayAlloc(size_t arrsize, const scope TypeInfo ti, const Type
     //     attr |= BlkAttr.STRUCTFINAL | BlkAttr.FINALIZE;
 
     auto bi = BlkInfo(_d_allocmemory(padded_size), padded_size);
-    __arrayClearPad(bi, arrsize, padsize);
+    //__arrayClearPad(bi, arrsize, padsize);
     return bi;
 }
 
@@ -489,7 +455,7 @@ private BlkInfo __arrayAlloc(size_t arrsize, ref BlkInfo info, const scope TypeI
     }
 
     auto bi = BlkInfo(_d_allocmemory(padded_size), padded_size);
-    __arrayClearPad(bi, arrsize, padsize);
+    //__arrayClearPad(bi, arrsize, padsize);
     return bi;
 }
 

@@ -39,7 +39,8 @@ version (unittest) {
     Handle libwasm_add__string(scope ref string);
     Handle libwasm_add__object();
     Handle libwasm_copyObjectRef(Handle);
-    void libwasm_set__function(string, void delegate(Handle));
+    void libwasm_set__function(string, int ctx, int ptr);
+    void libwasm_unset__function(string);
     void libwasm_removeObject(Handle);
     Handle libwasm_get__field(Handle, string);
     Handle libwasm_get_idx__field(Handle, uint);
@@ -146,8 +147,11 @@ int setInterval(Delegate)(Delegate del, int ms) {
   return setInterval(del.toTuple.expand,ms);
 }
 
-void exportDelegate(Delegate : void delegate(Handle))(string name, Delegate del) {
+void exportDelegate(Delegate)(string name, Delegate del) {
   return libwasm_set__function(name, del.toTuple.expand);
+}
+void unexportDelegate(string name) {
+  return libwasm_unset__function(name);
 }
 
 extern(C)
@@ -197,6 +201,7 @@ void jsCallback(uint ctx, uint fun, Handle arg) @trusted {
   import fast.json;
   import libwasm.rt.allocator;
   import libwasm.bindings.Console;
+  /*
   console.log("Got args:");
   foreach (scope arg; tupleArgs) {
     import std.traits : isIterable;
@@ -207,14 +212,11 @@ void jsCallback(uint ctx, uint fun, Handle arg) @trusted {
     } else {
       console.log(arg);
     }
-  }
-  console.log("Done list");
+  }*/
   char[] buf = cast(char[]) ThreadMemAllocator.allocate(serializationLength(tupleArgs));
   scope(exit)
     ThreadMemAllocator.deallocate(buf);
   auto args = cast(string) serializeJSON(buf, tupleArgs);
-  console.log("Sending args: ");
-  console.log(args);
   static if (is(R == string))
     return Object_VarArgCall__string(hndl, method, argsdef, args);
   else static if (is(R == void))

@@ -104,7 +104,31 @@
 
 module core.memory;
 
-version (CRuntime_LIBWASM) {} else: // we don't use any of this
+
+version (CRuntime_LIBWASM) {
+// stub
+struct GC {
+    
+    struct BlkInfo
+    {
+        void*  base;
+        size_t size;
+        uint   attr;
+    }
+
+    enum BlkAttr : uint
+        {
+            NONE        = 0b0000_0000, /// No attributes set.
+            FINALIZE    = 0b0000_0001, /// Finalize the data in this block on collect.
+            NO_SCAN     = 0b0000_0010, /// Do not scan through this block on collect.
+            NO_MOVE     = 0b0000_0100, /// Do not move this memory block on collect.
+            APPENDABLE  = 0b0000_1000,
+            NO_INTERIOR = 0b0001_0000,
+            STRUCTFINAL = 0b0010_0000, 
+        }
+
+    }
+} else: // we don't use any of this
 version (ARM)
     version = AnyARM;
 else version (AArch64)
