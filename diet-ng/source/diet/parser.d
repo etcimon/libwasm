@@ -67,7 +67,7 @@ Document parseDiet(alias TR = identity)(string text, string filename = "string")
 }
 
 /// Ditto
-Document parseDiet(alias TR = identity)(Array!InputFile files)
+Document parseDiet(alias TR = identity, F)(F files)
 	if (is(typeof(TR(string.init)) == string) || is(typeof(TR(string.init, string.init)) == string))
 {
 	import diet.traits;
@@ -75,7 +75,7 @@ Document parseDiet(alias TR = identity)(Array!InputFile files)
 	assert(files.length > 0, "Empty set of input files");
 
 	Vector!FileInfo parsed_files;
-	foreach (f; files[]){
+	foreach (f; files){
 		parsed_files ~= FileInfo(Array!char(f.name[]), Array!Node(parseDietRaw!TR(f)));
 	}
 	Vector!BlockInfo blocks;
@@ -979,7 +979,7 @@ private struct FileInfo {
 
 	See_Also: `parseDiet`
 */
-Node[] parseDietRaw(alias TR)(InputFile file)
+Node[] parseDietRaw(alias TR)(immutable(InputFile) file)
 {
 
 	string indent_style;

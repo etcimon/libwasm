@@ -8,7 +8,7 @@ public import libwasm.node;
 public import libwasm.event;
 public import libwasm.array;
 public import libwasm.css;
-//public import libwasm.router;
+public import libwasm.router;
 
 nothrow:
 @safe void log_info(string msg) {
@@ -95,9 +95,9 @@ mixin template Spa(Application, Theme) {
       application.main();
     }
     application.compile();
-    //application.registerRoutes();
+    application.registerRoutes();
     libwasm.dom.render(root, application);
-    //setupRouter();
+    setupRouter();
   }
   version(hmr) {
     pragma(msg, "libwasm with HMR");

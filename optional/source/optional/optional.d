@@ -76,11 +76,12 @@ struct Optional(T) {
         This is useful if type T has a @disable this(this) for e.g.
     */
     static Optional!T construct(Args...)(auto ref Args args) {
+        import std.algorithm: move;
         auto value = T(args);
         Optional!T opt;
-        opt._value = value;
+        opt._value = move(value);
         opt.setNonEmptyState;
-        return opt;
+        return move(opt);
     }
 
     /**

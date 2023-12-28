@@ -15,22 +15,22 @@ nothrow:
 /** Converts a `Group` with alternating file names and contents to an array of
 	`InputFile`s.
 */
-@property Array!InputFile filesFromGroup(alias FILES_GROUP)()
+@property InputFile[] filesFromGroup(alias FILES_GROUP)()
 {
 	static assert(FILES_GROUP.expand.length % 2 == 0);
 	auto ret = Array!InputFile(FILES_GROUP.expand.length / 2);
 	foreach (i, F; FILES_GROUP.expand) {
 		static if (i % 2 == 0) {
-			ret[i / 2].name = Array!char(FILES_GROUP.expand[i+1]);
-			ret[i / 2].contents = Array!char(FILES_GROUP.expand[i]);
+			ret[i / 2].name = FILES_GROUP.expand[i+1];
+			ret[i / 2].contents = FILES_GROUP.expand[i];
 		}
 	}
-	return ret;
+	return ret[].copy();
 }
 
 bool canFindFile(T, U)(T baseFiles, U file) {
 	foreach(baseFile; baseFiles) {
-		if (baseFile.name == file) {
+		if (baseFile.name[] == file) {
 			return true;
 		}
 	}
@@ -54,13 +54,14 @@ template collectFiles(string root_file, alias root_contents)
 	enum baseFiles = collectReferencedFiles!(root_file, root_contents);
 	static if (baseFiles.canFindFile(root_file))
 		enum collectFiles = baseFiles;
-	else enum collectFiles = (Vector!InputFile(baseFiles)~InputFile(root_file, root_contents)).move();
+	else enum collectFiles = baseFiles ~ InputFile(root_file, root_contents);
+
 }
 
 /// Encapsulates a single input file.
 struct InputFile {
-	Array!char name;
-	Array!char contents;
+	string name;
+	string contents;
 }
 
 /** Helper template to aggregate a list of compile time values.
@@ -96,7 +97,7 @@ string ctExtension(string file_name) {
 			is_ext = true;
 			ext.clear();
 		}
-		if (is_ext) {			
+		if (is_ext) {
 			ext ~= c;
 		}
 	}
@@ -117,7 +118,7 @@ private template collectReferencedFiles(string file_name, alias file_contents)
 				enum ifiles = collectFiles!(references[i] ~ ctExtension(file_name));
 				enum impl = merge(ifiles, rfiles);
 			} else enum impl = rfiles;
-		} else enum Array!InputFile impl = Array!InputFile();
+		} else enum InputFile[] impl = [];
 	}
 	alias collectReferencedFiles = impl!0;
 }
@@ -144,13 +145,13 @@ private string[] collectReferences(string content)
 	return ret[].copy();
 }
 
-private Array!InputFile merge(T, U)(ref T a, ref U b)
+private InputFile[] merge(T, U)(ref T a, ref U b)
 {
-	auto ret = Array!InputFile(a);
+	auto ret = Vector!InputFile(a);
 	foreach (f; b[]) {
 		bool found;
 		foreach (f2; a[]) {
-			if (f2.name == f.name) {
+			if (f2.name[] == f.name[]) {
 				found = true;
 				break;
 			}
@@ -159,7 +160,7 @@ private Array!InputFile merge(T, U)(ref T a, ref U b)
 			ret ~= f;
 
 	}
-	return ret;
+	return ret[].copy();
 }
 
 version(DietUseLive)

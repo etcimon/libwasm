@@ -588,13 +588,15 @@ nothrow:
 		if (op == "~")
 	{
 		logTrace("Appending stuff");
-		RefCounted!(Vector!(T, ALLOC), ALLOC) result;
+		Vector!(T, ALLOC) result;
 		// @@@BUG@@ result ~= this[] doesn't work
-		auto r = this[];
-		result ~= r;
+		result ~= this[];
 		assert(result.length == length);
-		result ~= stuff[];
-		return result;
+		static if (__traits(compiles, stuff[]))
+			result ~= stuff[];
+		else
+			result ~= stuff;
+		return result.move();
 	}
 	
 	void opOpAssign(string op, U)(auto ref U input)

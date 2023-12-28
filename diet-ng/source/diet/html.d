@@ -135,7 +135,7 @@ private template realCompileHTMLDietFileString(string filename, alias contents, 
 					ret += c * 7576889555963512219;
 				}
 			}
-			foreach (ref f; _diet_files[]) {
+			foreach (ref f; _diet_files) {
 				hash(f.name[]);
 				hash(f.contents[]);
 			}
@@ -159,7 +159,7 @@ private template realCompileHTMLDietFileString(string filename, alias contents, 
 	} else {
 		pragma(msg, "Compiling Diet HTML template ...");
 		pragma(msg, "Compiling Diet HTML template "~filename~"...");
-		private Document _diet_nodes() { return applyTraits!TRAITS(parseDiet!(translate!TRAITS)(_diet_files[])); }
+		private Document _diet_nodes() { return applyTraits!TRAITS(parseDiet!(translate!TRAITS)(_diet_files)); }
 		version(DietUseLive)
 		{
 			enum _dietParser = getHTMLLiveMixin(_diet_nodes(), dietOutputRangeName);
@@ -227,22 +227,45 @@ template compileHTMLDietFileString(string filename, alias contents, ALIASES...)
 	}
 	else
 	{
-		// uses the correct range name and removes 'dst' from the scope
-		private void exec(R)(ref R _diet_output)
-		{
-			mixin(localAliasesMixin!(0, ALIASES));
-			mixin(_dietParser);
-		}
+		debug {
+			// uses the correct range name and removes 'dst' from the scope
+			private string exec(R)(ref R _diet_output)
+			{
+				mixin(localAliasesMixin!(0, ALIASES));
+				mixin(_dietParser);
+				return _dietParser;
+			}
 
-		/**
-		 * See `.compileHTMLDietFileString`
-		 *
-		 * Params:
-		 *	   dst = The output range to write the generated HTML to.
-		 */
-		void compileHTMLDietFileString(R)(ref R dst)
-		{
-			exec(dst);
+			/**
+			* See `.compileHTMLDietFileString`
+			*
+			* Params:
+			*	   dst = The output range to write the generated HTML to.
+			*/
+			string compileHTMLDietFileString(R)(ref R dst)
+			{
+				return exec(dst);
+			}
+
+		} else {
+
+			// uses the correct range name and removes 'dst' from the scope
+			private void exec(R)(ref R _diet_output)
+			{
+				mixin(localAliasesMixin!(0, ALIASES));
+				mixin(_dietParser);
+			}
+
+			/**
+			* See `.compileHTMLDietFileString`
+			*
+			* Params:
+			*	   dst = The output range to write the generated HTML to.
+			*/
+			void compileHTMLDietFileString(R)(ref R dst)
+			{
+				exec(dst);
+			}
 		}
 	}
 }
@@ -263,9 +286,16 @@ template compileHTMLDietFileString(string filename, alias contents, ALIASES...)
 */
 template compileHTMLDietString(string contents, ALIASES...)
 {
-	string compileHTMLDietString(R)(ref R dst)
-	{
-		return compileHTMLDietStrings!(Group!(contents, "diet-string"), ALIASES)(dst);
+	debug {
+		string compileHTMLDietString(R)(ref R dst)
+		{
+			return compileHTMLDietStrings!(Group!(contents, "diet-string"), ALIASES)(dst);
+		}
+	} else {
+		void compileHTMLDietString(R)(ref R dst)
+		{
+			compileHTMLDietStrings!(Group!(contents, "diet-string"), ALIASES)(dst);
+		}
 	}
 }
 
@@ -289,18 +319,34 @@ template compileHTMLDietStrings(alias FILES_GROUP, ALIASES...)
 	alias TRAITS = DietTraits!ALIASES;
 	private static Document _diet_nodes() { return applyTraits!TRAITS(parseDiet!(translate!TRAITS)(filesFromGroup!FILES_GROUP)); }
 
-	// uses the correct range name and removes 'dst' from the scope
-	private string exec(R)(ref R _diet_output)
-	{
-		mixin(localAliasesMixin!(0, ALIASES));
-		mixin(getHTMLMixin(_diet_nodes(), dietOutputRangeName, getHTMLOutputStyle!TRAITS));
+	debug {
+		// uses the correct range name and removes 'dst' from the scope
+		private string exec(R)(ref R _diet_output)
+		{
+			mixin(localAliasesMixin!(0, ALIASES));
+			mixin(getHTMLMixin(_diet_nodes(), dietOutputRangeName, getHTMLOutputStyle!TRAITS));
 
-		return getHTMLMixin(_diet_nodes(), dietOutputRangeName, getHTMLOutputStyle!TRAITS);
-	}
+			return getHTMLMixin(_diet_nodes(), dietOutputRangeName, getHTMLOutputStyle!TRAITS);
+		}
 
-	string compileHTMLDietStrings(R)(ref R dst)
-	{
-		return exec(dst);
+		string compileHTMLDietStrings(R)(ref R dst)
+		{
+			return exec(dst);
+		}
+
+	} else {
+
+		// uses the correct range name and removes 'dst' from the scope
+		private void exec(R)(ref R _diet_output)
+		{
+			mixin(localAliasesMixin!(0, ALIASES));
+			mixin(getHTMLMixin(_diet_nodes(), dietOutputRangeName, getHTMLOutputStyle!TRAITS));
+		}
+
+		void compileHTMLDietStrings(R)(ref R dst)
+		{
+			exec(dst);
+		}
 	}
 }
 

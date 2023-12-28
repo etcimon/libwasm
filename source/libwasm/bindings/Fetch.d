@@ -71,6 +71,4 @@ struct FetchReadableStreamReadDataDone {
     return Object_Getter__bool(this.handle, "done");
   }
 }
-alias JSON = JsObject;
-
 

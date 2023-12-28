@@ -1,5 +1,5 @@
 module libwasm.router;
-version(none):
+
 import memutils.hashmap;
 import libwasm.promise;
 import libwasm.types;
@@ -227,7 +227,7 @@ struct URLRouter {
                 auto r = entering_candidates.front;
                 entering_candidates.removeFront();
 
-                    console.log(newPath[]);/*
+                    console.log(newPath[]);
                 import std.algorithm : canFind;
                 if (!m_activeRoutes[].canFind(r))  {
                         console.log(newPath[]);
@@ -248,7 +248,7 @@ struct URLRouter {
                             still_busy = true;
                         } 
                     }
-                }*/
+                }
             }
             else {
                 m_busy = false;

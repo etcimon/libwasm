@@ -12,7 +12,7 @@
  */
 
 module libwasm.promise;
-version(none):
+
 import std.functional;
 import std.meta : allSatisfy, AliasSeq;
 import std.traits : CommonType;
@@ -111,24 +111,17 @@ private:
 
 	private struct PromiseHandler
 	{
-		T delegate(A) nothrow dg_onFulfill;
-		T delegate(E) nothrow dg_onReject;
-		T delegate() nothrow dg_onResolve;
-		
-		PromiseData* next;
+		void delegate() nothrow dg;
+		bool onFulfill, onReject;
 	}
 
 	void doFulfill(A value) @trusted
 	{
 		promise.state = PromiseState.fulfilled;
 		promise.value.tupleof = value;
-		foreach (ref handler; promise.handlers) {
-			
-			if (handler.dg_onFulfill)
-				fulfillHandler(handler.dg_onFulfill, next);
-			else if (handler.dg_onResolve)
-				broadHandler(handler.dg_onResolve, next);
-		}
+		foreach (ref handler; promise.handlers)
+			if (handler.onFulfill)
+				handler.dg();
 		promise.handlers.clear();
 	}
 
@@ -136,12 +129,9 @@ private:
 	{
 		promise.state = PromiseState.rejected;
 		promise.error = e;
-		foreach (ref handler; promise.handlers) {
-			if (handler.dg_onReject)
-				rejectHandler(handler.dg_onReject);
-			else if (handler.dg_onResolve, next)
-				broadHandler(handler.dg_onResolve, next);
-		}
+		foreach (ref handler; promise.handlers)
+			if (handler.onReject)
+				handler.dg();
 		promise.handlers.clear();
 	}
 
@@ -216,83 +206,69 @@ public:
 		doReject(e);
 	}
 
-	void fulfillHandler(T delegate(A) onFulfilled, Promise!(T, E)* next) nothrow @safe
-	{
-		assert(promise.state == PromiseState.fulfilled);
-		if (onFulfilled)
-		{
-			static if(is(R == void)) {
-				onFulfilled(promise.value.tupleof);
-				next.resolve();
-			} else
-				next.resolve(onFulfilled(promise.value.tupleof));
-		}
-		else
-		{
-			static if (is(R == void))
-				next.fulfill();
-			else
-			{
-				static if (!is(T : R))
-					assert(false); // verified above
-				else
-					next.fulfill(promise.value.tupleof);
-			}
-		}
-	}
-
-	void rejectHandler(T delegate(E) onRejected, Promise!(T, E)* next) nothrow @safe
-	{
-		assert(promise.state == PromiseState.rejected);
-		if (onRejected)
-		{
-			static if(is(R == void)) {
-				onRejected(promise.error);
-				next.resolve();
-			} else
-				next.resolve(onRejected(promise.error));
-		}
-		else
-			next.reject(promise.error);
-	}
-
-	void broadHandler(T delegate() onResolved, Promise!(T, E) next) /*nothrow*/
-	{
-		assert(promise.state == PromiseState.fulfilled || promise.state == PromiseState.rejected);
-		
-		static if(is(R == void)) {
-			onResolved();
-			next.resolve();
-		} else
-			next.resolve(onResolved());
-	}
 	/// Registers the specified fulfillment and rejection handlers.
 	/// If the promise is already resolved, they are called
 	/// as soon as possible (but not immediately).
-	Promise!(R, F) then(R, F = E)(R delegate(A) nothrow onFulfilled, R delegate(E) nothrow onRejected = null) /*nothrow*/
+	Promise!(Unpromise!R, F) then(R, F = E)(R delegate(A) nothrow onFulfilled, R delegate(E) nothrow onRejected = null) /*nothrow*/
 	{
-		static if (!is(T : R)) {
-			enum error_msg = "Cannot implicitly propagate " ~ T.stringof ~ " to " ~ R.stringof ~ " due to null onFulfilled";
-			assert(onFulfilled, error_msg);
-		}
+		static if (!is(T : R))
+			assert(onFulfilled, "Cannot implicitly propagate " ~ T.stringof ~ " to " ~ R.stringof ~ " due to null onFulfilled");
 
 		typeof(return) next;
 		next.pool = pool;
 
+		void fulfillHandler() /*nothrow*/
+		{
+			assert(promise.state == PromiseState.fulfilled);
+			if (onFulfilled)
+			{
+				static if(is(R == void)) {
+					onFulfilled(promise.value.tupleof);
+					next.resolve();
+				} else
+					next.resolve(onFulfilled(promise.value.tupleof));
+			}
+			else
+			{
+				static if (is(R == void))
+					next.fulfill();
+				else
+				{
+					static if (!is(T : R))
+						assert(false); // verified above
+					else
+						next.fulfill(promise.value.tupleof);
+				}
+			}
+		}
 
+		void rejectHandler() /*nothrow*/
+		{
+			assert(promise.state == PromiseState.rejected);
+			if (onRejected)
+			{
+				static if(is(R == void)) {
+					onRejected(promise.error);
+					next.resolve();
+				} else
+					next.resolve(onRejected(promise.error));
+			}
+			else
+				next.reject(promise.error);
+		}
 		PoolStack.push(pool);
 		final switch (promise.state)
 		{
 			case PromiseState.pending:
 			case PromiseState.following:
-				promise.handlers ~= PromiseHandler(&onFulfilled, null, next);
-				promise.handlers ~= PromiseHandler(null, &onRejected, next);
+				promise.handlers ~= PromiseHandler({ callSoon(&fulfillHandler); }, true, false);
+				promise.handlers ~= PromiseHandler({ callSoon(&rejectHandler); }, false, true);
 				break;
 			case PromiseState.fulfilled:
-				fulfillHandler(&onFulfilled, next);
+				callSoon(&fulfillHandler);
 				break;
 			case PromiseState.rejected:
-				rejectHandler(&onRejected, next);
+				callSoon(&rejectHandler);
 				break;
 		}
 		PoolStack.pop();
@@ -303,7 +279,7 @@ public:
 	/// Special overload of `then` with no `onFulfilled` function.
 	/// In this scenario, `onRejected` can act as a filter,
 	/// converting errors into values for the next promise in the chain.
-	Promise!(R, F) then(R, F = E)(typeof(null) onFulfilled, R delegate(E) nothrow onRejected) /*nothrow*/
+	Promise!(CommonType!(Unpromise!R, T), F) then(R, F = E)(typeof(null) onFulfilled, R delegate(E) nothrow onRejected) /*nothrow*/
 	{
 		// The returned promise will be fulfilled with either
 		// `this.value` (if `this` is fulfilled), or the return value
@@ -312,19 +288,43 @@ public:
 
 		auto next = typeof(return);
 
+		void fulfillHandler() /*nothrow*/
+		{
+			assert(promise.state == PromiseState.fulfilled);
+			static if (is(C == void))
+				next.fulfill();
+			else
+				next.fulfill(promise.value.tupleof);
+		}
+
+		void rejectHandler() /*nothrow*/
+		{
+			assert(promise.state == PromiseState.rejected);
+			if (onRejected)
+			{
+				static if(is(R == void)) {
+					onRejected(promise.error);
+					next.resolve();
+				} else
+					next.resolve(onRejected(promise.error));
+			}
+			else
+				next.reject(promise.error);
+		}
+
 		PoolStack.push(pool);
 		final switch (promise.state)
 		{
 			case PromiseState.pending:
 			case PromiseState.following:
-				promise.handlers ~= PromiseHandler(&fulfillHandler, null, next);
-				promise.handlers ~= PromiseHandler(null, &rejectHandler, next);
+				promise.handlers ~= PromiseHandler({ callSoon(&fulfillHandler); }, true, false);
+				promise.handlers ~= PromiseHandler({ callSoon(&rejectHandler); }, false, true);
 				break;
 			case PromiseState.fulfilled:
-				fulfillHandler(&onFulfilled, next);
+				callSoon(&fulfillHandler);
 				break;
 			case PromiseState.rejected:
-				rejectHandler(&onRejected, next);
+				callSoon(&rejectHandler);
 				break;
 		}
 		PoolStack.pop();
@@ -350,16 +350,27 @@ public:
 
 		auto next = typeof(return);
 
+		void handler() /*nothrow*/
+		{
+			assert(promise.state == PromiseState.fulfilled || promise.state == PromiseState.rejected);
+			
+			static if(is(R == void)) {
+				onResolved();
+				next.resolve();
+			} else
+				next.resolve(onResolved());
+		}
+
 		PoolStack.push(pool);
 		final switch (promise.state)
 		{
 			case PromiseState.pending:
 			case PromiseState.following:
-				handlers ~= PromiseHandler(null, null, &onResolved, next);
+				handlers ~= PromiseHandler({ callSoon(&handler); }, true, true);
 				break;
 			case PromiseState.fulfilled:
 			case PromiseState.rejected:
-				broadHandler(&onResolved, next);
+				callSoon(&handler);
 				break;
 		}
 		PoolStack.pop();
@@ -386,6 +397,9 @@ private template Unpromise(P)
 	else
 		alias Unpromise = P;
 }
+
+// This is the only non-"pure" part of this implementation.
+private void callSoon(scope void delegate() nothrow dg) @safe nothrow { setTimeout(dg, 1); }
 
 // This is just a simple instantiation test.
 // The full test suite (D translation of the Promises/A+ conformance
