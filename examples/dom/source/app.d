@@ -26,20 +26,11 @@ struct A {
 }
 
 struct User {
-  static struct Data {
-    int id;
-    string email;
-    string first_name;
-    string last_name;
-    string avatar;
-  }
-  static struct Support {
-    string url;
-    string text;
-  }
-  Data data;
-  Support support;
+    string id;
+    int user;
+    string createdAt;
 }
+
 
 struct Input {
   @style!"new-todo" mixin NodeDef!"input";

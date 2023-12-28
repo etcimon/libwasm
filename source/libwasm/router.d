@@ -260,7 +260,7 @@ struct URLRouter {
                 console.log("Pushing state: ");
                 console.log(m_title[]);
                 console.log(newPath[]);
-                window().history().pushState(null, m_title[], Optional!string(newPath[]));
+                if (m_is_setup) window().history().pushState(null, m_title[], Optional!string(newPath[]));
 
                 // we finished iteration
                 if (!m_pendingURL.empty()) {

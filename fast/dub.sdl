@@ -1,6 +1,6 @@
 name "fast-wasm"
 description "A library that aims to provide the fastest possible implementation of some every day routines."
-homepage "http://github.com/mleise/fast"
+homepage "http://github.com/etcimon/fast"
 authors "Marco Leise"
 copyright "Copyright © 2017-2023, Marco Leise, Etienne Cimon"
 license "MIT"
