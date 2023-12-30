@@ -8,17 +8,17 @@ dependency "fast-wasm" path="./fast"
 dependency "diet-wasm" path="./diet-ng"
 dependency "optional-wasm" path="./optional"
 #target "library"
-subPackage "bootstrap-webpack"
 subPackage "webidl"
 dflags "-dip1000"
 
 toolchainRequirements ldc=">=1.35.0"
 versions "CRuntime_LIBWASM"
 buildRequirements "allowWarnings" # required for ldc 1.16
-sourcePaths "source" "druntime/core" "druntime/rt"
-sourceFiles "druntime/object.d"
-importPaths "druntime"
+sourcePaths "source" 
 configuration "library" {
+    sourcePaths "druntime/core" "druntime/rt"
+    sourceFiles "druntime/object.d"
+    importPaths "druntime"
     dflags "-fvisibility=hidden" "-fno-exceptions"
     lflags "-allow-undefined" "--export-table" "--export=domEvent" "--export=allocString" "-export=__heap_base"
 }
