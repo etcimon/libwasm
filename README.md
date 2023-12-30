@@ -1,12 +1,10 @@
 # libwasm
 
-<img src="https://github.com/skoppe/libwasm/workflows/build/badge.svg"/>&nbsp;<img src="https://img.shields.io/badge/ldc%201.17%20--%201.20%20-supported-brightgreen"/>
-
 libwasm is a library to develop single page applications in D that compile to webassembly.
 
-It contains bindings to the most commonly used web apis, including the dom, fetch, audio, and webgl.
+It contains working bindings to all of the javascript browser APIs, listed in libwasm.bindings. In addition, lodash and moment is added by default and bindigns are in libwasm.lodash and libwasm.moment. There is also an experimental router to handle navigation changes, and a compile-time diet template html generator which can call back native code easily.
 
-The dom-ts example compiles into a 54kb gzipped wasm and a 30kb gzipped javascript library with supports lodash and momentjs. All of druntime is supported but the phobos standard library is still in the process of being integrated.
+The dom-ts example compiles into a 54kb gzipped wasm and a 30kb gzipped javascript library with lodash and momentjs. All of druntime is supported but the phobos standard library is still in the process of being integrated.
 
 As well as a small but powerful SPA framework, which includes CSS. Yes. CSS-in-wasm.
 
