@@ -51,14 +51,11 @@ Not only are your applications fast, they are also small. The [todo-mvc example]
 
 ## How to start
 
-Make sure to have at least ldc 1.17.0 installed.
+Make sure to have at least ldc 1.36.0-beta1 installed along with this version of dub: https://github.com/etcimon/dub/tree/probe_with_betterc
 
-- run `dub init <my-project> libwasm`, this will create a folder named `<my-project>` with a dub file and the latest libwasm added as dependency
-- add `dflags "-betterC"` to your dub.sdl or add `"dflags": ["-betterC"]` to your dub.json
-- run `dub upgrade && dub run libwasm:bootstrap-webpack` to generate the webpack/dev-server boilerplate
-- start writing!
-
-You can add any extra css/js you'll need to the `index.template.html`, or you can use any of the myriad features of webpack to include what you need.
+- Clone this repository with git clone
+- Compile the dom-ts example with dub build --arch=wasm32-unknown-wasi
+- Run yarn dev to load it
 
 ## Using the web bindings
 
