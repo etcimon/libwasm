@@ -1,16 +1,32 @@
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## 0.8.0
+
+- Add lodash, momentjs
+- Make all browser bindings work
+- Replace druntime (should be fully working) and phobos (mostly for CTFE)
+- Setup memutils, all GC allocations go into a scoped pool
+- Add diet-ng templating support in views folder
+- Create typescript example in examples/dom-ts
+- Allow javascript to call back native functions easily using `exportDelegate`, `callNative` and `unexportDelegate` (mostly for diet template handled events)
+- Create a web router prototype
+- Use fast-wasm for json and formatting `format!"Some test %d"(i)`
+- Move dependencies like `optional` into this repository
+- Remove the necessity to use `-betterC` compiler flag, expecting wasm exceptions to eventually work
+- Make it possible to use `@inject` to propagate field references rather than a common name
 
 ## 0.2.0
 
 - JsHandle now has unique semantics. This means JS resources are freed deterministically (when the JsHandle goes out of scope), without the cost of reference counting. It also means the JsHandle is non-copyable and it requires dip1000 with `scope ref` to get it to pass safely to other functions. **Breaking change**
 - The JS glue code now has a freelist to reuse handles.
 - Handle growable memory. The base allocator in libwasm first queries the break point before growing memory. This allows other code to call the grow memory intrinsic (e.g C code compiled with WASI).
-- The `make` template function used to allocate memory now keeps a separate allocation list for each type. This is required to quickly call a type's destructor (if any) when the memory is freed by the GC. 
-- `markMemory` and `freeUnmarked` GC functions are introduced. Currently they are not scheduled and can only be called from JS. The GC requires explicit adding of root pointer. **Experimental** 
+- The `make` template function used to allocate memory now keeps a separate allocation list for each type. This is required to quickly call a type's destructor (if any) when the memory is freed by the GC.
+- `markMemory` and `freeUnmarked` GC functions are introduced. Currently they are not scheduled and can only be called from JS. The GC requires explicit adding of root pointer. **Experimental**
 - Call destructors when GC is freeing garbage
 - Handle growing memory not being continuous
 - Implement `_d_allocmemory` to support closures (currently they aren't freed)
