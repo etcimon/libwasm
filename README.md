@@ -68,15 +68,20 @@ Make sure to run `dub run libwasm:webidl -- --bindgen` after compiling to ensure
 
 ## How to compile your application
 
-Make sure to have at least ldc 1.17.0 installed. Also, make sure that `ldc2 --version` returns the `wasm32` among its target types. If not, you may need to install ldc from official sources or run one in docker (e.g. `dlang2/ldc-ubuntu:1.20.0`).
+Make sure to have at least ldc 1.36.0-beta1 installed. Also, make sure that `ldc2 --version` returns the `wasm32` among its target types. If not, you may need to install ldc from official sources or run one in docker (e.g. `dlang2/ldc-ubuntu:1.20.0`).
+
+Edit your ldc2.conf file and remove the druntime imports from wasm builds, it should have:
+
+```
+"^wasm(32|64)-":
+{
+    post-switches = [ ]; // this removes druntime/std imports
+  [..]
+```
 
 Run `dub build --arch=wasm32-unknown-wasi --compiler=ldc2 --build=release` to compile your application, then run `npx webpack` to generate the `index.html`.
 
 You can also `npm run start` to start a webpack development server that serves your application on localhost:3000.
-
-- Note: I could not get it to build on my aged mac (el capitan). Instead I use the `dlang2/ldc-ubuntu:1.20.0` docker image to run ldc.
-
-- Note: if you have some issues please read the [BUILDING.md](BUILDING.md) file before opening an issue.
 
 ## Migrating from an older version
 
@@ -99,9 +104,9 @@ After that you write a libwasm module in javascript. Simply put a file in the `.
 
 ```js
 export let jsExports = {
-  myFunc: index => {
+  myFunc: (index) => {
     return 42;
-  }
+  },
 };
 ```
 

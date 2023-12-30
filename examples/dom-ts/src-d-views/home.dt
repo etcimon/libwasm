@@ -1,0 +1,16 @@
+doctype html
+- auto title = "Hello, <World>";
+html
+	head
+		title #{title} - example page
+	body
+		h1= title
+		h2(onclick="callNative('on_click', event);") Index
+		ol.pageindex
+			- foreach (i; 0 .. 3)
+				li: a(href="##{i}") Point #{i}
+		- foreach (i; 0 .. 3)
+			h2(id=i) Point #{i}
+			p.
+				These are the #[em contents] of point #{i}. Multiple
+				lines of text are contained in this paragraph.
