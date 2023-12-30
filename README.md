@@ -6,6 +6,8 @@ libwasm is a library to develop single page applications in D that compile to we
 
 It contains bindings to the most commonly used web apis, including the dom, fetch, audio, and webgl.
 
+The dom-ts example compiles into a 54kb gzipped wasm and a 30kb gzipped javascript library with supports lodash and momentjs. All of druntime is supported but the phobos standard library is still in the process of being integrated.
+
 As well as a small but powerful SPA framework, which includes CSS. Yes. CSS-in-wasm.
 
 <details><summary>Table Of Contents</summary>
