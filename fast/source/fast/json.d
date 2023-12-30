@@ -21,7 +21,7 @@
  *   © 2017 $(LINK2 mailto:Marco.Leise@gmx.de, Marco Leise)
  * 
  * License:
- *   $(LINK2 http://www.gnu.org/licenses/gpl-3.0, GNU General Public License 3.0)
+ *   $(LINK2 https://mit-license.org/, The MIT License (MIT))
  * 
  **************************************************************************************************/
 module fast.json;
@@ -41,7 +41,6 @@ import fast.internal.helpers : logError, logInfo;
 nothrow:
 @safe:
 
-
 /*******************************************************************************
  * 
  * Loads a JSON string and validates the used parts. This includes a UTF-8
@@ -54,9 +53,11 @@ nothrow:
  *   A `Json` struct.
  *
  **************************************/
-auto parseJSON(ALLOC, uint vl = validateUsed, T : const(char)[])(T text) nothrow
-{ return Json!(ALLOC, vl, false)(text); }
-
+auto parseJSON(ALLOC, uint vl = validateUsed, T:
+	const(char)[])(T text) nothrow
+{
+	return Json!(ALLOC, vl, false)(text);
+}
 
 /*******************************************************************************
  * 
@@ -70,9 +71,11 @@ auto parseJSON(ALLOC, uint vl = validateUsed, T : const(char)[])(T text) nothrow
  *   A `Json` struct.
  *
  **************************************/
-auto parseTrustedJSON(ALLOC, T : const(char)[])(T text) nothrow
-{ return Json!(ALLOC, trustedSource, false)(text); }
-
+auto parseTrustedJSON(ALLOC, T:
+	const(char)[])(T text) nothrow
+{
+	return Json!(ALLOC, trustedSource, false)(text);
+}
 
 /*******************************************************************************
  *
@@ -85,40 +88,49 @@ auto parseTrustedJSON(ALLOC, T : const(char)[])(T text) nothrow
  *   true if verification failed
  *
  **************************************/
-bool validateJSON(ALLOC, T : const(char)[])(T text)
-{ 
+bool validateJSON(ALLOC, T:
+	const(char)[])(T text)
+{
 	auto json = Json!(ALLOC, validateAll, true)(text);
 	json.skipValue();
 	return json.hasError();
 }
 
-
 /// JSON data types returned by `peek`.
 enum DataType : ubyte
 {
-	string, number, object, array, boolean, null_
+	string,
+	number,
+	object,
+	array,
+	boolean,
+	null_
 }
-
 
 /// Validation strength of JSON parser
 enum
 {
-	trustedSource,  /// Assume 100% correct JSON and speed up parsing.
-	validateUsed,   /// Ignore errors in skipped portions.
-	validateAll,    /// Do a complete validation of the JSON data.
+	trustedSource, /// Assume 100% correct JSON and speed up parsing.
+	validateUsed, /// Ignore errors in skipped portions.
+	validateAll, /// Do a complete validation of the JSON data.
 }
 
-
 /// A UDA used to remap enum members or struct field names to JSON strings.
-struct JsonMapping { string[string] map; }
+struct JsonMapping
+{
+	string[string] map;
+}
 /// A UDA for including fields in serialization
-struct serialize { }
+struct serialize
+{
+}
 
 /// JSON parser state returned by the `state` property.
-struct JsonParserState {
-	const(char)*    text;
-	size_t			textlen;
-	size_t          nesting;
+struct JsonParserState
+{
+	const(char)* text;
+	size_t textlen;
+	size_t nesting;
 }
 
 /*******************************************************************************
@@ -137,29 +149,32 @@ struct JsonParserState {
  * 
  **************************************/
 struct Json(ALLOC, uint vl = validateUsed, bool validateUtf8 = vl > trustedSource)
-	if ((vl > trustedSource || !validateUtf8))
+		if ((vl > trustedSource || !validateUtf8))
 {
 nothrow:
 @trusted:
 private:
 
-	enum isTrusted     = vl == trustedSource;
-	enum skipAllInter  = false;
-	enum isValidating  = vl >= validateUsed;
+	enum isTrusted = vl == trustedSource;
+	enum skipAllInter = false;
+	enum isValidating = vl >= validateUsed;
 	enum isValidateAll = vl == validateAll;
 
-	const(char*)    m_start     = void;
-	const(char)*    m_text      = void;
-	size_t			m_text_len  = 0;
-	size_t          m_nesting   = 0;
-	ALLOC			m_alloc;
-	char[]			m_buffer;
-	bool            m_isString  = false;
-	bool			m_error		= false;
-
+	const(char*) m_start = void;
+	const(char)* m_text = void;
+	size_t m_text_len = 0;
+	size_t m_nesting = 0;
+	ALLOC m_alloc;
+	char[] m_buffer;
+	bool m_isString = false;
+	bool m_error = false;
 
 public:
-	@property bool hasError() { return m_error; }
+	@property bool hasError()
+	{
+		return m_error;
+	}
+
 	@disable this();
 	@disable this(this);
 
@@ -183,7 +198,8 @@ public:
 		this(cast(const(char)[]) text, simdPrep);
 	}
 
-	~this() {
+	~this()
+	{
 		if (m_buffer.length > 0)
 			m_alloc.deallocate(m_buffer);
 	}
@@ -216,7 +232,6 @@ public:
 		skipWhitespace!false();
 	}
 
-
 	/+
 	 ╔══════════════════════════════════════════════════════════════════════════════
 	 ║ ⚑ String
@@ -239,11 +254,10 @@ public:
 		if (!allowNull || peek == DataType.string)
 		{
 			auto borrowed = borrowString();
-			return cast(string)borrowed;
+			return cast(string) borrowed;
 		}
 		return readNull();
 	}
-
 
 	/*******************************************************************************
 	 * 
@@ -259,12 +273,12 @@ public:
 			if (text.length == m.json.length && memcmp(text.ptr, m.json.ptr, m.json.length) == 0)
 				return m.d;
 		m_text = oldPos;
-		static if (isValidating) {
+		static if (isValidating)
+		{
 			handleError(format!"Could not find enum member `%s` in `%s`"(text, T.stringof));
 		}
 		assert(0);
 	}
-
 
 	/*******************************************************************************
 	 * 
@@ -303,10 +317,11 @@ public:
 			{
 				do
 				{
-					if (m_text - m_start > m_text_len + 1) return null;
-					m_buffer = cast(char[])m_alloc.reallocate( m_buffer, m_buffer.length + 4, false );
+					if (m_text - m_start > m_text_len + 1)
+						return null;
+					m_buffer = cast(char[]) m_alloc.reallocate(m_buffer, m_buffer.length + 4, false);
 					mem_base = m_buffer.ptr + mem_start_offset;
-					uint decoded = decodeEscape( mem_base + len );
+					uint decoded = decodeEscape(mem_base + len);
 					len += decoded;
 				}
 				while (*m_text == '\\');
@@ -315,24 +330,25 @@ public:
 				eos = scanString!validateUtf8();
 			CopyToBuffer:
 				size_t escFreeLength = m_text - escFreeStart;
-				
-				if (escFreeLength > 0) {
-					
-					m_buffer = cast(char[])m_alloc.reallocate( m_buffer, m_buffer.length + escFreeLength, false );
-					
+
+				if (escFreeLength > 0)
+				{
+
+					m_buffer = cast(char[]) m_alloc.reallocate(m_buffer, m_buffer.length + escFreeLength, false);
+
 					mem_base = m_buffer.ptr + mem_start_offset;
 					import ldc.intrinsics;
-					llvm_memcpy( mem_base + len, escFreeStart, escFreeLength );
+
+					llvm_memcpy(mem_base + len, escFreeStart, escFreeLength);
 					len += escFreeLength;
 
 				}
 			}
 			while (!eos);
 			skipOnePlusWhitespace!skipAllInter();
-			return mem_base[mem_start_offset .. mem_start_offset+len];
+			return mem_base[mem_start_offset .. mem_start_offset + len];
 		}
 	}
-
 
 	private bool scanString(bool validate)()
 	{
@@ -344,35 +360,37 @@ public:
 			{
 				// Stop for control-characters, \, " and anything non-ASCII.
 				m_text.seekToRanges!"\0\x1F\"\"\\\\\x7F\xFF";
-				
+
 				// Handle printable ASCII range
 				if (*m_text == '"')
 					return true;
 				if (*m_text == '\\')
 					return false;
-				
+
 				// Anything else better be UTF-8
 				uint u = *cast(uint*) m_text;
-				version (LittleEndian) u = bswap(u);
-				
+				version (LittleEndian)
+					u = bswap(u);
+
 				// Filter overlong ASCII and missing follow byte.
 				if (
 					(u & 0b111_00000_11_000000_00000000_00000000) == 0b110_00000_10_000000_00000000_00000000 &&
 					(u > 0b110_00001_10_111111_11111111_11111111))
 					m_text += 2;
 				// Handle overlong representation, UTF-16 surrogate pairs and missing follow bytes.
-				else if (
+		else if (
 					(u & 0b1111_0000_11_000000_11_000000_00000000) == 0b1110_0000_10_000000_10_000000_00000000 &&
 					(u & 0b0000_1111_00_100000_00_000000_00000000) != 0b0000_1101_00_100000_00_000000_00000000 &&
 					(u > 0b1110_0000_10_011111_10_111111_11111111))
 					m_text += 3;
 				// Handle missing follow bytes, Handle overlong representation and out of valid range (max. 0x10FFFF)
-				else if (
+		else if (
 					(u & 0b11111_000_11_000000_11_000000_11_000000) == 0b11110_000_10_000000_10_000000_10_000000 &&
-					(u > 0b11110_000_10_001111_10_111111_10_111111) && (u < 0b11110_100_10_010000_10_000000_10_000000))
+					(u > 0b11110_000_10_001111_10_111111_10_111111) && (
+						u < 0b11110_100_10_010000_10_000000_10_000000))
 					m_text += 4;
 				// Handle invalid code units.
-				else if (*m_text < ' ' || *m_text == 0x7F)
+		else if (*m_text < ' ' || *m_text == 0x7F)
 					expectNot("is a disallowed control character in strings");
 				else if (*m_text >= 0x80 && *m_text <= 0xBF)
 					expectNot("is a UTF-8 follow byte and cannot start a sequence");
@@ -386,9 +404,6 @@ public:
 			return *m_text == '"';
 		}
 	}
-
-
-
 
 	private bool stringCompareCallback(ref immutable(char)* key, ref const(char)* str)
 	{
@@ -405,7 +420,6 @@ public:
 		return true;
 	}
 
-
 	private static immutable escapes = {
 		char[256] result = '\0';
 		result['"'] = '"';
@@ -418,7 +432,6 @@ public:
 		result['t'] = '\t';
 		return result;
 	}();
-
 
 	private void skipEscape()
 	{
@@ -438,9 +451,9 @@ public:
 				decodeUtf16HexToCodepoint();
 			}
 		}
-		else m_text += 2;
+		else
+			m_text += 2;
 	}
-
 
 	private uint decodeEscape(scope char* dst)
 	{
@@ -464,24 +477,25 @@ public:
 			{
 				dst[0] = cast(char)(0b11110_000 | cp >> 18);
 				dst[1] = cast(char)(0b10_000000 | cp >> 12 & 0b00_111111);
-				dst[2] = cast(char)(0b10_000000 | cp >> 6  & 0b00_111111);
-				dst[3] = cast(char)(0b10_000000 | cp       & 0b00_111111);
+				dst[2] = cast(char)(0b10_000000 | cp >> 6 & 0b00_111111);
+				dst[3] = cast(char)(0b10_000000 | cp & 0b00_111111);
 				return 4;
 			}
 			else if (cp >= 0x800)
 			{
 				dst[0] = cast(char)(0b1110_0000 | cp >> 12);
-				dst[1] = cast(char)(0b10_000000 | cp >> 6  & 0b00_111111);
-				dst[2] = cast(char)(0b10_000000 | cp       & 0b00_111111);
+				dst[1] = cast(char)(0b10_000000 | cp >> 6 & 0b00_111111);
+				dst[2] = cast(char)(0b10_000000 | cp & 0b00_111111);
 				return 3;
 			}
 			else if (cp >= 0x80)
 			{
 				dst[0] = cast(char)(0b110_00000 | cp >> 6);
-				dst[1] = cast(char)(0b10_000000 | cp       & 0b00_111111);
+				dst[1] = cast(char)(0b10_000000 | cp & 0b00_111111);
 				return 2;
 			}
-			else if (cp <= 0x20) {
+			else if (cp <= 0x20)
+			{
 				dst[0] = '?';
 				return 1;
 			}
@@ -492,7 +506,6 @@ public:
 			}
 		}
 	}
-
 
 	private dchar decodeUtf16HexToCodepoint()
 	{
@@ -513,7 +526,7 @@ public:
 			{
 				cp = hexDecode4(m_text);
 			}
-			
+
 			static if (i == 0)
 			{
 				// Is this a high surrogate (followed by a low surrogate) or not ?
@@ -540,13 +553,11 @@ public:
 		return cp;
 	}
 
-
 	private void skipString(bool skipInter)()
 	{
 		m_text++;
 		skipRestOfString!skipInter();
 	}
-
 
 	private void skipRestOfString(bool skipInter)()
 	{
@@ -554,7 +565,6 @@ public:
 			skipEscape();
 		skipOnePlusWhitespace!skipInter();
 	}
-
 
 	/+
 	 ╔══════════════════════════════════════════════════════════════════════════════
@@ -586,33 +596,40 @@ public:
 		static if (isUnsigned!N)
 			enum NumberOptions opt = {};
 		else
-			enum NumberOptions opt = { minus:true };
+			enum NumberOptions opt = {minus: true};
 		if (parseNumber!opt(m_text, n))
 			skipWhitespace!skipAllInter();
-		else static if (isValidating) {
+		else static if (isValidating)
+		{
 			handleError(format!"Could not convert JSON number to `%s`"(N.stringof));
 
 		}
 		return n;
 	}
 
-	private string format(string fmt, ARGS...)(ARGS args) @trusted {		
-			import fast.format : formattedWrite, decCharsVal;
-			size_t size_estimate = fmt.length + 16;
-			foreach (arg; args) {
-				static if (is(typeof(arg) : char[])) {
-					size_estimate += arg.length;
-				}
-				else static if (isIntegral!(typeof(arg))) {
-					size_estimate += decCharsVal(arg);
-				} else static if (isFloatingPoint!(typeof(arg)))
-					size_estimate += decChars!(typeof(arg));
+	private string format(string fmt, ARGS...)(ARGS args) @trusted
+	{
+		import fast.format : formattedWrite, decCharsVal;
+
+		size_t size_estimate = fmt.length + 16;
+		foreach (arg; args)
+		{
+			static if (is(typeof(arg) : char[]))
+			{
+				size_estimate += arg.length;
 			}
-			m_buffer = cast(char[])m_alloc.reallocate( m_buffer, m_buffer.length + size_estimate, false);
-			char* buf = m_buffer.ptr + m_buffer.length - size_estimate;
-			string ret = cast(string)formattedWrite!fmt(buf, args);
-			
-			return ret;
+			else static if (isIntegral!(typeof(arg)))
+			{
+				size_estimate += decCharsVal(arg);
+			}
+			else static if (isFloatingPoint!(typeof(arg)))
+				size_estimate += decChars!(typeof(arg));
+		}
+		m_buffer = cast(char[]) m_alloc.reallocate(m_buffer, m_buffer.length + size_estimate, false);
+		char* buf = m_buffer.ptr + m_buffer.length - size_estimate;
+		string ret = cast(string) formattedWrite!fmt(buf, args);
+
+		return ret;
 	}
 
 	private void skipNumber(bool skipInter)()
@@ -647,7 +664,6 @@ public:
 		}
 	}
 
-
 	static if (isValidateAll)
 	{
 		private void trySkipDigits()
@@ -657,7 +673,6 @@ public:
 			m_text.skipAllOf!"0123456789";
 		}
 	}
-
 
 	/+
 	 ╔══════════════════════════════════════════════════════════════════════════════
@@ -681,44 +696,47 @@ public:
 		nest('{', "on start of object");
 
 		T t;
-		if (*m_text != '}') while (true)
-		{
-			auto key = borrowString();
-			static if (!skipAllInter)
+		if (*m_text != '}')
+			while (true)
 			{
-				expect(':', "between key and value");
-				if (m_error) return t;
-				skipWhitespace!false();
-			}
-			import ldc.intrinsics;
-			enum mapping = buildRemapTable!T;
-			foreach (m; mapping)
-			{
-				if (key.length == m.json.length && memcmp(key.ptr, m.json.ptr, m.json.length) == 0)
+				auto key = borrowString();
+				static if (!skipAllInter)
 				{
-					mixin("alias keyT = typeof(T." ~ m.d ~ ");");
-					mixin("t." ~ m.d ~ " = read!keyT;");
-					goto Success;
+					expect(':', "between key and value");
+					if (m_error)
+						return t;
+					skipWhitespace!false();
+				}
+				import ldc.intrinsics;
+
+				enum mapping = buildRemapTable!T;
+				foreach (m; mapping)
+				{
+					if (key.length == m.json.length && memcmp(key.ptr, m.json.ptr, m.json.length) == 0)
+					{
+						mixin("alias keyT = typeof(T." ~ m.d ~ ");");
+						mixin("t." ~ m.d ~ " = read!keyT;");
+						goto Success;
+					}
+				}
+				skipValue();
+
+			Success:
+				if (*m_text == '}')
+					break;
+
+				static if (!skipAllInter)
+				{
+					expect(',', "between key-value pairs");
+					if (m_error)
+						return t;
+					skipWhitespace!false();
 				}
 			}
-			skipValue();
 
-		Success:
-			if (*m_text == '}')
-				break;
-
-			static if (!skipAllInter)
-			{
-				expect(',', "between key-value pairs");
-				if (m_error) return t;
-				skipWhitespace!false();
-			}
-		}
-		
 		unnest();
 		return t;
 	}
-
 
 	/*******************************************************************************
 	 * 
@@ -731,7 +749,8 @@ public:
 	 *   A pointer to a newly filled struct of type `T` on the GC heap.
 	 *
 	 **************************************/
-	T read(T)() if (is(PointerTarget!T == struct) && __traits(isPOD, PointerTarget!T))
+	T read(T)()
+			if (is(PointerTarget!T == struct) && __traits(isPOD, PointerTarget!T))
 	{
 		if (peek == DataType.null_)
 			return readNull();
@@ -739,7 +758,6 @@ public:
 		*tp = read!(PointerTarget!T)();
 		return tp;
 	}
-
 
 	/*******************************************************************************
 	 * 
@@ -759,10 +777,9 @@ public:
 	{
 		T aa;
 		foreach (key; byKey)
-			aa[m_isString ? cast(immutable)key : key.idup] = read!(ValueType!T)();
+			aa[m_isString ? cast(immutable) key: key.idup] = read!(ValueType!T)();
 		return aa;
 	}
-
 
 	/*******************************************************************************
 	 * 
@@ -771,7 +788,6 @@ public:
 	 *
 	 **************************************/
 	alias opDispatch = singleKey;
-
 
 	/*******************************************************************************
 	 * 
@@ -801,37 +817,37 @@ public:
 	@property SingleKey singleKey(string name)()
 	{
 		nest('{', "on start of object");
-		
-		if (*m_text != '}') while (true)
-		{
-			auto key = borrowString();
-			static if (!skipAllInter)
-			{
-				expect(':', "between key and value");
-				skipWhitespace!false();
-			}
-			
-			if (key.length == name.length && memcmp(key.ptr, name.ptr, name.length) == 0)
-				return SingleKey(this);
 
-			skipValueImpl!skipAllInter();
-			
-			if (*m_text == '}')
-				break;
-			
-			static if (!skipAllInter)
+		if (*m_text != '}')
+			while (true)
 			{
-				expect(',', "between key-value pairs");
-				skipWhitespace!false();
+				auto key = borrowString();
+				static if (!skipAllInter)
+				{
+					expect(':', "between key and value");
+					skipWhitespace!false();
+				}
+
+				if (key.length == name.length && memcmp(key.ptr, name.ptr, name.length) == 0)
+					return SingleKey(this);
+
+				skipValueImpl!skipAllInter();
+
+				if (*m_text == '}')
+					break;
+
+				static if (!skipAllInter)
+				{
+					expect(',', "between key-value pairs");
+					skipWhitespace!false();
+				}
 			}
-		}
-		
+
 		unnest();
 		static if (isValidating)
 			handleError("Key not found.");
 		assert(0);
 	}
-
 
 	/*******************************************************************************
 	 * 
@@ -852,64 +868,65 @@ public:
 	void keySwitch(Args...)(scope void delegate()[Args.length] dlg...) nothrow
 	{
 		nest('{', "on start of object");
-		
-		if (*m_text != '}') while (true)
-		{
-			auto key = borrowString();
-			static if (!skipAllInter)
+
+		if (*m_text != '}')
+			while (true)
 			{
-				expect(':', "between key and value");
-				skipWhitespace!false();
-			}
-			
-			auto oldPos = m_text;
-			foreach (i, arg; Args)
-			{
-				if (key.length == arg.length && memcmp(key.ptr, arg.ptr, arg.length) == 0)
+				auto key = borrowString();
+				static if (!skipAllInter)
 				{
-					(cast(void delegate() nothrow)dlg[i])();
-					goto Next;
+					expect(':', "between key and value");
+					skipWhitespace!false();
 				}
+
+				auto oldPos = m_text;
+				foreach (i, arg; Args)
+				{
+					if (key.length == arg.length && memcmp(key.ptr, arg.ptr, arg.length) == 0)
+					{
+						(cast(void delegate() nothrow) dlg[i])();
+						goto Next;
+					}
+				}
+				skipValue();
+
+			Next:
+				if (*m_text == '}')
+					break;
+
+				static if (!skipAllInter)
+					if (oldPos !is m_text)
+						{
+						expect(',', "after key-value pair");
+						skipWhitespace!false();
+					}
 			}
-			skipValue();
-			
-		Next:
-			if (*m_text == '}')
-				break;
-			
-			static if (!skipAllInter) if (oldPos !is m_text)
-			{
-				expect(',', "after key-value pair");
-				skipWhitespace!false();
-			}
-		}
-		
+
 		unnest();
 	}
-	
-	
+
 	private int byKeyImpl(scope int delegate(ref const char[]) foreachBody) nothrow
 	{
 		nest('{', "at start of foreach over object");
 
 		int result = 0;
-		if (*m_text != '}') while (true)
-		{
-			auto key = borrowString();
-			static if (!skipAllInter)
+		if (*m_text != '}')
+			while (true)
 			{
-				expect(':', "between key and value");
-				skipWhitespace!false;
-			}
+				auto key = borrowString();
+				static if (!skipAllInter)
+				{
+					expect(':', "between key and value");
+					skipWhitespace!false;
+				}
 
-			if (iterationGuts!"{}"(result, key, cast(int delegate(ref const char[]) nothrow) foreachBody, "after key-value pair"))
-				break;
-		}
+				if (iterationGuts!"{}"(result, key, cast(int delegate(ref const char[]) nothrow) foreachBody, "after key-value pair"))
+					break;
+			}
 
 		unnest();
 		return result;
 	}
-
 
 	/*******************************************************************************
 	 * 
@@ -934,7 +951,6 @@ public:
 		return cast(int delegate(scope int delegate(ref const char[]) nothrow) nothrow)&byKeyImpl;
 	}
 
-
 	/+
 	 ╔══════════════════════════════════════════════════════════════════════════════
 	 ║ ⚑ Array handling
@@ -953,7 +969,6 @@ public:
 			app.put(read!(typeof(T.init[0])));
 		return app.data;
 	}
-
 
 	/*******************************************************************************
 	 * 
@@ -976,7 +991,8 @@ public:
 		}
 		static if (isValidating)
 		{
-			if (cnt != T.length) {
+			if (cnt != T.length)
+			{
 				handleError(format!"Static array size mismatch. Expected %d, got %d"(T.length, cnt));
 			}
 		}
@@ -988,7 +1004,6 @@ public:
 		return sa;
 	}
 
-
 	/*******************************************************************************
 	 * 
 	 * Iterate over a JSON array via `foreach`.
@@ -999,14 +1014,14 @@ public:
 		nest('[', "at start of foreach over array");
 
 		int result = 0;
-		if (*m_text != ']') for (size_t idx = 0; true; idx++)
-			if (iterationGuts!"[]"(result, idx, cast(int delegate(const size_t) nothrow) foreachBody, "after array element"))
-				break;
+		if (*m_text != ']')
+			for (size_t idx = 0; true; idx++)
+				if (iterationGuts!"[]"(result, idx, cast(int delegate(const size_t) nothrow) foreachBody, "after array element"))
+					break;
 
 		unnest();
 		return result;
 	}
-
 
 	/+
 	 ╔══════════════════════════════════════════════════════════════════════════════
@@ -1024,11 +1039,11 @@ public:
 		return skipBoolean!(skipAllInter, isValidating)();
 	}
 
-
 	private bool skipBoolean(bool skipInter, bool validate = isValidateAll)()
 	{
 		auto isFalse = *m_text == 'f';
-		static if (validate) {
+		static if (validate)
+		{
 			if (*cast(char[4]*) m_text != "true" && *cast(char[4]*) m_text != "fals")
 				handleError("`true` or `false` expected.");
 		}
@@ -1036,7 +1051,6 @@ public:
 		skipWhitespace!skipInter();
 		return !isFalse;
 	}
-
 
 	/+
 	 ╔══════════════════════════════════════════════════════════════════════════════
@@ -1055,7 +1069,6 @@ public:
 		return null;
 	}
 
-
 	private void skipNull(bool skipInter, bool validate = isValidateAll)()
 	{
 		static if (validate)
@@ -1064,7 +1077,6 @@ public:
 		m_text += 4;
 		skipWhitespace!skipInter();
 	}
-
 
 	/+
 	 ╔══════════════════════════════════════════════════════════════════════════════
@@ -1082,55 +1094,53 @@ public:
 		skipValueImpl!skipAllInter();
 	}
 
-
 	private void skipValueImpl(bool skipInter)()
 	{
 		with (DataType) switch (peek)
 		{
-			case string:
-				skipString!skipInter();
-				break;
-			case number:
-				skipNumber!skipInter();
-				break;
-			case object:
-				static if (isValidateAll)
-				{
-					foreach (_; this.byKey)
-						break;
-				}
-				else
-				{
-					m_text++;
-					seekObjectEnd();
-					skipOnePlusWhitespace!skipInter();
-				}
-				break;
-			case array:
-				static if (isValidateAll)
-				{
-					foreach (_; this)
-						break;
-				}
-				else
-				{
-					m_text++;
-					seekArrayEnd();
-					skipOnePlusWhitespace!skipInter();
-				}
-				break;
-			case boolean:
-				skipBoolean!skipInter();
-				break;
-			case null_:
-				skipNull!skipInter();
-				break;
-			default:
-				
-				break;
+		case string:
+			skipString!skipInter();
+			break;
+		case number:
+			skipNumber!skipInter();
+			break;
+		case object:
+			static if (isValidateAll)
+			{
+				foreach (_; this.byKey)
+					break;
+			}
+			else
+			{
+				m_text++;
+				seekObjectEnd();
+				skipOnePlusWhitespace!skipInter();
+			}
+			break;
+		case array:
+			static if (isValidateAll)
+			{
+				foreach (_; this)
+					break;
+			}
+			else
+			{
+				m_text++;
+				seekArrayEnd();
+				skipOnePlusWhitespace!skipInter();
+			}
+			break;
+		case boolean:
+			skipBoolean!skipInter();
+			break;
+		case null_:
+			skipNull!skipInter();
+			break;
+		default:
+
+			break;
 		}
 	}
-
 
 	/*******************************************************************************
 	 * 
@@ -1144,7 +1154,7 @@ public:
 			result['{'] = DataType.object;
 			result['['] = DataType.array;
 			result['-'] = DataType.number;
-			foreach (i; '0' .. '9'+1)
+			foreach (i; '0' .. '9' + 1)
 				result[i] = DataType.number;
 			result['"'] = DataType.string;
 			result['t'] = DataType.boolean;
@@ -1152,14 +1162,13 @@ public:
 			result['n'] = DataType.null_;
 			return result;
 		}();
-		
+
 		DataType vt = trans[*m_text];
 		static if (isValidating)
 			if (vt == ubyte.max)
 				expectNot("while peeking at next value type");
 		return vt;
 	}
-
 
 	/*******************************************************************************
 	 *
@@ -1182,11 +1191,10 @@ public:
 
 	@property void state(const JsonParserState oldState)
 	{
-		m_text    = oldState.text;
+		m_text = oldState.text;
 		m_text_len = oldState.textlen;
 		m_nesting = oldState.nesting;
 	}
-
 
 	private void nest(char c, string msg)
 	{
@@ -1195,9 +1203,11 @@ public:
 		m_nesting++;
 	}
 
-
 	private void unnest()
-	in { assert(m_nesting > 0); }
+	in
+	{
+		assert(m_nesting > 0);
+	}
 	body
 	{
 		if (--m_nesting == 0)
@@ -1207,9 +1217,9 @@ public:
 				if (*m_text != '\0') //
 					handleError("Expected end of JSON.");
 		}
-		else skipOnePlusWhitespace!skipAllInter();
+		else
+			skipOnePlusWhitespace!skipAllInter();
 	}
-
 
 	private bool iterationGuts(char[2] braces, T, D)(ref int result, T idx, scope D dlg,
 		string missingCommaMsg)
@@ -1226,25 +1236,26 @@ public:
 		result = dlg(idx);
 		if (oldPos is m_text)
 			skipValueImpl!false();
-		
+
 	PastValue:
 		if (*m_text == braces[1])
 			return true;
-		
-		static if (!isValidateAll) if (result)
-		{
-			seekAggregateEnd!braces();
-			return true;
-		}
-		
-		static if (!skipAllInter) if (oldPos !is m_text)
-		{
-			expect(',', missingCommaMsg);
-			skipWhitespace!false();
-		}
+
+		static if (!isValidateAll)
+			if (result)
+				{
+				seekAggregateEnd!braces();
+				return true;
+			}
+
+		static if (!skipAllInter)
+			if (oldPos !is m_text)
+				{
+				expect(',', missingCommaMsg);
+				skipWhitespace!false();
+			}
 		return false;
 	}
-
 
 	static if (!isValidateAll)
 	{
@@ -1253,12 +1264,10 @@ public:
 			seekAggregateEnd!"{}"();
 		}
 
-
 		private void seekArrayEnd()
 		{
 			seekAggregateEnd!"[]"();
 		}
-
 
 		private void seekAggregateEnd(immutable char[2] parenthesis)()
 		{
@@ -1268,26 +1277,25 @@ public:
 				m_text.seekToAnyOf!(parenthesis ~ "\"\0");
 				final switch (*m_text)
 				{
-					case parenthesis[0]:
-						m_text++;
-						nesting++;
-						break;
-					case parenthesis[1]:
-						if (--nesting == 0)
-							return;
-						m_text++;
-						break;
-					case '"':
-						// Could skip ':' or ',' here by passing `true`, but we skip it above anyways.
-						skipString!false();
-						break;
-					case '\0':
-						return;	
+				case parenthesis[0]:
+					m_text++;
+					nesting++;
+					break;
+				case parenthesis[1]:
+					if (--nesting == 0)
+						return;
+					m_text++;
+					break;
+				case '"':
+					// Could skip ':' or ',' here by passing `true`, but we skip it above anyways.
+					skipString!false();
+					break;
+				case '\0':
+					return;
 				}
 			}
 		}
 	}
-
 
 	/// This also increments the JSON read pointer.
 	private void expect(char c, string msg)
@@ -1298,14 +1306,12 @@ public:
 		m_text++;
 	}
 
-
 	private void expectNot(char c, string msg)
 	{
 		static if (isValidating)
 			if (*m_text == c)
 				expectNot(msg);
 	}
-
 
 	static if (isValidating)
 	{
@@ -1314,12 +1320,11 @@ public:
 		{
 			string error_msg;
 			if (isPrintable(*m_text))
-				error_msg = format!"Character '%s' %s."( *m_text, msg );
+				error_msg = format!"Character '%s' %s."(*m_text, msg);
 			else
 				error_msg = format!"Byte %d %s."(*m_text, msg);
 			handleError(error_msg);
 		}
-
 
 		@noinline
 		private void expectImpl(char c, string msg)
@@ -1327,10 +1332,10 @@ public:
 			string error_msg;
 			if (isPrintable(*m_text))
 				error_msg = format!"Expected '%s', but found '%s' %s."(c, *m_text, msg);
-			else  error_msg = format!"Expected '%s', but found byte %d %s."(c, *m_text, msg);
+			else
+				error_msg = format!"Expected '%s', but found byte %d %s."(c, *m_text, msg);
 			handleError(error_msg);
 		}
-
 
 		@noinline
 		private void handleError(T)(T msg)
@@ -1339,7 +1344,7 @@ public:
 			import fast.unicode;
 
 			size_t line;
-			const(char)* p    = m_start;
+			const(char)* p = m_start;
 			const(char)* last = m_start;
 			while (p < m_text)
 			{
@@ -1355,14 +1360,12 @@ public:
 		}
 	}
 
-
 	@forceinline @nogc pure nothrow
 	private void skipOnePlusWhitespace(bool skipInter)()
 	{
 		m_text++;
 		skipWhitespace!skipInter();
 	}
-
 
 	@forceinline @nogc pure nothrow
 	private void skipWhitespace(bool skipInter)()
@@ -1372,7 +1375,6 @@ public:
 		else
 			m_text.skipAsciiWhitespace();
 	}
-
 
 	private static struct SingleKey
 	{
@@ -1394,7 +1396,7 @@ public:
 		}
 
 		~this()
-		{	
+		{
 			static if (isValidateAll)
 			{
 				if (*json.m_text != '}')
@@ -1436,12 +1438,22 @@ private template buildRemapTable(T)
 
 	static if (is(T == enum))
 	{
-		struct Remap { T d; string json; }
+		struct Remap
+		{
+			T d;
+			string json;
+		}
+
 		enum members = EnumMembers!T;
 	}
 	else
 	{
-		struct Remap { string d; string json; }
+		struct Remap
+		{
+			string d;
+			string json;
+		}
+
 		enum members = FieldNameTuple!T;
 	}
 	enum mapping = getUDA!(T, JsonMapping).map;
@@ -1464,77 +1476,87 @@ private template buildRemapTable(T)
 				alias mapped = key;
 			alias Impl = TypeTuple!(Remap(members[a], mapped));
 		}
-		else alias Impl = TypeTuple!();
+		else
+			alias Impl = TypeTuple!();
 	}
 
 	alias buildRemapTable = Impl!(0, members.length);
 }
 
-
 size_t serializationLength(T)(T t) nothrow @trusted
-	if (is(T == struct) && !hasMember!(T, "opSlice") && !hasMember!(T, "get") && !isTuple!T)
+		if (is(T == struct) && !hasMember!(T, "opSlice") && !hasMember!(T, "get") && !isTuple!T)
 {
 	size_t len;
 	import std.traits : hasUDA;
+
 	len++; // {
-	static foreach(sym; T.tupleof) {{
-		enum isPublic = __traits(getProtection, sym) == "public";
-		static assert(!hasUDA!(sym, serialize) || (isPublic && hasUDA!(sym, serialize)), "Protected field has @serialize UDA");
-		static if (isPublic && hasUDA!(sym, serialize)) {
-			if (len > 1) len += 4; // ,"":
-			else len += 3; // "":
-			enum i = sym.stringof;
-			len += i.length;				
-			
-			static if (isPointer!(typeof(sym))) 
-				len += serializationLength(*__traits(getMember, t, i));
-			else
-				len += serializationLength(__traits(getMember, t, i));
-			
+	static foreach (sym; T.tupleof)
+	{
+		{
+			enum isPublic = __traits(getProtection, sym) == "public";
+			static assert(!hasUDA!(sym, serialize) || (isPublic && hasUDA!(sym, serialize)), "Protected field has @serialize UDA");
+			static if (isPublic && hasUDA!(sym, serialize))
+			{
+				if (len > 1)
+					len += 4; // ,"":
+				else
+					len += 3; // "":
+				enum i = sym.stringof;
+				len += i.length;
+
+				static if (isPointer!(typeof(sym)))
+					len += serializationLength(*__traits(getMember, t, i));
+				else
+					len += serializationLength(__traits(getMember, t, i));
+
+			}
 		}
-	}}
+	}
 	len++; // }
 	return len;
 }
 
 // hashmap
 size_t serializationLength(T)(T t) nothrow @trusted
-	if (is(T == struct) && hasMember!(T, "get") && hasMember!(T, "opApply") && !isTuple!T)
+		if (is(T == struct) && hasMember!(T, "get") && hasMember!(T, "opApply") && !isTuple!T)
 {
 	size_t len;
 	len++; // {
-	foreach(key, ref val; t) {
-		if (len > 1) 
+	foreach (key, ref val; t)
+	{
+		if (len > 1)
 			len++; // ,	
 
-		static if (isPointer!(typeof(key))) 
+		static if (isPointer!(typeof(key)))
 			len += serializationLength(*key);
 		else
 			len += serializationLength(key);
-		
+
 		len++; // :
-		
-		static if (isPointer!(typeof(val))) 
+
+		static if (isPointer!(typeof(val)))
 			len += serializationLength(*val);
 		else
 			len += serializationLength(val);
-		
+
 	}
-	
+
 	len++; // }
 	return len;
 }
 
 size_t serializationLength(T)(T t) nothrow @trusted
-	if ((isArray!T || (is(T == struct) && hasMember!(T, "opSlice")) || isTuple!T) && !isSomeString!T)
-{	
+		if ((isArray!T || (is(T == struct) && hasMember!(T, "opSlice")) || isTuple!T) && !isSomeString!T)
+{
 	size_t len;
 	len++; // [
-	foreach(i, v; t) {
-		if (i > 0) {
+	foreach (i, v; t)
+	{
+		if (i > 0)
+		{
 			len++; // ,
 		}
-		static if (isPointer!(typeof(v))) 
+		static if (isPointer!(typeof(v)))
 			len += serializationLength(*v);
 		else
 			len += serializationLength(v);
@@ -1544,139 +1566,160 @@ size_t serializationLength(T)(T t) nothrow @trusted
 }
 
 private size_t serializationLength(T)(T t) nothrow @trusted
-	if (isIntegral!T && !isFloatingPoint!T)
+		if (isIntegral!T && !isFloatingPoint!T)
 {
 	import fast.format : decCharsVal;
-	
+
 	char[8] buf;
 	char* bufptr = buf.ptr;
 	auto ret = bufptr.formattedWrite!"%d"(decCharsVal(t));
 
 	return decCharsVal(t);
 }
-private bool hasEscape(char c) {
-	if ((c <= 0x1F && c > 0xC) || (c > 0x1F && c != '"' && c != '\\')) 
+
+private bool hasEscape(char c)
+{
+	if ((c <= 0x1F && c > 0xC) || (c > 0x1F && c != '"' && c != '\\'))
 		return false;
-	else if (c == '\t') return true;
-	else if (c == '\b') return true;
-	else if (c == '\n') return true;
-	else if (c == '\r') return true;
-	else if (c == '"') return true;
-	else if (c == '\\') return true;
-	else return false; // '?'
+	else if (c == '\t')
+		return true;
+	else if (c == '\b')
+		return true;
+	else if (c == '\n')
+		return true;
+	else if (c == '\r')
+		return true;
+	else if (c == '"')
+		return true;
+	else if (c == '\\')
+		return true;
+	else
+		return false; // '?'
 }
 
-private size_t serializationLength(T)(T t) nothrow @trusted
-	if (isSomeString!T)
-{	
+private size_t serializationLength(T)(T t) nothrow @trusted if (isSomeString!T)
+{
 	import fast.format : formattedWrite, indexOf;
+
 	size_t i;
 	ptrdiff_t idx;
 	T substr = t;
-	do {
+	do
+	{
 		idx = substr.indexOf("\"\t\r\n\\\b");
-		if (idx > -1) {
+		if (idx > -1)
+		{
 			i++;
 			substr = substr[idx + 1 .. $];
 		}
-	} while(idx > -1);
-	return i + (cast(void[])t).length + 2; // escapes + strlen + quotes
+	}
+	while (idx > -1);
+	return i + (cast(void[]) t).length + 2; // escapes + strlen + quotes
 }
 
-private size_t serializationLength(T)(T t) nothrow @trusted
-	if (isFloatingPoint!T)
-{	
+private size_t serializationLength(T)(T t) nothrow @trusted if (isFloatingPoint!T)
+{
 	import fast.format : decCharsVal;
+
 	return decCharsVal(t); // todo: optimize this
 }
 
-private size_t serializationLength(T)(T t) nothrow @trusted
-	if (isBoolean!T)
-{	
+private size_t serializationLength(T)(T t) nothrow @trusted if (isBoolean!T)
+{
 	return t ? 4 : 5; // true : false
 }
 
 char[] serializeJSON(T)(char[] buf, T t) nothrow @trusted
-	if (is(T == struct) && !hasMember!(T, "opSlice") && !hasMember!(T, "get") && !isTuple!T)
+		if (is(T == struct) && !hasMember!(T, "opSlice") && !hasMember!(T, "get") && !isTuple!T)
 {
 	import std.traits : hasUDA;
+
 	char* buf_start = buf.ptr;
 	size_t offset;
 	char[] written = formattedWrite!"{"(buf.ptr + offset);
 	offset += written.length;
-	static foreach(sym; T.tupleof) {{
-		enum isPublic = __traits(getProtection, sym) == "public";
-		static assert(!hasUDA!(sym, serialize) || (isPublic && hasUDA!(sym, serialize)), "Protected field has @serialize UDA");
-		static if (isPublic && hasUDA!(sym, serialize)) {
-			alias ChildType = typeof(sym);
-			enum i = sym.stringof;
-			if (offset > 1) written = formattedWrite!`,"%S":`(buf.ptr + offset, i);
-			else written = formattedWrite!`"%S":`(buf.ptr + offset, i);
-			
-			offset += written.length;
-			static if (isPointer!(typeof(sym))) 
-				written = serializeJSON(buf[offset .. $], *__traits(getMember, t, i));
-			else
-				written = serializeJSON(buf[offset .. $], __traits(getMember, t, i));
-			// todo: Add hashmap
-			offset += written.length;
+	static foreach (sym; T.tupleof)
+	{
+		{
+			enum isPublic = __traits(getProtection, sym) == "public";
+			static assert(!hasUDA!(sym, serialize) || (isPublic && hasUDA!(sym, serialize)), "Protected field has @serialize UDA");
+			static if (isPublic && hasUDA!(sym, serialize))
+			{
+				alias ChildType = typeof(sym);
+				enum i = sym.stringof;
+				if (offset > 1)
+					written = formattedWrite!`,"%S":`(buf.ptr + offset, i);
+				else
+					written = formattedWrite!`"%S":`(buf.ptr + offset, i);
+
+				offset += written.length;
+				static if (isPointer!(typeof(sym)))
+					written = serializeJSON(buf[offset .. $], *__traits(getMember, t, i));
+				else
+					written = serializeJSON(buf[offset .. $], __traits(getMember, t, i));
+				// todo: Add hashmap
+				offset += written.length;
+			}
 		}
-	}}
+	}
 	written = formattedWrite!"}"(buf.ptr + offset);
 	offset += written.length;
 	return buf_start[0 .. offset];
 }
 
 char[] serializeJSON(T)(char[] buf, T t) nothrow @trusted
-	if (is(T == struct) && hasMember!(T, "get") && hasMember!(T, "opApply") && !isTuple!T)
+		if (is(T == struct) && hasMember!(T, "get") && hasMember!(T, "opApply") && !isTuple!T)
 {
 	char* buf_start = buf.ptr;
 	size_t offset;
 	char[] written = formattedWrite!"{"(buf.ptr + offset);
 	offset += written.length;
-	foreach(key, ref val; t) {
-		if (offset > 1) {
+	foreach (key, ref val; t)
+	{
+		if (offset > 1)
+		{
 			written = formattedWrite!`,`(buf.ptr + offset);
 			offset += written.length;
-		}		
+		}
 
-		static if (isPointer!(typeof(key))) 
+		static if (isPointer!(typeof(key)))
 			written = serializeJSON(buf[offset .. $], *key);
 		else
 			written = serializeJSON(buf[offset .. $], key);
-		
+
 		offset += written.length;
 
 		written = formattedWrite!`:`(buf.ptr + offset);
-		
+
 		offset += written.length;
-		static if (isPointer!(typeof(val))) 
+		static if (isPointer!(typeof(val)))
 			written = serializeJSON(buf[offset .. $], *val);
 		else
 			written = serializeJSON(buf[offset .. $], val);
-		
+
 		offset += written.length;
 	}
-	
+
 	written = formattedWrite!"}"(buf.ptr + offset);
 	offset += written.length;
 	return buf_start[0 .. offset];
 }
 
-
 private char[] serializeJSON(T)(char[] buf, T t) nothrow @trusted
-	if ((isArray!T || (is(T == struct) && hasMember!(T, "opSlice")) || isTuple!T) && !isSomeString!T)
-{	
+		if ((isArray!T || (is(T == struct) && hasMember!(T, "opSlice")) || isTuple!T) && !isSomeString!T)
+{
 	char* buf_start = buf.ptr;
 	size_t offset;
 	char[] written = formattedWrite!"["(buf.ptr + offset, t);
 	offset += written.length;
-	foreach(i, v; t) {
-		if (i > 0) {
+	foreach (i, v; t)
+	{
+		if (i > 0)
+		{
 			written = formattedWrite!`,`(buf.ptr + offset);
 			offset += written.length;
 		}
-		static if (isPointer!(typeof(v))) 
+		static if (isPointer!(typeof(v)))
 			written = serializeJSON(buf[offset .. $], *v);
 		else
 			written = serializeJSON(buf[offset .. $], v);
@@ -1688,30 +1731,29 @@ private char[] serializeJSON(T)(char[] buf, T t) nothrow @trusted
 }
 
 private char[] serializeJSON(T)(char[] buf, T t) nothrow @trusted
-	if (isIntegral!T && !isFloatingPoint!T)
-{	
+		if (isIntegral!T && !isFloatingPoint!T)
+{
 	char[] written = formattedWrite!"%d"(buf.ptr, t);
 	return buf[0 .. written.length];
 }
 
 private char[] serializeJSON(T)(char[] buf, T t) nothrow @trusted
-	if (isSomeString!T)
-{	
+		if (isSomeString!T)
+{
 	// escape string..?	
 	char[] written = formattedWrite!`"%S"`(buf.ptr, t);
 	return buf[0 .. written.length];
 }
 
 private char[] serializeJSON(T)(char[] buf, T t) nothrow @trusted
-	if (isFloatingPoint!T)
-{	
+		if (isFloatingPoint!T)
+{
 	char[] written = formattedWrite!`%f`(buf.ptr, t);
 	return buf[0 .. written.length];
 }
 
-private char[] serializeJSON(T)(char[] buf, T t) nothrow @trusted
-	if (isBoolean!T)
-{	
+private char[] serializeJSON(T)(char[] buf, T t) nothrow @trusted if (isBoolean!T)
+{
 	char[] written = t ? formattedWrite!`true`(buf.ptr) : formattedWrite!`false`(buf.ptr);
 	return buf[0 .. written.length];
 }
@@ -1727,44 +1769,44 @@ unittest
 	{
 		with (DataType) final switch (json.peek)
 		{
-			case array:
-				ctr.array++;
-				foreach (_; json)
-					valueHandler(json, ctr);
-				break;
-			case object:
-				ctr.object++;
-				foreach(key; json.byKey)
-				{
-					ctr.key++;
-					valueHandler(json, ctr);
-				}
-				break;
-			case string:
-				ctr.string++;
-				json.skipValue();
-				break;
-			case number:
-				ctr.number++;
-				json.skipValue();
-				break;
-			case boolean:
-				ctr.boolean++;
-				json.skipValue();
-				break;
-			case null_:
-				ctr.null_++;
-				json.skipValue();
-				break;
+		case array:
+			ctr.array++;
+			foreach (_; json)
+				valueHandler(json, ctr);
+			break;
+		case object:
+			ctr.object++;
+			foreach (key; json.byKey)
+			{
+				ctr.key++;
+				valueHandler(json, ctr);
+			}
+			break;
+		case string:
+			ctr.string++;
+			json.skipValue();
+			break;
+		case number:
+			ctr.number++;
+			json.skipValue();
+			break;
+		case boolean:
+			ctr.boolean++;
+			json.skipValue();
+			break;
+		case null_:
+			ctr.null_++;
+			json.skipValue();
+			break;
 		}
 	}
 
 	// Tests that need to pass according to RFC 7159
-	passFile("test/pass1.json",  Counter( 6,  4, 33, 21, 32,  4,  2));
-	passFile("test/pass2.json",  Counter(19,  0,  0,  1,  0,  0,  0));
-	passFile("test/pass3.json",  Counter( 0,  2,  3,  2,  0,  0,  0));
-	passFile("test/fail1.json",  Counter( 0,  0,  0,  1,  0,  0,  0));
-	passFile("test/fail18.json", Counter(20,  0,  0,  1,  0,  0,  0));
+	passFile("test/pass1.json", Counter(6, 4, 33, 21, 32, 4, 2));
+	passFile("test/pass2.json", Counter(19, 0, 0, 1, 0, 0, 0));
+	passFile("test/pass3.json", Counter(0, 2, 3, 2, 0, 0, 0));
+	passFile("test/fail1.json", Counter(0, 0, 0, 1, 0, 0, 0));
+	passFile("test/fail18.json", Counter(20, 0, 0, 1, 0, 0, 0));
 
 	// Tests that need to fail
 	foreach (i; chain(iota(2, 18), iota(19, 34)))
@@ -1795,50 +1837,61 @@ unittest
 	}
 
 	Test t1 = {
-		text1 : "abcde",
-		text2 : "",
-		text3 : null,
-		dbl   : 1.1,
-		flt   : -1.1,
-		ul    : ulong.max,
-		ui    : uint.max,
-		us    : ushort.max,
-		ub    : ubyte.max,
-		lm    : long.min,
-		lp    : long.max,
-		im    : int.min,
-		ip    : int.max,
-		sm    : short.min,
-		sp    : short.max,
-		bm    : byte.min,
-		bp    : byte.max,
-		t     : true,
-		f     : false,
-		tp1   : null,
-		tp2   : new Test("This is", "a", "test."),
-		sa    : [ 33, 44 ],
-		da    : [ 5, 6, 7 ],
-		aa    : [ "hash" : Test("x", "y", "z") ],
-		e     : SearchPolicy.linear
-	};
-	Test t2 = parseJSON(`{
+		text1: "abcde",
+		text2: "",
+		text3: null,
+		dbl: 1.1,
+		flt: -1.1,
+		ul: ulong.max,
+		ui: uint.max,
+		us: ushort.max,
+		ub: ubyte.max,
+		lm: long.min,
+		lp: long.max,
+		im: int.min,
+		ip: int.max,
+		sm: short.min,
+		sp: short.max,
+		bm: byte.min,
+		bp: byte.max,
+		t: true,
+		f: false,
+		tp1: null,
+		tp2: new Test("This is", "a", "test."),
+		sa: [33, 44],
+		da: [5, 6, 7],
+		aa: ["hash": Test("x", "y", "z")],
+		e: SearchPolicy.linear};
+		Test t2 = parseJSON(`{
 		"text1" : "abcde",
 		"text2" : "",
 		"text3" : null,
 		"dbl"   : 1.1,
 		"flt"   : -1.1,
-		"ul"    : ` ~ ulong.max.to!string ~ `,
-		"ui"    : ` ~ uint.max.to!string ~ `,
-		"us"    : ` ~ ushort.max.to!string ~ `,
-		"ub"    : ` ~ ubyte.max.to!string ~ `,
-		"lm"    : ` ~ long.min.to!string ~ `,
-		"lp"    : ` ~ long.max.to!string ~ `,
-		"im"    : ` ~ int.min.to!string ~ `,
-		"ip"    : ` ~ int.max.to!string ~ `,
-		"sm"    : ` ~ short.min.to!string ~ `,
-		"sp"    : ` ~ short.max.to!string ~ `,
-		"bm"    : ` ~ byte.min.to!string ~ `,
-		"bp"    : ` ~ byte.max.to!string ~ `,
+		"ul"    : `
+				~ ulong.max.to!string ~ `,
+		"ui"    : `
+				~ uint.max.to!string ~ `,
+		"us"    : `
+				~ ushort.max.to!string ~ `,
+		"ub"    : `
+				~ ubyte.max.to!string ~ `,
+		"lm"    : `
+				~ long.min.to!string ~ `,
+		"lp"    : `
+				~ long.max.to!string ~ `,
+		"im"    : `
+				~ int.min.to!string ~ `,
+		"ip"    : `
+				~ int.max.to!string ~ `,
+		"sm"    : `
+				~ short.min.to!string ~ `,
+		"sp"    : `
+				~ short.max.to!string ~ `,
+		"bm"    : `
+				~ byte.min.to!string ~ `,
+		"bp"    : `
+				~ byte.max.to!string ~ `,
 		"t"     : true,
 		"f"     : false,
 		"tp1"   : null,
@@ -1849,35 +1902,36 @@ unittest
 		"e"     : "linear"
 	}`).read!Test;
 
-	assert(t2.tp2 && *t1.tp2 == *t2.tp2);
-	assert(t1.da == t2.da);
-	assert(t1.aa == t2.aa);
-	t2.tp2 = t1.tp2;
-	t2.da = t1.da;
-	t2.aa = t1.aa;
-	assert(t1 == t2);
-}
+		assert(t2.tp2 && *t1.tp2 == *t2.tp2);
+		assert(t1.da == t2.da);
+		assert(t1.aa == t2.aa);
+		t2.tp2 = t1.tp2;
+		t2.da = t1.da;
+		t2.aa = t1.aa;
+		assert(t1 == t2);
+	}
 
-// Test case for Issue #4
-unittest
-{
-	auto str = `{"initiator_carrier_code":null,"a":"b"}`;
-	auto js = parseTrustedJSON(str);
-	foreach(key; js.byKey)
+	// Test case for Issue #4
+	unittest
 	{
-		if(key == "initiator_carrier_code")
+		auto str = `{"initiator_carrier_code":null,"a":"b"}`;
+		auto js = parseTrustedJSON(str);
+		foreach (key; js.byKey)
 		{
-			auto t = js.read!string;
-			assert(t is null);
+			if (key == "initiator_carrier_code")
+			{
+				auto t = js.read!string;
+				assert(t is null);
+			}
 		}
 	}
-}
 
-// Test case for Issue #5
-unittest
-{
-	import std.utf;
-	auto str = `{"a":"SΛNNO𐍈€한"}`;
-	str.validate;
-	validateJSON(str);
-}
+	// Test case for Issue #5
+	unittest
+	{
+		import std.utf;
+
+		auto str = `{"a":"SΛNNO𐍈€한"}`;
+		str.validate;
+		validateJSON(str);
+	}

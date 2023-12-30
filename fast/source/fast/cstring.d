@@ -9,16 +9,16 @@
  *   © 2013 $(LINK2 mailto:Marco.Leise@gmx.de, Marco Leise)
  * 
  * License:
- *   $(LINK2 http://www.gnu.org/licenses/gpl-3.0, GNU General Public License 3.0)
+ *   $(LINK2 https://mit-license.org/, The MIT License (MIT))
  * 
  **************************************/
-module fast.cstring; @nogc nothrow:
+module fast.cstring;
+@nogc nothrow:
 
 //import core.stdc.stdlib;
 //import core.stdc.string;
 //import std.traits;
 import fast.buffer;
-
 
 /**
  * Converts a string to a wstring using a buffer provided by the user.
@@ -44,7 +44,7 @@ wchar[] string2wstring(in char[] src, wchar* dst)
 		// how long is the byte sequence
 		int len = 0;
 		uint mask = 0b1000_0000;
-		while(*srcIt & mask)
+		while (*srcIt & mask)
 		{
 			mask >>= 1;
 			len++;
@@ -101,7 +101,6 @@ size_t string2wstringSize(in char[] src)
 	return src.length <= limit ? wchar.sizeof * (src.length + 1) : size_t.max;
 }
 
-
 /**
  * Converts a wstring to a string using a buffer provided by the user.
  * To get the buffer requirements call $(D stringSize) on your source buffer.
@@ -125,11 +124,11 @@ char[] wstring2string(in wchar[] src, char* dst)
 	{
 		if (*srcIt < 0x80)
 		{
-			*dstIt++ = cast(char) *srcIt++;
+			*dstIt++ = cast(char)*srcIt++;
 		}
 		else if (*srcIt < 0x800)
 		{
-			*dstIt++ = cast(char) (0b_11000000 | *srcIt >> 6);
+			*dstIt++ = cast(char)(0b_11000000 | *srcIt >> 6);
 			*dstIt++ = 0b_10000000 | 0b_00111111 & *srcIt++;
 		}
 		if (*srcIt < 0xD800 || *srcIt > 0xDBFF)
@@ -152,7 +151,7 @@ char[] wstring2string(in wchar[] src, char* dst)
 		}
 	}
 	*dstIt = 0;
-	
+
 	return dst[0 .. dstIt - dst];
 }
 
@@ -177,7 +176,6 @@ size_t wstring2stringSize(in wchar[] src)
 	return src.length <= limit ? char.sizeof * (3 * src.length + 1) : size_t.max;
 }
 
-
 /**
  * Replaces $(D std.utf.toUTFz) with a version that uses the stack as long as the required bytes for the output are
  * <= 1k. Longer strings use $(D malloc) to create a buffer for the conversion. It is freed at least at the end of the
@@ -195,17 +193,21 @@ size_t wstring2stringSize(in wchar[] src)
  * WinApiW(wcharPtr!text);
  * ---
  */
-auto wcharPtr(alias str)(void* buffer = string2wstringSize(str) <= allocaLimit ? alloca(string2wstringSize(str)) : null)
+auto wcharPtr(alias str)(void* buffer = string2wstringSize(str) <= allocaLimit ? alloca(
+		string2wstringSize(str)) : null)
 {
 	// In any case we have to return a proper InstantBuffer, so that free() is called in the dtor at some point.
 	return TempBuffer!wchar(
-		string2wstring(str, cast(wchar*) (buffer ? buffer : malloc(string2wstringSize(str)))),
+		string2wstring(str, cast(wchar*)(buffer ? buffer
+			: malloc(string2wstringSize(str)))),
 		buffer is null);
 }
 
 /// ditto
 immutable(wchar)* wcharPtr(alias wstr)()
-	if (is(typeof(wstr) == wstring) && __traits(compiles, { enum wstring e = wstr; }))
+		if (is(typeof(wstr) == wstring) && __traits(compiles, {
+				enum wstring e = wstr;
+			}))
 {
 	// D string literals (known at compile time) are always \0-terminated.
 	return wstr.ptr;
@@ -229,7 +231,7 @@ immutable(wchar)* wcharPtr(alias wstr)()
  * ---
  */
 auto charPtr(alias str)(void* buffer = alloca(str.length + 1))
-	if (is(typeof(str) : const(char)[]) || is(typeof(str) : const(ubyte)[]))
+		if (is(typeof(str) : const(char)[]) || is(typeof(str) : const(ubyte)[]))
 {
 	char* dst = cast(char*) memcpy(buffer ? buffer : malloc(str.length + 1), str.ptr, str.length);
 	dst[str.length] = '\0';
@@ -237,14 +239,13 @@ auto charPtr(alias str)(void* buffer = alloca(str.length + 1))
 }
 
 /// ditto
-immutable(char)* charPtr(alias str)()
-	if (__traits(compiles, { enum string e = str; }))
-{
-	// D string literals (known at compile time) are always \0-terminated.
-	return str.ptr;
-}
+immutable(char)* charPtr(alias str)() if (__traits(compiles, { enum string e = str; }))
+		{
+			// D string literals (known at compile time) are always \0-terminated.
+			return str.ptr;
+		}
 
-/**
+	/**
  * This overload allocates the required memory from an existing stack buffer.
  *
  * Params:
@@ -254,43 +255,50 @@ immutable(char)* charPtr(alias str)()
  * Note:
  *   Always assign the result to an auto variable first for RAII to work correctly.
  */
-StackBufferEntry!char charPtr(SB)(const(char)[] str, ref SB sb)
-	if (is(SB == StackBuffer!bytes, bytes...))
+	StackBufferEntry!char charPtr(SB)(const(char)[] str, ref SB sb)
+		if (is(SB == StackBuffer!bytes, bytes...))
 {
 	import llvm.intrinsics;
+
 	auto buffer = sb.alloc!char(str.length + 1);
 	llvm_memcpy(buffer.ptr, str.ptr, str.length);
 	buffer[str.length] = '\0';
 	return buffer;
 }
+
 bool isPrintable(T)(T c) @safe pure nothrow @nogc
 {
-    return c >= ' ' && c <= '~';
+	return c >= ' ' && c <= '~';
 }
+
 size_t strlen(inout(char*) str) pure
 {
 	size_t len_;
 	size_t* len = &len_;
-    for (*len = 0; str[*len]; (*len)++) continue;
+	for (*len = 0; str[*len]; (*len)++)
+		continue;
 	return len_;
 }
+
 int memcmp(const(char)* buf1, immutable(char)* buf2, size_t count) pure
 {
-    if(!count)
-        return(0);
+	if (!count)
+		return (0);
 
-    while(--count && *buf1 == *buf2 ) {
-        buf1++;
-        buf2++;
-    }
+	while (--count && *buf1 == *buf2)
+	{
+		buf1++;
+		buf2++;
+	}
 
-    return *buf1 - *buf2;
+	return *buf1 - *buf2;
 }
 /**
  * Returns the given $(D ptr) up to but not including the \0 as a $(D char[]).
  */
 inout(char)[] asString(inout(char*) ptr) @trusted pure
 {
-	if (ptr is null) return null;
+	if (ptr is null)
+		return null;
 	return ptr[0 .. strlen(ptr)];
 }

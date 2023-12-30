@@ -9,7 +9,7 @@
  *   © 2017 $(LINK2 mailto:Marco.Leise@gmx.de, Marco Leise)
  * 
  * License:
- *   $(LINK2 http://www.gnu.org/licenses/gpl-3.0, GNU General Public License 3.0)
+ *   $(LINK2 https://mit-license.org/, GNU General Public License 3.0)
  * 
  **************************************************************************************************/
 module fast.internal.helpers;
@@ -54,7 +54,6 @@ else
 	import std.typecons : staticIota;
 }
 
-
 /**
  * For any integral type, returns the unsigned type of the same bit-width.
  */
@@ -70,9 +69,9 @@ template UnsignedOf(I) if (isIntegral!I)
 		alias UnsignedOf = ushort;
 	else static if (is(I == byte))
 		alias UnsignedOf = ubyte;
-	else static assert (0, "Not implemented");
+	else
+		static assert(0, "Not implemented");
 }
-
 
 /**
  * Generates a mixin string for repeating code. It can be used to unroll variadic arguments.
@@ -97,13 +96,14 @@ enum ctfeJoin(size_t length)(in string fmt, in string joiner = null)
 
 	// BUG: Cannot use, join(), as it "cannot access the nested function 'ctfeJoin'".
 	string result;
-	foreach (inst; map!(i => format(fmt, i))(iota(length))) {
-		if (result && joiner) result ~= joiner;
+	foreach (inst; map!(i => format(fmt, i))(iota(length)))
+	{
+		if (result && joiner)
+			result ~= joiner;
 		result ~= inst;
 	}
 	return result;
 }
-
 
 enum getUDA(alias sym, T)()
 {
@@ -112,7 +112,6 @@ enum getUDA(alias sym, T)()
 			return uda;
 	return T.init;
 }
-
 
 private enum 一BIT一OPERATIONS一;
 
@@ -135,8 +134,8 @@ alias bsf = core.bitop.bsf;
  **************************************/
 version (DigitalMars)
 {
-	@safe @nogc pure nothrow U
-	clz(U)(U u) if (is(Unqual!U == uint) || is(Unqual!U == size_t))
+	@safe @nogc pure nothrow U clz(U)(U u)
+			if (is(Unqual!U == uint) || is(Unqual!U == size_t))
 	{
 		pragma(inline, true);
 		enum U max = 8 * U.sizeof - 1;
@@ -145,67 +144,66 @@ version (DigitalMars)
 
 	static if (isX86)
 	{
-		@safe @nogc pure nothrow uint
-		clz(U)(U u) if (is(Unqual!U == ulong))
+		@safe @nogc pure nothrow uint clz(U)(U u) if (is(Unqual!U == ulong))
 		{
 			pragma(inline, true);
 			uint hi = u >> 32;
-			return hi ? 31 - bsr(hi) : 63 - bsr(cast(uint)u);
+			return hi ? 31 - bsr(hi) : 63 - bsr(cast(uint) u);
 		}
 	}
 }
 else version (GNU)
 {
 	import gcc.builtins;
+
 	alias clz = __builtin_clz;
 	static if (isX86)
 	{
-		@safe @nogc pure nothrow uint
-		clz(ulong u)
+		@safe @nogc pure nothrow uint clz(ulong u)
 		{
 			uint hi = u >> 32;
-			return hi ? __builtin_clz(hi) : 32 + __builtin_clz(cast(uint)u);
+			return hi ? __builtin_clz(hi) : 32 + __builtin_clz(cast(uint) u);
 		}
 	}
-	else alias clz = __builtin_clzl;
+	else
+		alias clz = __builtin_clzl;
 }
 else version (LDC)
 {
-	@safe @nogc pure nothrow U
-	clz(U)(U u) if (is(Unqual!U == uint) || is(Unqual!U == size_t))
+	@safe @nogc pure nothrow U clz(U)(U u)
+			if (is(Unqual!U == uint) || is(Unqual!U == size_t))
 	{
 		pragma(inline, true);
 		import ldc.intrinsics;
+
 		return llvm_ctlz(u, false);
 	}
 
 	static if (is(size_t == uint))
 	{
-		@safe @nogc pure nothrow uint
-		clz(U)(U u) if (is(Unqual!U == ulong))
+		@safe @nogc pure nothrow uint clz(U)(U u) if (is(Unqual!U == ulong))
 		{
 			pragma(inline, true);
 			import ldc.intrinsics;
-			return cast(uint)llvm_ctlz(u, false);
+
+			return cast(uint) llvm_ctlz(u, false);
 		}
 	}
 }
 static if (__VERSION__ < 2071)
 {
 	// < 2.071 did not have 64-bit bsr/bsf on x86.
-	@safe @nogc pure nothrow uint
-	bsr(U)(U u) if (is(Unqual!U == ulong))
+	@safe @nogc pure nothrow uint bsr(U)(U u) if (is(Unqual!U == ulong))
 	{
 		pragma(inline, true);
 		uint hi = u >> 32;
-		return hi ? bsr(hi) + 32 : bsr(cast(uint)u);
+		return hi ? bsr(hi) + 32 : bsr(cast(uint) u);
 	}
 
-	@safe @nogc pure nothrow uint
-	bsf(U)(U u) if (is(Unqual!U == ulong))
+	@safe @nogc pure nothrow uint bsf(U)(U u) if (is(Unqual!U == ulong))
 	{
 		pragma(inline, true);
-		uint lo = cast(uint)u;
+		uint lo = cast(uint) u;
 		return lo ? bsf(lo) : 32 + bsf(u >> 32);
 	}
 }
@@ -213,21 +211,25 @@ unittest
 {
 	assert(clz(uint(0x01234567)) == 7);
 	assert(clz(ulong(0x0123456701234567)) == 7);
-	assert(clz(ulong(0x0000000001234567)) == 7+32);
+	assert(clz(ulong(0x0000000001234567)) == 7 + 32);
 	assert(bsr(uint(0x01234567)) == 24);
-	assert(bsr(ulong(0x0123456701234567)) == 24+32);
+	assert(bsr(ulong(0x0123456701234567)) == 24 + 32);
 	assert(bsr(ulong(0x0000000001234567)) == 24);
 	assert(bsf(uint(0x76543210)) == 4);
 	assert(bsf(ulong(0x7654321076543210)) == 4);
-	assert(bsf(ulong(0x7654321000000000)) == 4+32);
+	assert(bsf(ulong(0x7654321000000000)) == 4 + 32);
 }
-
 
 private enum 一UNITTESTING一;
 
 // Insert a dummy main when unittesting outside of dub.
-version (VibeCustomMain) {} else version (unittest) void main() {}
-
+version (VibeCustomMain)
+{
+}
+else version (unittest)
+	void main()
+{
+}
 
 private enum 一MISCELLANEOUS一;
 
@@ -238,37 +240,57 @@ pure nothrow @nogc
 	 * which is equal to or larger than $(D value).
 	 */
 	T* alignPtrNext(T)(scope T* ptr, in size_t pot)
-	in { assert(pot > 0 && pot.isPowerOf2); }
-	body { return cast(T*) ((cast(size_t) ptr + (pot - 1)) & -pot); }
-	unittest { assert(alignPtrNext(cast(void*) 65, 64) == cast(void*) 128); }
-}
+	in
+	{
+		assert(pot > 0 && pot.isPowerOf2);
+	}
+	body
+	{
+		return cast(T*)((cast(size_t) ptr + (pot - 1)) & -pot);
+	}
 
+	unittest
+	{
+		assert(alignPtrNext(cast(void*) 65, 64) == cast(void*) 128);
+	}
+}
 
 @nogc @safe pure nothrow
 {
 	/// Returns whether the (positive) argument is an integral power of two.
 	@property bool isPowerOf2(in size_t n)
-	in { assert(n > 0); }
-	body { return (n & n - 1) == 0; }
+	in
+	{
+		assert(n > 0);
+	}
+	body
+	{
+		return (n & n - 1) == 0;
+	}
 
-	version (LDC) {
+	version (LDC)
+	{
 		import core.simd : ubyte16;
+
 		pragma(LDC_intrinsic, "llvm.x86.sse2.pmovmskb.128")
-			uint moveMask(ubyte16);
-	} else version (GNU) {
+		uint moveMask(ubyte16);
+	}
+	else version (GNU)
+	{
 		import gcc.builtins;
+
 		alias moveMask = __builtin_ia32_pmovmskb128;
 	}
-	
+
 	template SIMDFromScalar(V, alias scalar)
 	{
 		// This wrapper is needed for optimal performance with LDC and
 		// doesn't hurt GDC's inlining.
-		V SIMDFromScalar() {
+		V SIMDFromScalar()
+		{
 			enum V asVectorEnum = scalar;
 			return asVectorEnum;
 		}
 	}
-
 
 }

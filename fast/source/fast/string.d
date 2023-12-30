@@ -8,12 +8,13 @@
  *   © 2017 $(LINK2 mailto:Marco.Leise@gmx.de, Marco Leise)
  *
  * License:
- *   $(LINK2 http://www.gnu.org/licenses/gpl-3.0, GNU General Public License 3.0)
+ *   $(LINK2 https://mit-license.org/, The MIT License (MIT))
  */
 module fast.string;
 
 import core.bitop;
 import core.simd;
+
 //import core.stdc.stdlib;
 
 version (GNU) import gcc.attribute;
@@ -22,7 +23,6 @@ import std.range;
 import std.traits;
 
 import fast.buffer;
-
 
 /**
  * Splits a string in two around one or more compile-time known code units.
@@ -41,9 +41,11 @@ bool split(string match)(scope inout(char[]) str, ref inout(char)[] before, ref 
 {
 	immutable pos = min(str.length, SimdMatcher!match.find(str.ptr, str.ptr + str.length));
 	before = str[0 .. pos];
-	if (pos < str.length) {
-		after = str[pos+1 .. $];
-		if (splitter) *splitter = str[pos];
+	if (pos < str.length)
+	{
+		after = str[pos + 1 .. $];
+		if (splitter)
+			*splitter = str[pos];
 		return true;
 	}
 	after = null;
@@ -70,7 +72,6 @@ char split(string match)(scope inout(char*) ptr, ref inout(char)[] before, ref i
 	after = pos + 1;
 	return *pos;
 }
-
 
 /*******************************************************************************
  * 
@@ -130,9 +131,8 @@ inout(char)* find(string match)(inout(char*) ptr) pure nothrow
 	return SimdMatcher!match.find(ptr);
 }
 
-
 bool keyword1(string key)(in char[] str,
-	scope bool function(ref immutable(char)* key, ref const(char)* str) mismatcher = null)
+scope bool function(ref immutable(char)* key, ref const(char)* str) mismatcher = null)
 {
 	auto strPtr = str.ptr;
 	auto keyPtr = key.ptr;
@@ -153,12 +153,10 @@ bool keyword1(string key)(in char[] str,
 	return true;
 }
 
-
 size_t equalLength(scope inout(char[]) a, scope inout(char[]) b)
 {
 	return 0;
 }
-
 
 /*******************************************************************************
  * 
@@ -185,14 +183,15 @@ template concat(Strs...)
 	{
 		immutable length = mixin(allocExpr);
 		auto result = TempBuffer!char(
-			(cast(char*) (buffer is null ? malloc(length) : buffer))[0 .. length - 1],
+			(cast(char*)(buffer is null ? malloc(length) : buffer))[0 .. length - 1],
 			buffer is null);
 
 		import llvm.intrinsics;
+
 		char* p = result.ptr;
 		foreach (const(char[]) str; Strs)
 		{
-			llvm_memcpy (p, str.ptr, str.length);
+			llvm_memcpy(p, str.ptr, str.length);
 			p += str.length;
 		}
 		*p = '\0';
@@ -201,36 +200,41 @@ template concat(Strs...)
 	}
 }
 
-
-
 private:
 bool isWhite(dchar c) @safe pure nothrow @nogc
 {
-    return c == ' ' || (c >= 0x09 && c <= 0x0D);
+	return c == ' ' || (c >= 0x09 && c <= 0x0D);
 }
 
 template SimdMatcher(string match)
 {
 	import core.simd;
 	import fast.internal.sysdef;
-	
-	static if (match != strip(match)) {
+
+	static if (match != strip(match))
+	{
 		// Reinstanciate the template with any whitespace stripped from the match string.
 		alias SimdMatcher = SimdMatcher!(strip(match));
-	} else {
+	}
+	else
+	{
 		/* For SSE in DMD I am blocked by:
 		 * https://d.puremagic.com/issues/show_bug.cgi?id=8047
 		 * https://d.puremagic.com/issues/show_bug.cgi?id=11585
 		 */
 		enum isUsingSSE = hasSSE2 && (isLDC || isGDC);
 		enum isSingleChar = match.length == 2 && match[0] == '=';
-		static if (isSingleChar) enum singleChar = match[1];
-		static if (isUsingSSE) {
+		static if (isSingleChar)
+			enum singleChar = match[1];
+		static if (isUsingSSE)
+		{
 			// Using MOVMSKB we get one boolean per bit in a 16-bit value.
 			alias Word = ubyte16;
 			alias Mask = uint;
 			enum sparseness = 1;
-		} else {
+		}
+		else
+		{
 			// The fallback is to work with machine words and tricky bit-twiddling algorithms.
 			// As a result we get machine words where matching bytes have the high bit set.
 			alias Word = size_t;
@@ -241,7 +245,7 @@ template SimdMatcher(string match)
 		// Used in generic comparison code
 		enum lows = size_t.max / 0xFF;
 		enum highs = lows * 0x80;
-		
+
 		enum betterUseTables = (isDMD && matchCode.complexity >= 4)
 			|| (isGDC && matchCode.complexity >= 18)
 			|| (isLDC && matchCode.complexity >= 18);
@@ -249,57 +253,73 @@ template SimdMatcher(string match)
 		static if (betterUseTables)
 		{
 			immutable matchTable = genMatchTable();
-			
+
 			size_t find(scope inout(char*) b, scope inout(char*) e) pure nothrow @nogc
 			{
 				//import core.stdc.string;
 				import fast.internal.helpers;
 
 				// catch "strlen" and "memchr" like calls, that are highly optimized compiler built-ins.
-				static if (isSingleChar) {
+				static if (isSingleChar)
+				{
 					return memchr(b, singleChar, e - b) - b;
-				} else {
-					if (b >= e) return 0;
-					
+				}
+				else
+				{
+					if (b >= e)
+						return 0;
+
 					size_t off = cast(size_t) b % ushort.sizeof;
-					ushort* wp = cast(ushort*) (b - off);
+					ushort* wp = cast(ushort*)(b - off);
 					ushort* we = cast(ushort*) alignPtrNext(e, ushort.sizeof);
-					if (off) {
+					if (off)
+					{
 						// Throw away bytes from before start of the string
 						if (auto mask = matchTable[*wp] >> off)
 							return bsf(mask);
-						if (++wp is we) return size_t.max;
+						if (++wp is we)
+							return size_t.max;
 					}
-					
-					do {
+
+					do
+					{
 						if (auto mask = matchTable[*wp])
 							return bsf(mask) + (cast(char*) wp - b);
-					} while (++wp !is we);
+					}
+					while (++wp !is we);
 					return size_t.max;
 				}
 			}
-			
+
 			inout(char)* find(scope inout(char*) b) pure nothrow @nogc
 			{
 				//import core.stdc.string;
 				// catch "strlen" and "memchr" like calls, that are highly optimized compiler built-ins.
-				static if (isSingleChar && singleChar == '\0') {
+				static if (isSingleChar && singleChar == '\0')
+				{
 					return strlen(b) + b;
-				} else static if (isSingleChar && isDMD) { // DMD is better off using optimized C library code.
+				}
+				else static if (isSingleChar && isDMD)
+				{ // DMD is better off using optimized C library code.
 					return memchr(b, singleChar, e - b) - b;
-				} else {
+				}
+				else
+				{
 					size_t off = cast(size_t) b % ushort.sizeof;
-					ushort* wp = cast(ushort*) (b - off);
-					if (off) {
+					ushort* wp = cast(ushort*)(b - off);
+					if (off)
+					{
 						// Throw away bytes from before start of the string
 						if (auto mask = matchTable[*wp] >> off)
 							return b + bsf(mask);
 					}
-					
-					do {
+
+					do
+					{
 						if (auto mask = matchTable[*wp])
 							return cast(inout(char)*) wp + bsf(mask);
-					} while (true);
+					}
+					while (true);
 				}
 			}
 		}
@@ -308,182 +328,249 @@ template SimdMatcher(string match)
 			//import core.stdc.string, core.simd;
 			import std.simd;
 			import fast.internal.helpers;
-			
-			version (LDC) {
+
+			version (LDC)
+			{
 				import ldc.gccbuiltins_x86;
-			} else version (GNU) {
+			}
+			else version (GNU)
+			{
 				import gcc.builtins;
 			}
-			
+
 			size_t find(scope inout(char*) b, scope inout(char*) e) pure nothrow
 			{
 				// catch "strlen" and "memchr" like calls, that are highly optimized compiler built-ins.
-				static if (isSingleChar) {
-					return (cast(inout(char*))memchr(b, singleChar, e - b)) - b;
-				} else {
-					if (b >= e) return 0;
-					
+				static if (isSingleChar)
+				{
+					return (cast(inout(char*)) memchr(b, singleChar, e - b)) - b;
+				}
+				else
+				{
+					if (b >= e)
+						return 0;
+
 					size_t off = cast(size_t) b % Word.sizeof;
-					Word* wp = cast(Word*) (b - off);
+					Word* wp = cast(Word*)(b - off);
 					Word* we = cast(Word*) alignPtrNext(e, Word.sizeof);
-					if (off) {
+					if (off)
+					{
 						// Throw away bytes from before start of the string
 						if (auto mask = (mixin(matchCode.code)) >> (off * sparseness))
 							return bsf(mask) / sparseness;
-						if (++wp is we) return size_t.max;
+						if (++wp is we)
+							return size_t.max;
 					}
-					
-					do {
+
+					do
+					{
 						if (auto mask = mixin(matchCode.code))
 							return bsf(mask) / sparseness + (cast(char*) wp - b);
-					} while (++wp !is we);
+					}
+					while (++wp !is we);
 					return size_t.max;
 				}
 			}
-			
+
 			inout(char)* find(scope inout(char*) b) pure nothrow
 			{
 				// catch "strlen" and "memchr" like calls, that are highly optimized compiler built-ins.
-				static if (isSingleChar && singleChar == '\0') {
+				static if (isSingleChar && singleChar == '\0')
+				{
 					return strlen(b) + b;
-				} else static if (isSingleChar && isDMD) { // DMD is better off using optimized C library code.
+				}
+				else static if (isSingleChar && isDMD)
+				{ // DMD is better off using optimized C library code.
 					return cast(inout(char*)) memchr(b, singleChar, size_t.max);
-				} else {
+				}
+				else
+				{
 					size_t off = cast(size_t) b % Word.sizeof;
-					Word* wp = cast(Word*) (b - off);
-					if (off) {
+					Word* wp = cast(Word*)(b - off);
+					if (off)
+					{
 						// Throw away bytes from before start of the string
 						if (auto mask = (mixin(matchCode.code)) >> (off * sparseness))
 							return b + bsf(mask) / sparseness;
 						++wp;
 					}
-					
-					do {
+
+					do
+					{
 						if (auto mask = mixin(matchCode.code))
 							return cast(inout(char)*) wp + bsf(mask) / sparseness;
 						++wp;
-					} while (true);
+					}
+					while (true);
 				}
 			}
 		}
-		
+
 		enum genMatchCode(bool sse)(string var)
 		{
 			import std.exception;
-			
-			struct Code {
+
+			struct Code
+			{
 				string code;
 				size_t complexity = 1;
 			}
+
 			Code result;
 			string[] nesting;
-			
-			with (result) {
-				for (size_t i = 0; i < match.length;) {
-					string handleChar() {
-						char c = match[i+1];
-						switch (c) {
-							case 0:
-								return `'\0'`;
-							case '\\':
-								return `'\\'`;
-							case "'"[0]:
-								return `'\''`;
-							case '\t':
-								return `'\t'`;
-							case '\r':
-								return `'\r'`;
-							case '\n':
-								return `'\n'`;
-							default:
-								return `'` ~ c ~ `'`;
+
+			with (result)
+			{
+				for (size_t i = 0; i < match.length;)
+				{
+					string handleChar()
+					{
+						char c = match[i + 1];
+						switch (c)
+						{
+						case 0:
+							return `'\0'`;
+						case '\\':
+							return `'\\'`;
+						case "'"[0]:
+							return `'\''`;
+						case '\t':
+							return `'\t'`;
+						case '\r':
+							return `'\r'`;
+						case '\n':
+							return `'\n'`;
+						default:
+							return `'` ~ c ~ `'`;
 						}
 					}
-					
-					if (match[i] == '=') {
-						static if (sse) {
+
+					if (match[i] == '=')
+					{
+						static if (sse)
+						{
 							code ~= "maskEqual(" ~ var ~ ", SIMDFromScalar!(ubyte16, " ~ handleChar() ~ "))";
-						} else if (match[i+1] == 0) {
+						}
+						else if (match[i + 1] == 0)
+						{
 							code ~= "" ~ var ~ " - lows & ~" ~ var;
-						} else {
+						}
+						else
+						{
 							code ~= "(" ~ var ~ " ^ lows * " ~ handleChar() ~ ") - lows & ~(" ~ var ~ " ^ lows * " ~ handleChar() ~ ")";
 						}
 						i += 2;
-					} else if (match[i] == '!') {
-						static if (sse) {
+					}
+					else if (match[i] == '!')
+					{
+						static if (sse)
+						{
 							code ~= "maskNotEqual(" ~ var ~ ", SIMDFromScalar!(ubyte16, " ~ handleChar() ~ "))";
-						} else if (match[i+1] == 0) {
+						}
+						else if (match[i + 1] == 0)
+						{
 							code ~= "(~(" ~ var ~ " - lows) | " ~ var ~ ")";
-						} else {
+						}
+						else
+						{
 							code ~= "(~((" ~ var ~ " ^ lows * " ~ handleChar() ~ ") - lows) | (" ~ var ~ " ^ lows * " ~ handleChar() ~ "))";
 						}
 						i += 2;
-					} else if (match[i] == '<') {
+					}
+					else if (match[i] == '<')
+					{
 						static if (sse)
 							code ~= "maskGreater(SIMDFromScalar!(ubyte16, " ~ handleChar() ~ "), " ~ var ~ ")";
 						else
 							code ~= "maskLessGeneric!" ~ handleChar() ~ "(" ~ var ~ ")";
 						i += 2;
-					} else if (match[i] == '>') {
+					}
+					else if (match[i] == '>')
+					{
 						static if (sse)
 							code ~= "maskGreater(" ~ var ~ ", SIMDFromScalar!(ubyte16, " ~ handleChar() ~ "))";
 						else
 							code ~= "maskGreaterGeneric!" ~ handleChar() ~ "(" ~ var ~ ")";
 						i += 2;
-					} else if (match[i .. $].startsWith("or(")) {
-						static if (sse) {
+					}
+					else if (match[i .. $].startsWith("or("))
+					{
+						static if (sse)
+						{
 							nesting ~= ", ";
 							code ~= "or(";
-						} else {
+						}
+						else
+						{
 							nesting ~= " | ";
 						}
 						complexity++;
 						i += 3;
-					} else if (match[i .. $].startsWith("and(")) {
-						static if (sse) {
+					}
+					else if (match[i .. $].startsWith("and("))
+					{
+						static if (sse)
+						{
 							nesting ~= ", ";
 							code ~= "and(";
-						} else {
+						}
+						else
+						{
 							nesting ~= " & ";
 						}
 						complexity++;
 						i += 4;
-					} else if (match[i] == ',') {
+					}
+					else if (match[i] == ',')
+					{
 						enforce(nesting.length, "',' on top level");
-						code ~= nesting[$-1];
+						code ~= nesting[$ - 1];
 						i++;
-					} else if (match[i] == ')') {
+					}
+					else if (match[i] == ')')
+					{
 						enforce(nesting.length, "Unbalanced closing parenthesis");
 						nesting.length--;
-						static if (sse) {
+						static if (sse)
+						{
 							code ~= ")";
 						}
 						i++;
-					} else if (match[i]) {
+					}
+					else if (match[i])
+					{
 						i++;
-					} else {
+					}
+					else
+					{
 						throw new Exception(format("Unexpected character at index %s: 0x%02x", i, match[i]));
 					}
 				}
-				static if (sse) {
+				static if (sse)
+				{
 					code = "__builtin_ia32_pmovmskb128(" ~ code ~ ")";
-				} else {
+				}
+				else
+				{
 					code = "(" ~ code ~ ") & highs";
 				}
 			}
 			return result;
 		}
-		
+
 		enum genMatchTable()
 		{
 			ubyte[1 << 16] table;
 			ubyte[256] lut;
-			foreach (uint i; 0 .. 256) {
+			foreach (uint i; 0 .. 256)
+			{
 				lut[i] = (mixin(genMatchCode!false("i").code) >> 7) & 1;
 			}
-			foreach (i; 0 .. 256) foreach (k; 0 .. 256) {
-				table[i * 256 + k] = cast(ubyte) (lut[i] << 1 | lut[k]);
-			}
+			foreach (i; 0 .. 256)
+				foreach (k; 0 .. 256)
+				{
+					table[i * 256 + k] = cast(ubyte)(lut[i] << 1 | lut[k]);
+				}
 			return table;
 		}
 	}
@@ -504,21 +591,24 @@ template SimdMatcher(string match)
  *   http://graphics.stanford.edu/~seander/bithacks.html#ValueInWord
  */
 T maskEqualGeneric(ubyte value, T)(T word) @safe pure nothrow
-	if (isUnsigned!T)
+if (isUnsigned!T)
 {
 	// This value results in 0x01 for each byte of a T value.
 	enum lows = T.max / 0xFF;
-	static if (value == 0) {
+	static if (value == 0)
+	{
 		enum highs = lows * 0x80;
 		return (word - lows) & ~word & highs;
-	} else {
+	}
+	else
+	{
 		enum xor = lows * value;
 		return maskEqualGeneric!0(word ^ xor);
 	}
 }
 
 T maskLessGeneric(ubyte value, T)(T word) @safe pure nothrow
-	if (isUnsigned!T && value <= 128)
+if (isUnsigned!T && value <= 128)
 {
 	enum lows = T.max / 0xFF;
 	enum highs = lows * 0x80;
@@ -526,7 +616,7 @@ T maskLessGeneric(ubyte value, T)(T word) @safe pure nothrow
 }
 
 T maskGreaterGeneric(ubyte value, T)(T word) @safe pure nothrow
-	if (isUnsigned!T && value <= 127)
+if (isUnsigned!T && value <= 127)
 {
 	enum lows = T.max / 0xFF;
 	enum highs = lows * 0x80;
@@ -534,7 +624,7 @@ T maskGreaterGeneric(ubyte value, T)(T word) @safe pure nothrow
 }
 
 T orGeneric(T)(T a, T b) @safe pure nothrow
-	if (isUnsigned!T)
+if (isUnsigned!T)
 {
 	return a | b;
 }

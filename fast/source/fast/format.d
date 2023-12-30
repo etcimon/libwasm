@@ -9,7 +9,7 @@
  *   © 2017 $(LINK2 mailto:Marco.Leise@gmx.de, Marco Leise)
  * 
  * License:
- *   $(LINK2 http://www.gnu.org/licenses/gpl-3.0, GNU General Public License 3.0)
+ *   $(LINK2 https://mit-license.org/, The MIT License (MIT))
  * 
  **************************************/
 module fast.format;
@@ -22,13 +22,11 @@ import memutils.ct;
 import std.typetuple;
 import fast.internal.helpers;
 
-
 /+
  ╔══════════════════════════════════════════════════════════════════════════════
  ║ ⚑ Hex String
  ╚══════════════════════════════════════════════════════════════════════════════
  +/
-
 
 /**
  * Converts an unsigned type into a fixed width 8 digits hex string using lower-case letters.
@@ -46,12 +44,11 @@ char[2 * U.sizeof] hexStrLower(U)(Unqual!U n) if (isUnsigned!U)
 	foreach_reverse (i; 0 .. 2 * U.sizeof)
 	{
 		U d = n & U(0xF);
-		hex[i] = cast(char) (d < 10 ? '0' + d : 'a' + d - 10);
+		hex[i] = cast(char)(d < 10 ? '0' + d : 'a' + d - 10);
 		n >>= 4;
 	}
 	return hex;
 }
-
 
 /**
  * Converts an unsigned type into a fixed width 8 digits hex string using upper-case letters.
@@ -69,12 +66,11 @@ char[2 * U.sizeof] hexStrUpper(U)(U n) if (isUnsigned!U)
 	foreach_reverse (i; 0 .. 2 * U.sizeof)
 	{
 		U d = n & U(0xF);
-		hex[i] = cast(char) (d < 10 ? '0' + d : 'A' + d - 10);
+		hex[i] = cast(char)(d < 10 ? '0' + d : 'A' + d - 10);
 		n >>= 4;
 	}
 	return hex;
 }
-
 
 /+
  ╔══════════════════════════════════════════════════════════════════════════════
@@ -106,17 +102,22 @@ template decDigits(T) if (isFloatingPoint!T)
 
 enum decChars(T) = decDigits!T + isSigned!T;
 
-@safe pure nothrow size_t decCharsVal(T)(T v) if (isIntegral!T && !isFloatingPoint!T) {
+@safe pure nothrow size_t decCharsVal(T)(T v)
+		if (isIntegral!T && !isFloatingPoint!T)
+{
 	ulong maxsize = 10;
 	size_t digits = 1;
-	if (v < 0) {
+	if (v < 0)
+	{
 		digits = 2;
 		v *= -1;
 	}
 
 	// calculate left of the decimal
-	while (digits < decChars!T) {
-		if (v < maxsize) {
+	while (digits < decChars!T)
+	{
+		if (v < maxsize)
+		{
 			return digits;
 		}
 		maxsize *= 10;
@@ -125,7 +126,8 @@ enum decChars(T) = decDigits!T + isSigned!T;
 	return decChars!T;
 }
 
-@safe nothrow size_t decCharsVal(T)(T v) if (isFloatingPoint!T) {
+@safe nothrow size_t decCharsVal(T)(T v) if (isFloatingPoint!T)
+{
 	/*int maxsize = 10;
 	uint u = cast(uint) (v < 0 ? -v : v);
 	T dec = (v < 0 ? (-v) : (v)) - u;
@@ -166,15 +168,17 @@ RevFillStr!(decChars!I) decStr(I)(I i) if (isFloatingPoint!I)
 	RevFillStr!(decChars!I) str;
 
 	bool signed = i < 0;
-	uint u = cast(uint) (i < 0 ? -i : i);
+	uint u = cast(uint)(i < 0 ? -i : i);
 
 	I dec = (i < 0 ? (-i) : (i)) - u;
-	
-	short digits = signed ? 2 : 1;	
+
+	short digits = signed ? 2 : 1;
 	int maxsize = 10;
 	// calculate left of the decimal
-	while (digits < decChars!uint) {
-		if (u < maxsize) {
+	while (digits < decChars!uint)
+	{
+		if (u < maxsize)
+		{
 			break;
 		}
 		maxsize *= 10;
@@ -182,23 +186,28 @@ RevFillStr!(decChars!I) decStr(I)(I i) if (isFloatingPoint!I)
 	}
 
 	char[decDigits!I - 3] decimals = void;
-	foreach (ref d; decimals) d = 0;
-	if (dec != 0) {
+	foreach (ref d; decimals)
+		d = 0;
+	if (dec != 0)
+	{
 		int j;
-		do {
+		do
+		{
 			dec *= 10;
 			uint val = cast(uint) dec;
 			decimals[j++] = char('0' + val % 10);
 			dec -= val;
-		} while (dec > 0 && j < decimals.length - digits);
+		}
+		while (dec > 0 && j < decimals.length - digits);
 		bool found_num;
-		foreach_reverse(d; decimals) {
-			if (d > 0 && d > '0' && d <= '9' && !found_num) 
+		foreach_reverse (d; decimals)
+		{
+			if (d > 0 && d > '0' && d <= '9' && !found_num)
 				found_num = true;
-			
-			if (found_num) 			
+
+			if (found_num)
 				str ~= d;
-			
+
 		}
 		str ~= '.';
 	}
@@ -210,8 +219,9 @@ RevFillStr!(decChars!I) decStr(I)(I i) if (isFloatingPoint!I)
 	}
 	while (u > 0);
 
-	static if (isSigned!I) if (signed)
-		str ~= '-';
+	static if (isSigned!I)
+		if (signed)
+			str ~= '-';
 
 	return str;
 }
@@ -226,7 +236,8 @@ RevFillStr!(decChars!I) decStr(I)(I i) if (isIntegral!I)
 		bool signed = i < 0;
 		UnsignedOf!I u = i < 0 ? -i : i;
 	}
-	else alias u = i;
+	else
+		alias u = i;
 
 	do
 	{
@@ -235,8 +246,9 @@ RevFillStr!(decChars!I) decStr(I)(I i) if (isIntegral!I)
 	}
 	while (u);
 
-	static if (isSigned!I) if (signed)
-		str ~= '-';
+	static if (isSigned!I)
+		if (signed)
+			str ~= '-';
 
 	return str;
 }
@@ -255,7 +267,6 @@ template hasKnownSpaceRequirement(T)
 		enum hasKnownSpaceRequirement = false;
 }
 
-
 template spaceRequirement(string format, T) if (hasKnownSpaceRequirement!T)
 {
 	static if (isIntegral!T)
@@ -264,22 +275,25 @@ template spaceRequirement(string format, T) if (hasKnownSpaceRequirement!T)
 			enum spaceRequirement = decChars!T;
 		else static if (isUnsigned!T && (format == "%x" || format == "%X"))
 			enum spaceRequirement = 2 * T.sizeof;
-		else static assert (0, "Don't know how to handle " ~ T.stringof ~ " as " ~ format);
+		else
+			static assert(0, "Don't know how to handle " ~ T.stringof ~ " as " ~ format);
 	}
 	else static if (isPointer!T)
 	{
 		static if (format == "%s" || format == "%p" || format == "%S")
 			enum spaceRequirement = 2 * T.sizeof;
-		else static assert (0, "Don't know how to handle " ~ T.stringof ~ " as " ~ format);
+		else
+			static assert(0, "Don't know how to handle " ~ T.stringof ~ " as " ~ format);
 	}
-	else static assert (0, "Don't know how to handle " ~ T.stringof);
+	else
+		static assert(0, "Don't know how to handle " ~ T.stringof);
 }
 
-
-enum spaceRequirements(string format, Args...)() if (allSatisfy!(hasKnownSpaceRequirement, Args))
+enum spaceRequirements(string format, Args...)()
+			if (allSatisfy!(hasKnownSpaceRequirement, Args))
 {
 	size_t sum = 0;
-	
+
 	alias parts = tokenizedFormatString!format;
 	foreach (i; staticIota!(0, parts.length))
 	{
@@ -288,15 +302,17 @@ enum spaceRequirements(string format, Args...)() if (allSatisfy!(hasKnownSpaceRe
 		else
 			sum += spaceRequirement!(parts[i][0], Args[parts[i][1]]);
 	}
-	
+
 	return sum;
 }
 
-ptrdiff_t indexOf(T)(T s, string arr) pure nothrow {
+ptrdiff_t indexOf(T)(T s, string arr) pure nothrow
+{
 	ptrdiff_t i;
 	foreach (const c2; s)
 	{
-		foreach (immutable c1; arr) {
+		foreach (immutable c1; arr)
+		{
 			if (c1 == c2)
 				return i;
 		}
@@ -305,7 +321,8 @@ ptrdiff_t indexOf(T)(T s, string arr) pure nothrow {
 	return -1;
 }
 
-ptrdiff_t indexOf(T)(T s, char c) pure nothrow {
+ptrdiff_t indexOf(T)(T s, char c) pure nothrow
+{
 	immutable c1 = c;
 
 	ptrdiff_t i;
@@ -317,6 +334,7 @@ ptrdiff_t indexOf(T)(T s, char c) pure nothrow {
 	}
 	return -1;
 }
+
 template tokenizedFormatString(string fmt)
 {
 	enum impl()
@@ -327,9 +345,11 @@ template tokenizedFormatString(string fmt)
 		string rest = fmt;
 		while (1)
 		{
-			ptrdiff_t markerPos = indexOf(rest,'%');
-			if (markerPos < 0) {
-				if (rest.length) parts[j++] = tuple(rest, size_t.max);
+			ptrdiff_t markerPos = indexOf(rest, '%');
+			if (markerPos < 0)
+			{
+				if (rest.length)
+					parts[j++] = tuple(rest, size_t.max);
 				return parts;
 			}
 			if (markerPos)
@@ -342,7 +362,7 @@ template tokenizedFormatString(string fmt)
 			parts[j++] = tuple(rest[0 .. 2], i++);
 			rest = rest[2 .. $];
 		}
-		
+
 	}
 
 	enum result = impl();
@@ -352,6 +372,7 @@ template tokenizedFormatString(string fmt)
 char[] formattedWrite(string format, Args...)(char* buffer, Args args)
 {
 	import ldc.intrinsics;
+
 	char* it = buffer;
 
 	alias parts = tokenizedFormatString!format;
@@ -360,119 +381,189 @@ char[] formattedWrite(string format, Args...)(char* buffer, Args args)
 		static if (parts[i][0] != null && parts[i][1] == size_t.max)
 		{
 			// Direct string copy
-			if (__ctfe) {
+			if (__ctfe)
+			{
 				it[0 .. parts[i][0].length] = parts[i][0].ptr[0 .. parts[i][0].length];
-			} else
-				llvm_memcpy( it, parts[i][0].ptr, parts[i][0].length );
+			}
+			else
+				llvm_memcpy(it, parts[i][0].ptr, parts[i][0].length);
 			it += parts[i][0].length;
 		}
 		else static if (parts[i][0] != null)
 		{
 			// Formatted argument
-			formattedWriteItem!(parts[i][0])( it, args[parts[i][1]] );
+			formattedWriteItem!(parts[i][0])(it, args[parts[i][1]]);
 		}
 	}
 
 	return buffer[0 .. it - buffer];
 }
 
-
 pure nothrow
 void formattedWriteItem(string format, T)(ref char* buffer, T t)
-	if (isUnsigned!T && format == "%x")
+		if (isUnsigned!T && format == "%x")
 {
 	alias RT = ReturnType!(hexStrLower!T);
 	*cast(RT*) buffer = hexStrLower!T(t);
 	buffer += RT.length;
 }
 
-
 pure nothrow
 void formattedWriteItem(string format, T)(ref char* buffer, T t)
-	if (isUnsigned!T && format == "%X")
+		if (isUnsigned!T && format == "%X")
 {
 	alias RT = ReturnType!(hexStrUpper!T);
 	*cast(RT*) buffer = hexStrUpper!T(t);
 	buffer += RT.length;
 }
 
-nothrow 
+nothrow
 void formattedWriteItem(string format, T)(ref char* buffer, T t)
-	if (format == "%s" || format == "%d" || format == "%f" || format == "%S")
+		if (format == "%s" || format == "%d" || format == "%f" || format == "%S")
 {
 	import ldc.intrinsics;
-	static if (isIntegral!T || isFloatingPoint!T) auto str = decStr(t);
-	else static if (isSomeChar!T) auto str = t;
-	else auto str = t.ptr[0 .. t.length];
-	
-	static if (is(typeof(str) : char) || isSomeChar!T){
-		if (__ctfe) {
+
+	static if (isIntegral!T || isFloatingPoint!T)
+		auto str = decStr(t);
+	else static if (isSomeChar!T)
+		auto str = t;
+	else
+		auto str = t.ptr[0 .. t.length];
+
+	static if (is(typeof(str) : char) || isSomeChar!T)
+	{
+		if (__ctfe)
+		{
 			assert(__ctfe);
 			buffer[0] = str;
-		} else llvm_memcpy( buffer, &str, char.sizeof );
+		}
+		else
+			llvm_memcpy(buffer, &str, char.sizeof);
 		buffer += char.sizeof;
 	}
-	else static if (format == "%S") {
+	else static if (format == "%S")
+	{
 		ptrdiff_t escape_idx = str.indexOf("\"\t\r\n\\\b\0");
 		auto str_ptr = str.ptr;
 		size_t remaining = str.length;
-		while (escape_idx > -1) {
-			if (__ctfe) {
+		while (escape_idx > -1)
+		{
+			if (__ctfe)
+			{
 				assert(__ctfe);
 				buffer[0 .. escape_idx] = str_ptr[0 .. escape_idx];
 
-			} else llvm_memcpy(buffer, str_ptr, escape_idx);
+			}
+			else
+				llvm_memcpy(buffer, str_ptr, escape_idx);
 			buffer += escape_idx;
 			str_ptr += escape_idx;
 			remaining -= escape_idx;
 			char c = *str_ptr;
-			if (c == '\t') { str_ptr++; escape_idx++; remaining--; *(buffer++) = '\\'; *(buffer++) = 't'; }
-			else if (c == '\b') { str_ptr++; escape_idx++; remaining--; *(buffer++) = '\\'; *(buffer++) = 'b'; }
-			else if (c == '\n') { str_ptr++; escape_idx++; remaining--; *(buffer++) = '\\'; *(buffer++) = 'n'; }
-			else if (c == '\r') { str_ptr++; escape_idx++; remaining--; *(buffer++) = '\\'; *(buffer++) = 'r'; }
-			else if (c == '"') { str_ptr++; escape_idx++; remaining--; *(buffer++) = '\\'; *(buffer++) = '"'; }
-			else if (c == '\\') { str_ptr++; escape_idx++; remaining--; *(buffer++) = '\\'; *(buffer++) = '\\'; }
-			else if (c == 0x00) { str_ptr++; escape_idx++; remaining--; *(buffer++) = '?'; }
-			
-			escape_idx = indexOf(str_ptr[0 .. remaining],"\"\t\r\n\\\b\0");
+			if (c == '\t')
+			{
+				str_ptr++;
+				escape_idx++;
+				remaining--;
+				*(buffer++) = '\\';
+				*(buffer++) = 't';
+			}
+			else if (c == '\b')
+			{
+				str_ptr++;
+				escape_idx++;
+				remaining--;
+				*(buffer++) = '\\';
+				*(buffer++) = 'b';
+			}
+			else if (c == '\n')
+			{
+				str_ptr++;
+				escape_idx++;
+				remaining--;
+				*(buffer++) = '\\';
+				*(buffer++) = 'n';
+			}
+			else if (c == '\r')
+			{
+				str_ptr++;
+				escape_idx++;
+				remaining--;
+				*(buffer++) = '\\';
+				*(buffer++) = 'r';
+			}
+			else if (c == '"')
+			{
+				str_ptr++;
+				escape_idx++;
+				remaining--;
+				*(buffer++) = '\\';
+				*(buffer++) = '"';
+			}
+			else if (c == '\\')
+			{
+				str_ptr++;
+				escape_idx++;
+				remaining--;
+				*(buffer++) = '\\';
+				*(buffer++) = '\\';
+			}
+			else if (c == 0x00)
+			{
+				str_ptr++;
+				escape_idx++;
+				remaining--;
+				*(buffer++) = '?';
+			}
+
+			escape_idx = indexOf(str_ptr[0 .. remaining], "\"\t\r\n\\\b\0");
 		}
-		if (__ctfe) {
+		if (__ctfe)
+		{
 			buffer[0 .. remaining] = str_ptr[0 .. remaining];
-		} else llvm_memcpy( buffer, str_ptr, remaining );
+		}
+		else
+			llvm_memcpy(buffer, str_ptr, remaining);
 		buffer += remaining;
 	}
-	else {		
+	else
+	{
 		auto str_ptr = str.ptr;
 		size_t remaining = str.length;
-		if (__ctfe) {
+		if (__ctfe)
+		{
 			buffer[0 .. remaining] = str_ptr[0 .. remaining];
-		} else llvm_memcpy( buffer, str_ptr, remaining );
+		}
+		else
+			llvm_memcpy(buffer, str_ptr, remaining);
 		buffer += remaining;
 	}
 }
 
-nothrow size_t escapedLength(string str) {
-		ptrdiff_t escape_idx = str.indexOf("\"\t\r\n\\\b\0");
-		auto str_ptr = str.ptr;
-		size_t sz = str.length;
-		size_t remaining = str.length;
-		while (escape_idx > -1) {
-			remaining -= escape_idx;
-			if (remaining > 0) remaining--;
-			str_ptr += escape_idx;
-			escape_idx = indexOf(str_ptr[0 .. remaining],"\"\t\r\n\\\b\0");
-			sz++;
-		}
-		return sz;
+nothrow size_t escapedLength(string str)
+{
+	ptrdiff_t escape_idx = str.indexOf("\"\t\r\n\\\b\0");
+	auto str_ptr = str.ptr;
+	size_t sz = str.length;
+	size_t remaining = str.length;
+	while (escape_idx > -1)
+	{
+		remaining -= escape_idx;
+		if (remaining > 0)
+			remaining--;
+		str_ptr += escape_idx;
+		escape_idx = indexOf(str_ptr[0 .. remaining], "\"\t\r\n\\\b\0");
+		sz++;
+	}
+	return sz;
 }
 
 pure nothrow
 void formattedWriteItem(string format)(ref char* buffer, void* p)
-	if (format == "%s" || format == "%p" || format == "%S")
+		if (format == "%s" || format == "%p" || format == "%S")
 {
-	buffer.formattedWriteItem!"%X"( cast(size_t) p );
+	buffer.formattedWriteItem!"%X"(cast(size_t) p);
 }
-
 
 /+
  ╔══════════════════════════════════════════════════════════════════════════════
@@ -487,7 +578,6 @@ private:
 	size_t offset = n;
 	char[n] buffer = '\0';
 
-
 public:
 
 	alias opSlice this;
@@ -496,13 +586,12 @@ public:
 	void opOpAssign(string op : "~")(char ch)
 	in
 	{
-		assert( offset > 0 );
+		assert(offset > 0);
 	}
 	body
 	{
 		buffer[--offset] = ch;
 	}
-
 
 	@safe pure nothrow @nogc
 	@property inout(char)[] opSlice() inout
@@ -510,13 +599,11 @@ public:
 		return buffer[offset .. n];
 	}
 
-
 	@safe pure nothrow @nogc
 	@property inout(char)* ptr() inout
 	{
 		return &buffer[offset];
 	}
-
 
 	@safe pure nothrow @nogc
 	@property size_t length() const
@@ -527,5 +614,5 @@ public:
 
 bool isValidDchar(dchar c) pure nothrow @safe @nogc
 {
-    return c < 0xD800 || (c > 0xDFFF && c <= 0x10FFFF);
+	return c < 0xD800 || (c > 0xDFFF && c <= 0x10FFFF);
 }

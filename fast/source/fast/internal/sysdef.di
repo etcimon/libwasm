@@ -12,27 +12,28 @@
  *   © 2016 $(LINK2 mailto:Marco.Leise@gmx.de, Marco Leise)
  * 
  * License:
- *   $(LINK2 http://www.gnu.org/licenses/gpl-3.0, GNU General Public License 3.0)
+ *   $(LINK2 https://mit-license.org/, The MIT License (MIT))
  * 
  **************************************************************************************************/
 module fast.internal.sysdef;
 
-
 private enum 一ARCHITECTURE一;
 
-version (X86_64) {
+version (X86_64)
+{
 	enum isAMD64 = true;
-	enum isX86   = false;
-} else version (X86) {
+	enum isX86 = false;
+}
+else version (X86)
+{
 	enum isAMD64 = false;
-	enum isX86   = true;
+	enum isX86 = true;
 }
 
 version (X86_64)
 	enum hasSSE2 = true;
 else
 	enum hasSSE2 = false;
-
 
 private enum 一OPERATING一SYSTEM一;
 
@@ -62,15 +63,20 @@ else
 
 private enum 一COMPILER一UNIFICATION一;
 
-version (LDC) {
+version (LDC)
+{
 	enum isLDC = true;
 	enum isGDC = false;
 	enum isDMD = false;
-} else version (GNU) {
+}
+else version (GNU)
+{
 	enum isLDC = false;
 	enum isGDC = true;
 	enum isDMD = false;
-} else version (DigitalMars) {
+}
+else version (DigitalMars)
+{
 	enum isLDC = false;
 	enum isGDC = false;
 	enum isDMD = true;
@@ -85,16 +91,18 @@ version (DigitalMars)
 else version (GNU)
 {
 	import gcc.attribute;
-	enum noinline    = gcc.attribute.attribute("noinline");
+
+	enum noinline = gcc.attribute.attribute("noinline");
 	enum forceinline = gcc.attribute.attribute("forceinline");
-	enum sse4_2      = gcc.attribute.attribute("target", "sse4.2");
+	enum sse4_2 = gcc.attribute.attribute("target", "sse4.2");
 }
 else version (LDC)
 {
 	import ldc.attributes;
+
 	enum noinline = ldc.attributes.optStrategy("none");
 	enum forceinline = ldc.attributes.llvmAttr("always_inline", "true");
-	enum sse4_2      = ldc.attributes.target("+sse4.2");
+	enum sse4_2 = ldc.attributes.target("+sse4.2");
 }
 
 version (assert)

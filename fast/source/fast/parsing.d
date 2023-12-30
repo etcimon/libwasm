@@ -9,13 +9,14 @@
  *   © 2017 $(LINK2 mailto:Marco.Leise@gmx.de, Marco Leise)
  * 
  * License:
- *   $(LINK2 http://www.gnu.org/licenses/gpl-3.0, GNU General Public License 3.0)
+ *   $(LINK2 https://mit-license.org/, The MIT License (MIT))
  * 
  **************************************************************************************************/
 module fast.parsing;
 
 import std.traits;
 import fast.internal.sysdef;
+
 //import std.array : staticArray;
 
 static enum isAMD64 = false;
@@ -43,11 +44,10 @@ uint hexDecode(char c)
 	return c + 9 * (c >> 6) & 15;
 }
 
-
 @nogc pure nothrow
 uint hexDecode4(ref const(char)* hex)
 {
-	uint x = *cast(uint*) &hex;
+	uint x = *cast(uint*)&hex;
 	hex += 4;
 	x = (x & 0x0F0F0F0F) + 9 * (x >> 6 & 0x01010101);
 	version (LittleEndian)
@@ -61,21 +61,20 @@ uint hexDecode4(ref const(char)* hex)
 	}
 }
 
-
 @nogc pure nothrow
 inout(char)* hexDecode4(ref inout(char)* hex, out uint result)
 {
 	foreach (i; 0 .. 4)
 	{
 		result *= 16;
-		char ch = cast(char) (hex[i] - '0');
+		char ch = cast(char)(hex[i] - '0');
 		if (ch <= 9)
 		{
 			result += ch;
 		}
 		else
 		{
-			ch = cast(char) ((ch | 0x20) - 0x31);
+			ch = cast(char)((ch | 0x20) - 0x31);
 			if (ch <= 5)
 				result += ch + 10;
 			else
@@ -85,6 +84,7 @@ inout(char)* hexDecode4(ref inout(char)* hex, out uint result)
 	hex += 4;
 	return null;
 }
+
 unittest
 {
 	string x = "aF09";
@@ -94,13 +94,11 @@ unittest
 	assert(result == 0xAF09);
 }
 
-
 /+
  ╔══════════════════════════════════════════════════════════════════════════════
  ║ ⚑ Numbers
  ╚══════════════════════════════════════════════════════════════════════════════
  +/
-
 
 /// Options for `parseNumber`.
 struct NumberOptions
@@ -108,7 +106,6 @@ struct NumberOptions
 	/// Allows the minus sign as the first character and thus negative numbers.
 	bool minus;
 }
-
 
 /*******************************************************************************
  * 
@@ -129,7 +126,8 @@ struct NumberOptions
  *
  **************************************/
 @nogc nothrow
-bool parseNumber(NumberOptions opt, N)(ref const(char)* str, ref N n) if (isNumeric!N)
+bool parseNumber(NumberOptions opt, N)(ref const(char)* str, ref N n)
+		if (isNumeric!N)
 {
 	import fast.internal.helpers;
 	import std.range;
@@ -145,14 +143,14 @@ bool parseNumber(NumberOptions opt, N)(ref const(char)* str, ref N n) if (isNume
 		alias U = ulong;
 		alias I = long;
 	}
-	
+
 	// Largest value of type U that can be multiplied by 10 and have a digit added without overflow.
 	enum canHoldOneMoreDigit = (U.max - 9) / 10;
 	static if (isFloatingPoint!N)
 	{
 		enum significandRightShift = 8 * U.sizeof - N.mant_dig + 1;
 		//enum lastSignificandBit = U(2) << 8 * U.sizeof - N.mant_dig;
-		enum firstFractionBit   = U(1) << 8 * U.sizeof - N.mant_dig;
+		enum firstFractionBit = U(1) << 8 * U.sizeof - N.mant_dig;
 		//enum remainderBits = U.max - N.mant_dig + 1;
 		enum expShift = N.mant_dig - 1;
 		enum expBias = N.max_exp - 1;
@@ -164,30 +162,44 @@ bool parseNumber(NumberOptions opt, N)(ref const(char)* str, ref N n) if (isNume
 		// Largest power of 10 that fits into a float of type N. The factor 5 here is correct, as the 2s
 		// go in as an increment in the exponent, that is neglectable here.
 		enum pow10MaxF = {
-			U v = 1; uint exp;
-			while (v <= ((U(1) << N.mant_dig) - 1) / 5) { v *= 5; exp++; }
+			U v = 1;
+			uint exp;
+			while (v <= ((U(1) << N.mant_dig) - 1) / 5)
+			{
+				v *= 5;
+				exp++;
+			}
 			return exp;
 		}();
 		__gshared static bool pow10Fb = false;
 		__gshared static N[pow10MaxF] pow10F;
-		if (!pow10Fb) {
+		if (!pow10Fb)
+		{
 			int i = 0;
-			foreach (v; N(10).recurrence!((a, n) => 10 * a[n-1]).take(pow10MaxF)) {
+			foreach (v; N(10).recurrence!((a, n) => 10 * a[n - 1]).take(pow10MaxF))
+			{
 				pow10F[i++] = v;
 			}
 			pow10Fb = true;
 		}
 		enum pow5Max = {
-			U v = 1; uint exp;
-			while (v <= (U.max / 5)) { v *= 5; exp++; }
+			U v = 1;
+			uint exp;
+			while (v <= (U.max / 5))
+			{
+				v *= 5;
+				exp++;
+			}
 			return exp;
 		}();
 		__gshared static bool pow5b = false;
 		__gshared static U[pow5Max] pow5;
-		
-		if (!pow5b) {
+
+		if (!pow5b)
+		{
 			int i = 0;
-			foreach (v; U(5).recurrence!((a, n) => 5 * a[n-1]).take(pow5Max)) {
+			foreach (v; U(5).recurrence!((a, n) => 5 * a[n - 1]).take(pow5Max))
+			{
 				pow5[i++] = v;
 			}
 			pow5b = true;
@@ -196,16 +208,23 @@ bool parseNumber(NumberOptions opt, N)(ref const(char)* str, ref N n) if (isNume
 	else
 	{
 		enum pow10Max = {
-			U v = 1; uint exp;
-			while (v <= (U.max / 10)) { v *= 10; exp++; }
+			U v = 1;
+			uint exp;
+			while (v <= (U.max / 10))
+			{
+				v *= 10;
+				exp++;
+			}
 			return exp;
 		}();
 		__gshared static bool pow10b = false;
-		
+
 		__gshared static U[pow10Max] pow10;
-		if (!pow10b) {
+		if (!pow10b)
+		{
 			int i = 0;
-			foreach (v; U(10).recurrence!((a, n) => 10 * a[n-1]).take(pow10Max)) {
+			foreach (v; U(10).recurrence!((a, n) => 10 * a[n - 1]).take(pow10Max))
+			{
 				pow10[i++] = v;
 			}
 			pow10b = true;
@@ -223,9 +242,9 @@ bool parseNumber(NumberOptions opt, N)(ref const(char)* str, ref N n) if (isNume
 		U exp2 = void;
 		bool roundUp = false;
 	}
-	
+
 	/////////////////// SIGN BIT HANDLING ///////////////////
-	
+
 	// Check for the sign.
 	static if (opt.minus)
 	{
@@ -233,9 +252,9 @@ bool parseNumber(NumberOptions opt, N)(ref const(char)* str, ref N n) if (isNume
 		if (sign)
 			p++;
 	}
-	
+
 	/////////////////// INTEGRAL PART OF SIGNIFICAND ///////////////////
-	
+
 	uint digit = *p - '0';
 	if (digit == 0)
 	{
@@ -255,26 +274,28 @@ bool parseNumber(NumberOptions opt, N)(ref const(char)* str, ref N n) if (isNume
 		}
 		while (digit <= 9);
 	}
-	else return false;
-	
+	else
+		return false;
+
 	/////////////////// FRACTIONAL PART OF SIGNIFICAND ///////////////////
-	
+
 	if (*p == '.')
 	{
 		point = ++p;
 		digit = *p - '0';
 		if (digit > 9)
 			digit = 0;
-		else do
-		{
-			if (significand > canHoldOneMoreDigit)
-				goto BigMantissa;
-			significand = 10 * significand + digit;
-			digit = *++p - '0';
-		}
+		else
+			do
+			{
+				if (significand > canHoldOneMoreDigit)
+					goto BigMantissa;
+				significand = 10 * significand + digit;
+				digit = *++p - '0';
+			}
 		while (digit <= 9);
 	}
-	
+
 	/////////////////// EXPONENT HANDLING ///////////////////
 
 	expAdjust = (point is null) ? 0 : p - point;
@@ -296,7 +317,7 @@ bool parseNumber(NumberOptions opt, N)(ref const(char)* str, ref N n) if (isNume
 		}
 		while (digit <= 9);
 	}
-	
+
 	if (expAdjust)
 	{
 		if (expSign)
@@ -396,7 +417,7 @@ bool parseNumber(NumberOptions opt, N)(ref const(char)* str, ref N n) if (isNume
 						++exp2;
 				}
 
-				U* result = cast(U*) &n;
+				U* result = cast(U*)&n;
 				*result = exp2 + expBias << expShift | significand;
 				static if (opt.minus)
 					*result |= U(sign) << U.sizeof * 8 - 1;
@@ -457,28 +478,35 @@ bool parseNumber(NumberOptions opt, N)(ref const(char)* str, ref N n) if (isNume
 BigMantissa:
 	if (significand <= (significand.max - digit) / 10)
 		goto BigMantissaNotSoMuch;
-//	assert(0, "Not implemented");
+	//	assert(0, "Not implemented");
 
 BigExponent:
-//	assert(0, "Not implemented");
+	//	assert(0, "Not implemented");
 
 BigExponentAdjustForDecimalPoint:
-//	assert(0, "Not implemented");
+	//	assert(0, "Not implemented");
 	return false;
 }
-
 
 private template PowData(U, U base)
 {
 	import std.range;
 
 	// Largest power of `base` that fits into an integer of type U.
-	enum powMax = { U v = 1; uint exp; while (v <= U.max / base) { v *= base; exp++; } return exp; }();
-	
-	// Table of powers of `base`. (We skip base^0)
-	static immutable U[powMax] pows = base.recurrence!((a, n) => base * a[n-1]).take(powMax);
-}
+	enum powMax = {
+		U v = 1;
+		uint exp;
+		while (v <= U.max / base)
+		{
+			v *= base;
+			exp++;
+		}
+		return exp;
+	}();
 
+	// Table of powers of `base`. (We skip base^0)
+	static immutable U[powMax] pows = base.recurrence!((a, n) => base * a[n - 1]).take(powMax);
+}
 
 static if (isAMD64 && (isLDC || isGDC))
 {
@@ -492,12 +520,18 @@ static if (isAMD64 && (isLDC || isGDC))
 	{
 		// Make sure that the division will yield exactly 32 or 64 significant bits.
 		import fast.internal.helpers;
+
 		size_t lza = clz(a);
 		version (LDC)
 		{
 			import ldc.llvmasm;
+
 			a <<= lza;
-			if (a >= b) { a >>= 1; lza--; }
+			if (a >= b)
+			{
+				a >>= 1;
+				lza--;
+			}
 			a = __asm!ulong("
 				xor %rax, %rax
 				divq $2
@@ -506,15 +540,22 @@ static if (isAMD64 && (isLDC || isGDC))
 		else version (GNU)
 		{
 			size_t dividend = a << lza;
-			if (dividend >= b) { dividend >>= 1; lza--; }
-			asm { "
+			if (dividend >= b)
+			{
+				dividend >>= 1;
+				lza--;
+			}
+			asm
+			{
+				"
 				xor %%rax, %%rax
 				divq %3
-				" : "=&a" a, "=d" dividend : "d" dividend, "rm" b; }
+				" : "=&a" a, "=d" dividend : "d" dividend, "rm" b;
+			}
 		}
 		return ++lza;
 	}
-	
+
 	unittest
 	{
 		size_t a = size_t.max / 11;
@@ -522,7 +563,8 @@ static if (isAMD64 && (isLDC || isGDC))
 		version (X86_64)
 		{
 			import fast.internal.helpers;
-			long exp = clz(b);   // Positive base-2 exponent
+
+			long exp = clz(b); // Positive base-2 exponent
 			b <<= exp;
 			exp -= bigDiv(a, b);
 			assert(a == 0xE8BA2E8BA2E8BA2AUL);
@@ -530,7 +572,6 @@ static if (isAMD64 && (isLDC || isGDC))
 		}
 	}
 }
-
 
 /+
  ╔══════════════════════════════════════════════════════════════════════════════
@@ -569,17 +610,17 @@ static if (isAMD64 && (isLDC || isGDC))
 // body
 // {
 // 	import std.algorithm, std.range;
-	
+
 // 	static immutable byte[256] classify =
 // 		iota(256).map!(c => terminators.canFind(c) ? byte(-1) : special.canFind(c) ? 1 : 0).staticArray;
-	
+
 // 	immutable(C)* p_key = key.ptr;
 // 	immutable C* e_key = p_key + key.length;
-	
+
 // 	while (p_key !is e_key)
 // 	{
 // 		int clazz = *p_str <= 0xFF ? classify[*p_str] : 0;
-		
+
 // 		if (clazz < 0)
 // 		{
 // 			return clazz;
@@ -588,7 +629,7 @@ static if (isAMD64 && (isLDC || isGDC))
 // 		{
 // 			if (*p_str != *p_key)
 // 				return clazz;
-			
+
 // 			p_str++;
 // 			p_key++;
 // 		}
@@ -598,10 +639,9 @@ static if (isAMD64 && (isLDC || isGDC))
 // 				return 0;
 // 		}
 // 	}
-	
+
 // 	return classify[*p_str & 0xFF] < 0;
 // }
-
 
 /*
 @nogc nothrow
@@ -625,40 +665,49 @@ void fixedStringCompareSSE4()
 }
 */
 
-
 @forceinline @nogc nothrow pure
 void seekToAnyOf(string cs)(ref const(char)* p)
 {
 	bool found = false;
-	while (*p) {
-		foreach(c; cs) {
-			if (c == *p) {
+	while (*p)
+	{
+		foreach (c; cs)
+		{
+			if (c == *p)
+			{
 				found = true;
 				break;
 			}
 		}
-		if (found) break; else p++;
+		if (found)
+			break;
+		else
+			p++;
 	}
 	//p.vpcmpistri!(char, sanitizeChars(cs), Operation.equalAnyElem);
 }
-
 
 @forceinline nothrow
 void seekToRanges(string cs)(ref const(char)* p)
 {
 	bool found = false;
-	while (*p) {
-		for(int i = 0; i < cs.length; i+=2) {
-			if (cs[i] <= *p && cs[i+1] >= *p) {
+	while (*p)
+	{
+		for (int i = 0; i < cs.length; i += 2)
+		{
+			if (cs[i] <= *p && cs[i + 1] >= *p)
+			{
 				found = true;
 				break;
 			}
 		}
-		if (found) break; else p++;
+		if (found)
+			break;
+		else
+			p++;
 	}
 	//p.vpcmpistri!(char, sanitizeRanges(cs), Operation.inRanges);
 }
-
 
 /*******************************************************************************
  * 
@@ -673,17 +722,19 @@ void seekToRanges(string cs)(ref const(char)* p)
 @forceinline @nogc nothrow pure
 void seekPast(char c)(ref const(char)* p)
 {
-	while (*p){
-		if (c == *p) {
+	while (*p)
+	{
+		if (c == *p)
+		{
 			p++;
 			break;
 		}
-		else p++;
+		else
+			p++;
 	}
 	//p.vpcmpistri!(char, c.repeat(16).to!string, Operation.equalElem);
-	
-}
 
+}
 
 /*******************************************************************************
  * 
@@ -701,19 +752,25 @@ void seekPast(char c)(ref const(char)* p)
 void skipCharRanges(string cs)(ref const(char)* p)
 {
 	import std.range : chunks;
-	while (*p) {
+
+	while (*p)
+	{
 		bool found = false;
-		for(int i = 0; i < cs.length; i+=2) {
-			if (cs[i] <= *p && cs[i+1] >= *p) {
+		for (int i = 0; i < cs.length; i += 2)
+		{
+			if (cs[i] <= *p && cs[i + 1] >= *p)
+			{
 				found = true;
 				break;
 			}
 		}
-		if (found) p++; else break;
+		if (found)
+			p++;
+		else
+			break;
 	}
 	//p.vpcmpistri!(char, cs, Operation.inRanges, Polarity.negate);
 }
-
 
 /*******************************************************************************
  * 
@@ -726,21 +783,26 @@ void skipCharRanges(string cs)(ref const(char)* p)
  **************************************/
 @forceinline @nogc nothrow pure
 void skipAllOf(string cs)(ref const(char)* p)
-{ 
-	while (*p) {
+{
+	while (*p)
+	{
 		bool found = false;
-		foreach(c; cs) {
-			if (c == *p) {
+		foreach (c; cs)
+		{
+			if (c == *p)
+			{
 				found = true;
 				break;
 			}
 		}
-		if (found) p++; else break;
+		if (found)
+			p++;
+		else
+			break;
 	}
-		
+
 	//p.vpcmpistri!(char, cs, Operation.equalAnyElem, Polarity.negate);
 }
-
 
 /*******************************************************************************
  * 
@@ -761,7 +823,6 @@ void skipAsciiWhitespace(ref const(char)* p)
 	p.skipAllOf!" \t\r\n";
 }
 
-
 /*******************************************************************************
  * 
  * Sets the read pointer to the start of the next line.
@@ -775,30 +836,39 @@ void skipToNextLine(ref const(char)* p)
 {
 	// Stop at next \r, \n or \0.
 	enum cmp_to = "\x09\x0B\x0C\x0E";
-	while (*p && (*p != cmp_to[0] && *p != cmp_to[1] && *p != cmp_to[2] && *p != cmp_to[3]) )
+	while (*p && (*p != cmp_to[0] && *p != cmp_to[1] && *p != cmp_to[2] && *p != cmp_to[3]))
 		p++;
 
 	//p.vpcmpistri!(char, "\x01\x09\x0B\x0C\x0E\xFF", Operation.inRanges, Polarity.negate);
-	if (p[0] == '\r') p++;
-	if (p[0] == '\n') p++;
+	if (p[0] == '\r')
+		p++;
+	if (p[0] == '\n')
+		p++;
 }
-
 
 private enum sanitizeChars(string cs)
 {
 	bool has0 = false;
-	foreach (c; cs) if (!c) { has0 = true; break; }
+	foreach (c; cs)
+		if (!c)
+		{
+			has0 = true;
+			break;
+		}
 	assert(has0, "Parsers are required to also check for \0 when looking for specific chars.");
-	
+
 	return cs;
 }
-
 
 private enum sanitizeRanges(string cs)
 {
 	bool has0 = false;
-	foreach (i; 0 .. cs.length / 2) if (!cs[2*i]) { has0 = true; break; }
+	foreach (i; 0 .. cs.length / 2)
+		if (!cs[2 * i])
+		{
+			has0 = true;
+			break;
+		}
 	assert(has0, "Parsers are required to also check for \0 when looking for specific chars.");
 	return cs;
 }
-
