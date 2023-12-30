@@ -1,3 +1,6 @@
 webidl
 bin
 libwasm_webidl
+dub.selections.json
+*.exe
+*.pdb

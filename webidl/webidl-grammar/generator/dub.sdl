@@ -1,0 +1,6 @@
+name "generator"
+description "A minimal D application."
+authors "Sebastiaan Koppe" "Etienne Cimon"
+copyright "Copyright © 2018-2023, Sebastiaan Koppe, Etienne Cimon"
+license "MIT"
+dependency "pegged" version="0.4.4"

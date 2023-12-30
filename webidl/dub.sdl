@@ -1,13 +1,13 @@
 name "webidl"
 description "Generate D bindings and js glue code from webidl files"
-authors "Sebastiaan Koppe"
-copyright "Copyright © 2018, Sebastiaan Koppe"
+authors "Sebastiaan Koppe" "Etienne Cimon"
+copyright "Copyright © 2018-2023, Sebastiaan Koppe, Etienne Cimon"
 license "MIT"
-dependency "pegged" version="~>0.4.4"
-dependency "webidl-grammar" version="0.0.8"
+dependency "webidl-grammar" path="./webidl-grammar"
+dependency "pegged" version="0.4.4"
 dependency "openmethods" version="~>1.1.1"
 dependency "wasm-reader" version="~>0.0.4"
-dependency "sdlang-d" version="~>0.10.4"
+dependency "sdlang-d" version="~>0.10.6"
 dependency "asdf" version="~>0.3.0"
 
 configuration "executable" {
