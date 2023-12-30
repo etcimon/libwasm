@@ -11,7 +11,7 @@ dflags "-fvisibility=hidden" "-flto=full" "--wasm-enable-eh" "-fno-exceptions" #
 lflags "-strip-all"
 
 targetPath "public"
-targetName "dom.wasm"
+targetName "dom"
 
 sourcePaths "src-d"
 importPaths "../../source" "../../druntime"

@@ -1,6 +1,10 @@
 # Building
 
-Try the dom-ts example and use it to start your project. If you move directories make sure you update the paths in dub.sdl
+Try the dom-ts example and use it to start your project. After building with dub, run `yarn install --dev` and then `yarn dev`
+
+If you move directories make sure you update the paths in dub.sdl
+
+To build with dub:
 
 Edit your ldc2.conf file and remove the druntime imports from wasm builds, it should have:
 

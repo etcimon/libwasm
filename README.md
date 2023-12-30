@@ -51,7 +51,7 @@ Make sure to have at least ldc 1.36.0-beta1 installed along with this version of
 
 - Clone this repository with git clone
 - Compile the dom-ts example with dub build --arch=wasm32-unknown-wasi --compiler=ldc2
-- Run yarn dev to load it
+- With nodejs and yarn installed, run `yarn install --dev` to load the dependencies and then `yarn dev` to start a dev server
 
 ## Using the web bindings
 
