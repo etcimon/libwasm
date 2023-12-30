@@ -28,9 +28,7 @@ As well as a small but powerful SPA framework, which includes CSS. Yes. CSS-in-w
 
 ## Web Bindings
 
-D bindings are generated from webidl files. The bindings try to mimick as much as possible the javascript api's you are already familiar with.
-
-Until Webassembly gets host bindings it is still necessary to generate JS glue code. A small bindgen utility is included to generate exactly the glue code you need.
+D bindings for the entire javascript browser framework have been abstracted away and should all work. Custom bindings would have to be written manually for any other javascript libraries until a typescript definition translator can be implemented similarly to the webidl subpackage which did this for .IDL browser definitions.
 
 ## SPA framework
 
@@ -40,6 +38,7 @@ Not only are your applications fast, they are also small. The [todo-mvc example]
 
 ## Examples
 
+- [dom](https://github.com/etcimon/libwasm/tree/master/examples/dom-ts). Gives a bootstrap for building libwasm apps with typescript.
 - [fetch](https://github.com/skoppe/spasm/tree/master/examples/fetch). Shows how to use the fetch api and access returned json. [Demo](https://skoppe.github.io/libwasm/examples/fetch/index.html).
 - [dom](https://github.com/skoppe/spasm/tree/master/examples/dom). Shows how to manipulate the DOM. [Demo](https://skoppe.github.io/libwasm/examples/dom/index.html).
 - [canvas](https://github.com/skoppe/spasm/tree/master/examples/canvas). Shows how to draw text on the Canvas. [Demo](https://skoppe.github.io/libwasm/examples/canvas/index.html).
