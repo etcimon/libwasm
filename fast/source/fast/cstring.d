@@ -6,7 +6,7 @@
  *   $(LINK2 mailto:Marco.Leise@gmx.de, Marco Leise)
  * 
  * Copyright:
- *   © 2013 $(LINK2 mailto:Marco.Leise@gmx.de, Marco Leise)
+ *   © 2013-2023 $(LINK2 mailto:Marco.Leise@gmx.de, Marco Leise), $(LINK2 mailto:etienne@cimons.com, Etienne Cimon)
  * 
  * License:
  *   $(LINK2 https://mit-license.org/, The MIT License (MIT))
