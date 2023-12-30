@@ -1,8 +1,8 @@
 # libwasm
 
-libwasm is a library to develop single page applications in D that compile to webassembly.
+libwasm is a library based on [spasm](https://github.com/skoppe/spasm/) to develop single page applications in D that compile to webassembly.
 
-It contains working bindings to all of the javascript browser APIs, listed in libwasm.bindings. In addition, lodash and moment is added by default and bindigns are in libwasm.lodash and libwasm.moment. There is also an experimental router to handle navigation changes, and a compile-time diet template html generator which can call back native code easily.
+It has been modified to contain working bindings to all of the javascript browser APIs, listed in libwasm.bindings. In addition, lodash and moment is added by default and bindigns are in libwasm.lodash and libwasm.moment. There is also an experimental router to handle navigation changes, and a compile-time diet template html generator which can call back native code easily.
 
 The dom-ts example compiles into a 54kb gzipped wasm and a 30kb gzipped javascript library with lodash and momentjs. All of druntime is supported but the phobos standard library is still in the process of being integrated.
 
@@ -39,13 +39,13 @@ Until Webassembly gets host bindings it is still necessary to generate JS glue c
 
 It uses D's compile time feature to generate optimized rendering code specific for your application.
 
-Not only are your applications fast, they are also small. The [todo-mvc example](https://skoppe.github.io/libwasm/examples/todo-mvc/) project is only 5797 (wasm) + 2199 (html+js) bytes when gzipped.
+Not only are your applications fast, they are also small. The [todo-mvc example](https://skoppe.github.io/spasm/examples/todo-mvc/) project is only 5797 (wasm) + 2199 (html+js) bytes when gzipped.
 
 ## Examples
 
-- [fetch](https://github.com/skoppe/libwasm/tree/master/examples/fetch). Shows how to use the fetch api and access returned json. [Demo](https://skoppe.github.io/libwasm/examples/fetch/index.html).
-- [dom](https://github.com/skoppe/libwasm/tree/master/examples/dom). Shows how to manipulate the DOM. [Demo](https://skoppe.github.io/libwasm/examples/dom/index.html).
-- [canvas](https://github.com/skoppe/libwasm/tree/master/examples/canvas). Shows how to draw text on the Canvas. [Demo](https://skoppe.github.io/libwasm/examples/canvas/index.html).
+- [fetch](https://github.com/skoppe/spasm/tree/master/examples/fetch). Shows how to use the fetch api and access returned json. [Demo](https://skoppe.github.io/libwasm/examples/fetch/index.html).
+- [dom](https://github.com/skoppe/spasm/tree/master/examples/dom). Shows how to manipulate the DOM. [Demo](https://skoppe.github.io/libwasm/examples/dom/index.html).
+- [canvas](https://github.com/skoppe/spasm/tree/master/examples/canvas). Shows how to draw text on the Canvas. [Demo](https://skoppe.github.io/libwasm/examples/canvas/index.html).
 - todo-mvc. Uses the SPA framework to implement the famous [todo mvc application](http://todomvc.com).
 - underun. A D port of a js13k competition game written by Dominic Szablewski. You can play the D version [here](https://skoppe.github.io/libwasm/examples/underrun/).
 
