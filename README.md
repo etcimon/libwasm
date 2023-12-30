@@ -8,7 +8,7 @@ The dom-ts example compiles into a 54kb gzipped wasm and a 30kb gzipped javascri
 
 As well as a small but powerful SPA framework, which includes CSS. Yes. CSS-in-wasm.
 
-<details><summary>Table Of Contents</summary>
+## Table Of Contents
 
 - [libwasm](#libwasm)
   - [Web Bindings](#Web-Bindings)
@@ -23,11 +23,8 @@ As well as a small but powerful SPA framework, which includes CSS. Yes. CSS-in-w
   - [Limitations](#Limitations)
   - [Hot module reloading](#Hot-module-reloading)
     - [Enabling hmr for new projects](#Enabling-hmr-for-new-projects)
-    - [Enabling hmr for existing projects](#Enabling-hmr-for-existing-projects)
     - [How it works](#How-it-works)
   - [How the SPA framework works](#How-the-SPA-framework-works)
-
-</details>
 
 ## Web Bindings
 
@@ -138,15 +135,15 @@ wasm-opt -O3 -o main-optimized.wasm main.wasm
 
 ## Limitations
 
-This project uses betterC, which means there is no D runtime. This also means that most phobos functions don't work, as well any D features that rely on the D runtime. If you get any weird errors, this is probably the reason why.
+This project uses a custom `wasm`-capable druntime and parts of phobos for CTFE, included in it. This means that most phobos functions don't work. A lot of phobos hasn't been ported yet because `wasm` exception handling (`ldc2 --wasm-enable-eh`) currently has a bug. If you get any weird errors, this is probably the reason why.
 
 ## Hot module reloading
 
-The spa framework in libwasm has basic support for hot module reloading. Style changes are reloaded correctly as well as basic attributes (`@prop`, `@attr`, `@visible`, etc.) Anything more complex (like lists/arrays) will just revert to their init state.
+The spa framework which libwasm is based on has basic support for hot module reloading. Style changes are reloaded correctly as well as basic attributes (`@prop`, `@attr`, `@visible`, etc.) Anything more complex (like lists/arrays) will just revert to their init state.
 
 ### Enabling hmr for new projects
 
-Make sure you use libwasm `v0.2.0-beta.6` and add the following to your `dub.sdl`:
+Make sure you use libwasm `v0.8.0` and add the following to your `dub.sdl`:
 
 ```
 configuration "hmr" {
@@ -166,11 +163,7 @@ Or to your `dub.json`:
 }]
 ```
 
-And compile with `dub build --build=release --config=hmr`
-
-### Enabling hmr for existing projects
-
-Update to `>=0.2.x` and add the same configuration mentioned above but also rerun `dub run libwasm:bootstrap-webpack` in your projects root folder. This will update your dev-server.js and your spa.js and libwasm.js modules.
+And compile with `dub build --arch=wasm32-unknown-wasi --build=debug --config=hmr`
 
 ### How it works
 
