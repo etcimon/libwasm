@@ -50,7 +50,7 @@ Not only are your applications fast, they are also small. The [todo-mvc example]
 Make sure to have at least ldc 1.36.0-beta1 installed along with this version of dub: https://github.com/etcimon/dub/tree/probe_with_betterc
 
 - Clone this repository with git clone
-- Compile the dom-ts example with dub build --arch=wasm32-unknown-wasi
+- Compile the dom-ts example with dub build --arch=wasm32-unknown-wasi --compiler=ldc2
 - Run yarn dev to load it
 
 ## Using the web bindings
