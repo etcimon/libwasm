@@ -1,0 +1,15 @@
+name "optional-wasm"
+copyright "Copyright © 2018, Ali Akhtarzada"
+description "An optional/maybe type with safe dispatchingrange semantics"
+authors "Ali Akhtarzada"
+license "MIT"
+sourcePaths "source/"
+targetPath "bin"
+
+configuration "normal" {
+    dflags "--fvisibility=hidden" "--fno-exceptions"
+}
+
+configuration "unittest" {
+    targetType "staticLibrary"
+}

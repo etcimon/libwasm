@@ -8,10 +8,14 @@ license "MIT"
 dependency "memutils-wasm" path="../memutils"
 excludedSourceFiles "source/docs/*.d" "source/unicode/*.d"
 targetPath "generated"
-importPaths "../druntime" "../memutils/source" "source"
+importPaths "source"
 
-configuration "library" {
+configuration "normal" {
 	targetType "library"
+	importPaths "../druntime" "../memutils/source"
+	dflags "-fvisibility=hidden" "-fno-exceptions"
 }
 
-dflags "-fvisibility=hidden" "-fno-exceptions" 
+configuration "unittest" {
+	targetType "library"
+}

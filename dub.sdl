@@ -24,8 +24,12 @@ configuration "library" {
 }
 
 configuration "unittest" {
-    #targetName "ut"
-    #targetType "executable"
+    targetName "ut"
+    targetType "executable"
+    subConfiguration "memutils-wasm" "unittest"
+    subConfiguration "fast-wasm" "unittest"
+    subConfiguration "diet-wasm" "unittest"
+    subConfiguration "optional-wasm" "unittest"
     dependency "unit-threaded" version="*"
     sourcePaths "source" "tests/ut"
     importPaths "source" "tests/ut"

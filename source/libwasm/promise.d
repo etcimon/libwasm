@@ -21,7 +21,11 @@ import memutils.vector;
 import memutils.scoped;
 import libwasm.types;
 
-@safe nothrow:
+debug (no_ae_promise)
+{
+}
+else
+	debug debug = ae_promise;
 
 /**
    A promise for a value `T` or error `E`.
@@ -78,12 +82,11 @@ import libwasm.types;
      (unless they have been successfully fulfilled to a `void` value).
      Such leaks are reported to the standard error stream.
 */
-struct Promise(T, E = string)
+final class Promise(T, E:
+	Throwable = Exception)
 {
 private:
 	/// Box of `T`, if it's not `void`, otherwise empty `struct`.
-	@safe nothrow:
-
 	struct Box
 	{
 		static if (!is(T == void))
@@ -92,22 +95,15 @@ private:
 
 	alias A = typeof(Box.tupleof);
 
-	struct PromiseData {
-		@safe nothrow:			
-		PromiseState state;
+	PromiseState state;
 
-		union
-		{
-			Box value;
-			E error;
-		}
-
-		Vector!PromiseHandler handlers;
-		
+	union
+	{
+		Box value;
+		E error;
 	}
 
-	RefCounted!PromiseData promise;
-	ManagedPool pool; // the typed handlers are stored here (scope delegates)
+	PromiseHandler[] handlers;
 
 	private struct PromiseHandler
 	{
@@ -115,64 +111,150 @@ private:
 		bool onFulfill, onReject;
 	}
 
-	void doFulfill(A value) @trusted
+	void doFulfill(A value) nothrow
 	{
-		promise.state = PromiseState.fulfilled;
-		promise.value.tupleof = value;
-		foreach (ref handler; promise.handlers)
+		this.state = PromiseState.fulfilled;
+		this.value.tupleof = value;
+		static if (!is(T == void))
+			debug (ae_promise)
+				markAsUnused();
+		foreach (ref handler; handlers)
 			if (handler.onFulfill)
 				handler.dg();
-		promise.handlers.clear();
+		handlers = null;
 	}
 
-	void doReject(E e) @trusted
+	void doReject(E e) nothrow
 	{
-		promise.state = PromiseState.rejected;
-		promise.error = e;
-		foreach (ref handler; promise.handlers)
+		this.state = PromiseState.rejected;
+		this.error = e;
+		debug (ae_promise)
+			markAsUnused();
+		foreach (ref handler; handlers)
 			if (handler.onReject)
 				handler.dg();
-		promise.handlers.clear();
+		handlers = null;
 	}
 
 	/// Implements the [[Resolve]](promise, x) resolution procedure.
-	void resolve(U)(U value) @trusted
+	void resolve(scope lazy T valueExpr)
 	{
 		Box box;
-		box.value = value;
+		static if (is(T == void))
+			valueExpr;
+		else
+			box.value = valueExpr;
 
-		fulfill(box.tupleof);
-	}
-
-	void resolve() {
-		Box box;
 		fulfill(box.tupleof);
 	}
 
 	/// ditto
-	void resolve(Promise!(T, E) x) /*nothrow*/
+	void resolve(Promise!(T, E) x) nothrow
 	{
 		assert(x !is this, "Attempting to resolve a promise with itself");
-		assert(promise.state == PromiseState.pending);
-		promise.state = PromiseState.following;
+		assert(this.state == PromiseState.pending);
+		this.state = PromiseState.following;
 		x.then(&resolveFulfill, &resolveReject);
 	}
 
-	void resolveFulfill(A value) /*nothrow*/
+	void resolveFulfill(A value) nothrow
 	{
-		assert(promise.state == PromiseState.following);
+		assert(this.state == PromiseState.following);
 		doFulfill(value);
 	}
 
-	void resolveReject(E e) /*nothrow*/
+	void resolveReject(E e) nothrow
 	{
-		assert(promise.state == PromiseState.following);
+		assert(this.state == PromiseState.following);
 		doReject(e);
 	}
 
+	// This debug machinery tracks leaked promises, i.e. promises
+	// which have been fulfilled/rejected, but their result was never
+	// used (their .then method was never called).
+	debug (ae_promise)
+	{
+		// Global doubly linked list of promises with unused results
+		static typeof(this) unusedHead, unusedTail;
+		typeof(this) unusedPrev, unusedNext;
+		bool isUnused()
+		{
+			return unusedPrev || (unusedHead is this);
+		}
+
+		LeakedPromiseError leakedPromiseError;
+		bool resultUsed;
+
+		void markAsUnused()
+		{
+			if (resultUsed)
+				return; // An earlier `then` call has priority
+			assert(!isUnused);
+			if (unusedTail)
+			{
+				unusedPrev = unusedTail;
+				unusedTail.unusedNext = this;
+			}
+			unusedTail = this;
+			if (!unusedHead)
+				unusedHead = this;
+		}
+
+		void markAsUsed()
+		{
+			if (resultUsed)
+				return;
+			resultUsed = true;
+			if (isUnused)
+			{
+				if (unusedPrev)
+					unusedPrev.unusedNext = unusedNext;
+				else
+					unusedHead = unusedNext;
+				if (unusedNext)
+					unusedNext.unusedPrev = unusedPrev;
+				else
+					unusedTail = unusedPrev;
+			}
+		}
+
+		static ~this()
+		{
+			for (auto p = unusedHead; p; p = p.unusedNext)
+			{
+				// If these asserts fail, there is a bug in our debug machinery
+				assert(p.state != PromiseState.pending && p.state != PromiseState.following && !p
+						.resultUsed);
+				static if (is(T == void))
+					assert(p.state != PromiseState.fulfilled);
+
+				import core.stdc.stdio : fprintf, stderr;
+
+				fprintf(stderr, "Leaked %s %s\n",
+					p.state == PromiseState.fulfilled ? "fulfilled".ptr
+						: "rejected".ptr,
+					typeof(this).stringof.ptr);
+				if (p.state == PromiseState.rejected)
+					_d_print_throwable(p.error);
+				_d_print_throwable(p.leakedPromiseError);
+			}
+		}
+	}
 
 public:
-
+	/*
+	debug (ae_promise) this() nothrow
+	{
+		// Record instantiation point
+		try
+			throw new LeakedPromiseError();
+		catch (LeakedPromiseError e)
+			leakedPromiseError = e;
+		catch (Throwable)
+		{
+		} // allow nothrow
+	}
+*/
 	/// A tuple of this `Promise`'s value.
 	/// Either `(T)` or an empty tuple.
 	alias ValueTuple = A;
@@ -190,18 +272,25 @@ public:
 		return this;
 	}
 
-	/// Fulfill this promise, with the given value (if applicable).
-	void fulfill(A value) /*nothrow*/
+	/// Ignore this promise leaking in debug builds.
+	void ignoreResult()
 	{
-		assert(promise.state == PromiseState.pending,
+		debug (ae_promise)
+			markAsUsed();
+	}
+
+	/// Fulfill this promise, with the given value (if applicable).
+	void fulfill(A value) nothrow
+	{
+		assert(this.state == PromiseState.pending,
 			"This promise is already fulfilled, rejected, or following another promise.");
 		doFulfill(value);
 	}
 
 	/// Reject this promise, with the given exception.
-	void reject(E e) /*nothrow*/
+	void reject(E e) nothrow
 	{
-		assert(promise.state == PromiseState.pending,
+		assert(this.state == PromiseState.pending,
 			"This promise is already fulfilled, rejected, or following another promise.");
 		doReject(e);
 	}
@@ -209,24 +298,19 @@ public:
 	/// Registers the specified fulfillment and rejection handlers.
 	/// If the promise is already resolved, they are called
 	/// as soon as possible (but not immediately).
-	Promise!(Unpromise!R, F) then(R, F = E)(R delegate(A) nothrow onFulfilled, R delegate(E) nothrow onRejected = null) /*nothrow*/
+	Promise!(Unpromise!R, F) then(R, F = E)(R delegate(A) nothrow onFulfilled, R delegate(E) nothrow onRejected = null) nothrow
 	{
 		static if (!is(T : R))
 			assert(onFulfilled, "Cannot implicitly propagate " ~ T.stringof ~ " to " ~ R.stringof ~ " due to null onFulfilled");
 
-		typeof(return) next;
-		next.pool = pool;
+		auto next = new typeof(return);
 
-		void fulfillHandler() /*nothrow*/
+		void fulfillHandler() nothrow
 		{
-			assert(promise.state == PromiseState.fulfilled);
+			assert(this.state == PromiseState.fulfilled);
 			if (onFulfilled)
 			{
-				static if(is(R == void)) {
-					onFulfilled(promise.value.tupleof);
-					next.resolve();
-				} else
-					next.resolve(onFulfilled(promise.value.tupleof));
+				next.resolve(onFulfilled(this.value.tupleof));
 			}
 			else
 			{
@@ -237,144 +321,132 @@ public:
 					static if (!is(T : R))
 						assert(false); // verified above
 					else
-						next.fulfill(promise.value.tupleof);
+						next.fulfill(this.value.tupleof);
 				}
 			}
 		}
 
-		void rejectHandler() /*nothrow*/
+		void rejectHandler() nothrow
 		{
-			assert(promise.state == PromiseState.rejected);
+			assert(this.state == PromiseState.rejected);
 			if (onRejected)
 			{
-				static if(is(R == void)) {
-					onRejected(promise.error);
-					next.resolve();
-				} else
-					next.resolve(onRejected(promise.error));
+				next.resolve(onRejected(this.error));
 			}
 			else
-				next.reject(promise.error);
+				next.reject(this.error);
 		}
-		PoolStack.push(pool);
-		final switch (promise.state)
-		{
-			case PromiseState.pending:
-			case PromiseState.following:
-				promise.handlers ~= PromiseHandler({ callSoon(&fulfillHandler); }, true, false);
-				promise.handlers ~= PromiseHandler({ callSoon(&rejectHandler); }, false, true);
-				break;
-			case PromiseState.fulfilled:
-				callSoon(&fulfillHandler);
-				break;
-			case PromiseState.rejected:
-				callSoon(&rejectHandler);
-				break;
-		}
-		PoolStack.pop();
 
+		final switch (this.state)
+		{
+		case PromiseState.pending:
+		case PromiseState.following:
+			handlers ~= PromiseHandler({ callSoon(&fulfillHandler); }, true, false);
+			handlers ~= PromiseHandler({ callSoon(&rejectHandler); }, false, true);
+			break;
+		case PromiseState.fulfilled:
+			callSoon(&fulfillHandler);
+			break;
+		case PromiseState.rejected:
+			callSoon(&rejectHandler);
+			break;
+		}
+
+		debug (ae_promise)
+			markAsUsed();
 		return next;
 	}
 
 	/// Special overload of `then` with no `onFulfilled` function.
 	/// In this scenario, `onRejected` can act as a filter,
 	/// converting errors into values for the next promise in the chain.
-	Promise!(CommonType!(Unpromise!R, T), F) then(R, F = E)(typeof(null) onFulfilled, R delegate(E) nothrow onRejected) /*nothrow*/
+	Promise!(CommonType!(Unpromise!R, T), F) then(R, F = E)(typeof(null) onFulfilled, R delegate(E) nothrow onRejected) nothrow
 	{
 		// The returned promise will be fulfilled with either
 		// `this.value` (if `this` is fulfilled), or the return value
 		// of `onRejected` (if `this` is rejected).
 		alias C = CommonType!(Unpromise!R, T);
 
-		auto next = typeof(return);
+		auto next = new typeof(return);
 
 		void fulfillHandler() /*nothrow*/
 		{
-			assert(promise.state == PromiseState.fulfilled);
+			assert(this.state == PromiseState.fulfilled);
 			static if (is(C == void))
 				next.fulfill();
 			else
-				next.fulfill(promise.value.tupleof);
+				next.fulfill(this.value.tupleof);
 		}
 
 		void rejectHandler() /*nothrow*/
 		{
-			assert(promise.state == PromiseState.rejected);
+			assert(this.state == PromiseState.rejected);
 			if (onRejected)
 			{
-				static if(is(R == void)) {
-					onRejected(promise.error);
-					next.resolve();
-				} else
-					next.resolve(onRejected(promise.error));
+				next.resolve(onRejected(this.error));
 			}
 			else
-				next.reject(promise.error);
+				next.reject(this.error);
 		}
 
-		PoolStack.push(pool);
-		final switch (promise.state)
+		final switch (this.state)
 		{
-			case PromiseState.pending:
-			case PromiseState.following:
-				promise.handlers ~= PromiseHandler({ callSoon(&fulfillHandler); }, true, false);
-				promise.handlers ~= PromiseHandler({ callSoon(&rejectHandler); }, false, true);
-				break;
-			case PromiseState.fulfilled:
-				callSoon(&fulfillHandler);
-				break;
-			case PromiseState.rejected:
-				callSoon(&rejectHandler);
-				break;
+		case PromiseState.pending:
+		case PromiseState.following:
+			handlers ~= PromiseHandler({ callSoon(&fulfillHandler); }, true, false);
+			handlers ~= PromiseHandler({ callSoon(&rejectHandler); }, false, true);
+			break;
+		case PromiseState.fulfilled:
+			callSoon(&fulfillHandler);
+			break;
+		case PromiseState.rejected:
+			callSoon(&rejectHandler);
+			break;
 		}
-		PoolStack.pop();
 
+		debug (ae_promise)
+			markAsUsed();
 		return next;
 	}
 
 	/// Registers a rejection handler.
 	/// Equivalent to `then(null, onRejected)`.
 	/// Similar to the `catch` method in JavaScript promises.
-	Promise!(R, F) except(R, F = E)(R delegate(E) onRejected)
+	Promise!(R, F) except(R, F = E)(R delegate(E) nothrow onRejected) nothrow
 	{
-		return promise.then(null, onRejected);
+		return this.then(null, onRejected);
 	}
 
 	/// Registers a finalization handler, which is called when the
 	/// promise is resolved (either fulfilled or rejected).
 	/// Roughly equivalent to `then(value => onResolved(), error => onResolved())`.
 	/// Similar to the `finally` method in JavaScript promises.
-	Promise!(R, F) finish(R, F = E)(R delegate() nothrow onResolved)
+	Promise!(R, F) finish(R, F = E)(R delegate() nothrow onResolved) nothrow
 	{
 		assert(onResolved, "No onResolved delegate specified in .finish");
 
-		auto next = typeof(return);
+		auto next = new typeof(return);
 
 		void handler() /*nothrow*/
 		{
-			assert(promise.state == PromiseState.fulfilled || promise.state == PromiseState.rejected);
-			
-			static if(is(R == void)) {
-				onResolved();
-				next.resolve();
-			} else
-				next.resolve(onResolved());
+			assert(this.state == PromiseState.fulfilled || this.state == PromiseState.rejected);
+			next.resolve(onResolved());
 		}
 
-		PoolStack.push(pool);
-		final switch (promise.state)
+		final switch (this.state)
 		{
-			case PromiseState.pending:
-			case PromiseState.following:
-				handlers ~= PromiseHandler({ callSoon(&handler); }, true, true);
-				break;
-			case PromiseState.fulfilled:
-			case PromiseState.rejected:
-				callSoon(&handler);
-				break;
+		case PromiseState.pending:
+		case PromiseState.following:
+			handlers ~= PromiseHandler({ callSoon(&handler); }, true, true);
+			break;
+		case PromiseState.fulfilled:
+		case PromiseState.rejected:
+			callSoon(&handler);
+			break;
 		}
-		PoolStack.pop();
 
+		debug (ae_promise)
+			markAsUsed();
 		return next;
 	}
 }
@@ -389,6 +461,19 @@ private enum PromiseState
 	rejected,
 }
 
+debug (ae_promise)
+{
+	private final class LeakedPromiseError : Throwable
+	{
+		this()
+		{
+			super("Created here:");
+		}
+	}
+
+	private extern (C) void _d_print_throwable(Throwable t) @nogc;
+}
+
 // The reverse operation is the `.resolve` overload.
 private template Unpromise(P)
 {
@@ -399,14 +484,18 @@ private template Unpromise(P)
 }
 
 // This is the only non-"pure" part of this implementation.
-private void callSoon(scope void delegate() nothrow dg) @safe nothrow { setTimeout(dg, 1); }
+private void callSoon(void delegate() nothrow dg) @safe nothrow
+{
+	setTimeout(dg, 1);
+}
 
 // This is just a simple instantiation test.
 // The full test suite (D translation of the Promises/A+ conformance
 // test) is here: https://github.com/CyberShadow/ae-promises-tests
 nothrow unittest
 {
-	static bool never; if (never)
+	static bool never;
+	if (never)
 	{
 		Promise!int test;
 		test.then((int i) {});
@@ -425,11 +514,15 @@ nothrow unittest
 // Non-Exception based errors
 unittest
 {
-	static bool never; if (never)
+	static bool never;
+	if (never)
 	{
 		static class OtherException : Exception
 		{
-			this() { super(null); }
+			this()
+			{
+				super(null);
+			}
 		}
 
 		Promise!(int, OtherException) test;
@@ -445,13 +538,28 @@ unittest
 // ****************************************************************************
 
 /// Returns a new `Promise!void` which is resolved.
-Promise!void resolve(E = Exception)() { auto p = Promise!(void, E)(); p.fulfill(); return p; }
+Promise!void resolve(E = Exception)()
+{
+	auto p = new Promise!(void, E)();
+	p.fulfill();
+	return p;
+}
 
 /// Returns a new `Promise` which is resolved with the given value.
-Promise!T resolve(T, E = Exception)(T value) { auto p = Promise!(T, E)(); p.fulfill(value); return p; }
+Promise!T resolve(T, E = Exception)(T value)
+{
+	auto p = new Promise!(T, E)();
+	p.fulfill(value);
+	return p;
+}
 
 /// Returns a new `Promise` which is rejected with the given reason.
-Promise!(T, E) reject(T, E)(E reason) { auto p = Promise!(T, E)(); p.reject(reason); return p; }
+Promise!(T, E) reject(T, E)(E reason)
+{
+	auto p = new Promise!(T, E)();
+	p.reject(reason);
+	return p;
+}
 
 // ****************************************************************************
 
@@ -490,8 +598,7 @@ template PromiseError(P)
 /// if the given transformation was applied on the value type.
 /// If `P` is a `void` Promise, then the returned promise
 /// will also be `void`.
-template PromiseValueTransform(P, alias transform)
-if (is(P == Promise!(T, E), T, E))
+template PromiseValueTransform(P, alias transform) if (is(P == Promise!(T, E), T, E))
 {
 	/// ditto
 	static if (is(P == Promise!(T, E), T, E))
@@ -508,40 +615,37 @@ if (is(P == Promise!(T, E), T, E))
 
 /// Wait for all promises to be resolved, or for any to be rejected.
 PromiseValueTransform!(P, x => [x]) all(P)(P[] promises)
-if (is(P == Promise!(T, E), T, E))
+		if (is(P == Promise!(T, E), T, E))
 {
 	alias T = PromiseValue!P;
 
-	typeof(return) allPromise;
+	auto allPromise = new typeof(return);
 
 	typeof(return).ValueTuple results;
-	static if (!is(T == void)) {
-		results[0] = Vector!T(promises.length);
-	}
+	static if (!is(T == void))
+		results[0] = new T[promises.length];
 
 	if (promises.length)
 	{
 		size_t numResolved;
-		foreach (i, p; promises) {
-			auto pool = ScopedPool();
+		foreach (i, p; promises)
 			(i, p) {
-				p.dmd21804workaround.then((P.ValueTuple result) {
-					if (allPromise)
-					{
-						static if (!is(T == void))
-							results[0][i] = result[0];
-						if (++numResolved == promises.length)
-							allPromise.fulfill(results);
-					}
-				}, (error) {
-					if (allPromise)
-					{
-						allPromise.reject(error);
-						allPromise = null; // ignore successive resolves / rejects
-					}
-				});
-			}(i, p);
-		}
+			p.dmd21804workaround.then((P.ValueTuple result) {
+				if (allPromise)
+				{
+					static if (!is(T == void))
+						results[0][i] = result[0];
+					if (++numResolved == promises.length)
+						allPromise.fulfill(results);
+				}
+			}, (error) {
+				if (allPromise)
+				{
+					allPromise.reject(error);
+					allPromise = null; // ignore successive resolves / rejects
+				}
+			});
+		}(i, p);
 	}
 	else
 		allPromise.fulfill(results);
@@ -551,6 +655,7 @@ if (is(P == Promise!(T, E), T, E))
 nothrow unittest
 {
 	import std.exception : assertNotThrown;
+
 	int result;
 	auto p1 = new Promise!int;
 	auto p2 = new Promise!int;
@@ -558,7 +663,9 @@ nothrow unittest
 	p2.fulfill(2);
 	auto pAll = all([p1, p2, p3]);
 	p1.fulfill(1);
-	pAll.dmd21804workaround.then((values) { result = values[0] + values[1] + values[2]; });
+	pAll.dmd21804workaround.then((values) {
+		result = values[0] + values[1] + values[2];
+	});
 	p3.fulfill(3);
 	socketManager.loop().assertNotThrown;
 	assert(result == 6);
@@ -567,6 +674,7 @@ nothrow unittest
 nothrow unittest
 {
 	import std.exception : assertNotThrown;
+
 	int called;
 	auto p1 = new Promise!void;
 	auto p2 = new Promise!void;
@@ -585,14 +693,15 @@ nothrow unittest
 nothrow unittest
 {
 	import std.exception : assertNotThrown;
+
 	Promise!void[] promises;
 	auto pAll = all(promises);
 	bool called;
 	pAll.then({ called = true; });
 	socketManager.loop().assertNotThrown;
 	assert(called);
-}
-*/
+}*/
+
 private template AllResultImpl(size_t promiseIndex, size_t resultIndex, Promises...)
 {
 	static if (Promises.length == 0)
@@ -600,16 +709,15 @@ private template AllResultImpl(size_t promiseIndex, size_t resultIndex, Promises
 		alias TupleMembers = AliasSeq!();
 		enum size_t[] mapping = [];
 	}
-	else
-	static if (is(PromiseValue!(Promises[0]) == void))
+	else static if (is(PromiseValue!(Promises[0]) == void))
 	{
-		alias Next = AllResultImpl!(promiseIndex + 1, resultIndex, Promises[1..$]);
+		alias Next = AllResultImpl!(promiseIndex + 1, resultIndex, Promises[1 .. $]);
 		alias TupleMembers = Next.TupleMembers;
 		enum size_t[] mapping = [size_t(-1)] ~ Next.mapping;
 	}
 	else
 	{
-		alias Next = AllResultImpl!(promiseIndex + 1, resultIndex + 1, Promises[1..$]);
+		alias Next = AllResultImpl!(promiseIndex + 1, resultIndex + 1, Promises[1 .. $]);
 		alias TupleMembers = AliasSeq!(PromiseValue!(Promises[0]), Next.TupleMembers);
 		enum size_t[] mapping = [resultIndex] ~ Next.mapping;
 	}
@@ -626,6 +734,7 @@ private template AllResult(Promises...)
 	else
 	{
 		import std.typecons : Tuple;
+
 		alias ResultType = Tuple!(Impl.TupleMembers);
 	}
 }
@@ -636,11 +745,11 @@ private alias PromiseBox(P) = P.Box;
 /// void promises' values are omitted from the result tuple.
 /// If all promises are void, then so is the result.
 Promise!(AllResult!Promises.ResultType) all(Promises...)(Promises promises)
-if (allSatisfy!(isPromise, Promises))
+		if (allSatisfy!(isPromise, Promises))
 {
 	AllResult!Promises.Impl.TupleMembers results;
 
-	typeof(return) allPromise;
+	auto allPromise = new typeof(return);
 
 	static if (promises.length)
 	{
@@ -659,6 +768,7 @@ if (allSatisfy!(isPromise, Promises))
 						static if (AllResult!Promises.Impl.TupleMembers.length)
 						{
 							import std.typecons : tuple;
+
 							allPromise.fulfill(tuple(results));
 						}
 						else
@@ -692,9 +802,7 @@ nothrow unittest
 	auto pAll = all(p1, p2, p3);
 	p1.fulfill(1);
 	pAll.dmd21804workaround
-		.then(values => values.expand.I!((v1, v3) {
-			result = v1 + v3;
-	}));
+		.then(values => values.expand.I!((v1, v3) { result = v1 + v3; }));
 	p3.fulfill(3);
 	socketManager.loop().assertNotThrown;
 	assert(result == 4);
@@ -704,6 +812,7 @@ nothrow unittest
 {
 	bool ok;
 	import std.exception : assertNotThrown;
+
 	auto p1 = new Promise!void;
 	auto p2 = new Promise!void;
 	auto p3 = new Promise!void;
@@ -717,9 +826,32 @@ nothrow unittest
 	socketManager.loop().assertNotThrown;
 	assert(ok);
 }
-
+*/
 // ****************************************************************************
 
+Promise!(T, E) require(T, E)(ref Promise!(T, E) p, lazy Promise!(T, E) lp)
+{
+	if (!p)
+		p = lp;
+	return p;
+}
+
+unittest
+{
+	Promise!int p;
+	int work;
+	Promise!int getPromise()
+	{
+		return p.require({ work++; return resolve(1); }());
+	}
+
+	int done;
+	getPromise().then((n) { done += 1; });
+	getPromise().then((n) { done += 1; });
+	//socketManager.loop();
+	//assert(work == 1 && done == 2);
+}
+/*
 /// Ordered promise queue, supporting asynchronous enqueuing / fulfillment.
 struct PromiseQueue(T, E = Exception)
 {

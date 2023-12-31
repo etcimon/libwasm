@@ -7,6 +7,7 @@
 
 module libwasm.rt.array;
 import libwasm.rt.memory;
+import libwasm.rt.allocator;
 
 @safe:
 nothrow:
@@ -16,84 +17,89 @@ nothrow:
  * to reduce template bloat all PointerArray!T* are backed by a
  * DynamicArray!(void*)
  */
-struct PointerArray(T, Allocator) if (is(T : U*, U)) {
+struct PointerArray(T, Allocator = ThreadMemAllocator) if (is(T : U*, U))
+{
 	private DynamicArray!(void*, Allocator) array;
 
-  alias array this;
+	alias array this;
 
-  /// Slice operator overload
-  pragma(inline, true) auto opSlice(this This)() @nogc
-  {
-    return opSlice!(This)(0, l);
-  }
+	/// Slice operator overload
+	pragma(inline, true) auto opSlice(this This)() @nogc
+	{
+		return opSlice!(This)(0, l);
+	}
 
-  /// ditto
-  pragma(inline, true) auto opSlice(this This)(size_t a, size_t b) @nogc @trusted
-  {
-    alias ET = ContainerElementType!(This, T);
-    return cast(ET[]) array.arr[a .. b];
-  }
+	/// ditto
+	pragma(inline, true) auto opSlice(this This)(size_t a, size_t b) @nogc @trusted
+	{
+		alias ET = ContainerElementType!(This, T);
+		return cast(ET[]) array.arr[a .. b];
+	}
 
-  /// Index operator overload
-  pragma(inline, true) auto opIndex(this This)(size_t i) @nogc
-  {
-    return cast(T)array[i];
-  }
+	/// Index operator overload
+	pragma(inline, true) auto opIndex(this This)(size_t i) @nogc
+	{
+		return cast(T) array[i];
+	}
 
-  void insertBack(T value) {
-    array.insertBack(cast(void*)value);
-  }
+	void insertBack(T value)
+	{
+		array.insertBack(cast(void*) value);
+	}
 
-  void shrinkTo(int idx) {
-    array.shrinkTo(idx);
-  }
+	void shrinkTo(int idx)
+	{
+		array.shrinkTo(idx);
+	}
 
-  alias insert = insertBack;
+	alias insert = insertBack;
 
-  /// ditto
-  alias insertAnywhere = insertBack;
+	/// ditto
+	alias insertAnywhere = insertBack;
 
-  /// ditto
-  alias put = insertBack;
+	/// ditto
+	alias put = insertBack;
 
-  /// Index assignment support
-  void opIndexAssign(T value, size_t i) @nogc
-  {
-    array.arr[i] = cast(void*)value;
-  }
+	/// Index assignment support
+	void opIndexAssign(T value, size_t i) @nogc
+	{
+		array.arr[i] = cast(void*) value;
+	}
 
-  /// Slice assignment support
-  void opSliceAssign(T value) @nogc
-  {
-    array.arr[0 .. l] = cast(void*)value;
-  }
+	/// Slice assignment support
+	void opSliceAssign(T value) @nogc
+	{
+		array.arr[0 .. l] = cast(void*) value;
+	}
 
-  /// ditto
-  void opSliceAssign(T value, size_t i, size_t j) @nogc
-  {
-    array.arr[i .. j] = cast(void*)value;
-  }
-  auto ref T front() pure @property @trusted
-  {
-    return cast(T)array.front();
-  }
+	/// ditto
+	void opSliceAssign(T value, size_t i, size_t j) @nogc
+	{
+		array.arr[i .. j] = cast(void*) value;
+	}
 
-  /// Returns: the back element of the DynamicArray.
-  auto ref T back() pure @property @trusted
-  {
-    return cast(T)array.back();
-  }
+	auto ref T front() pure @property @trusted
+	{
+		return cast(T) array.front();
+	}
 
-  size_t length() const nothrow pure @property @safe @nogc
-  {
-    return array.l;
-  }
-  /// Ditto
-  alias opDollar = length;
+	/// Returns: the back element of the DynamicArray.
+	auto ref T back() pure @property @trusted
+	{
+		return cast(T) array.back();
+	}
 
-  void remove(const size_t i) {
-    array.remove(i);
-  }
+	size_t length() const nothrow pure @property @safe @nogc
+	{
+		return array.l;
+	}
+	/// Ditto
+	alias opDollar = length;
+
+	void remove(const size_t i)
+	{
+		array.remove(i);
+	}
 }
 /**
  * Array that is able to grow itself when items are appended to it. Uses
@@ -104,9 +110,9 @@ struct PointerArray(T, Allocator) if (is(T : U*, U)) {
  *     Allocator = the allocator to use. Defaults to `Mallocator`.
  */
 
-struct DynamicArray(T, Allocator)
+struct DynamicArray(T, Allocator = ThreadMemAllocator)
 {
-    static Allocator allocator;
+	static Allocator allocator;
 
 	this(this) @disable;
 
@@ -118,6 +124,7 @@ struct DynamicArray(T, Allocator)
 	template stateSize(T)
 	{
 		import std.traits;
+
 		static if (is(T == class) || is(T == interface))
 			enum stateSize = __traits(classInstanceSize, T);
 		else static if (is(T == struct) || is(T == union))
@@ -185,30 +192,33 @@ struct DynamicArray(T, Allocator)
 	 */
 	@trusted void insertBack(T value)
 	{
+		immutable size_t c = arr.length > 512 ? arr.length + 1024 : arr.length << 1;
+
 		if (arr.length == 0)
 		{
 			void[] a = allocator.allocate(c * T.sizeof);
-			arr = cast(typeof(arr))a;
+			arr = cast(typeof(arr)) a;
 		}
 		else if (l >= arr.length)
 		{
-			immutable size_t c = arr.length > 512 ? arr.length + 1024 : arr.length << 1;
 			void[] a = cast(void[]) arr;
 			allocator.reallocate(a, c * T.sizeof);
 			arr = cast(typeof(arr)) a;
 		}
-		import std.traits: hasElaborateAssign, hasElaborateDestructor;
+		import std.traits : hasElaborateAssign, hasElaborateDestructor;
+
 		static if (is(T == struct) && (hasElaborateAssign!T || hasElaborateDestructor!T))
 		{
 			// If a destructor is run before blit or assignment involves
 			// more than just a blit, ensure that arr[l] is in a valid
 			// state before assigning to it.
 			import core.stdc.string : memcpy, memset;
+
 			const init = typeid(T).initializer();
 			if (init.ptr is null) // null pointer means initialize to 0s
-				(() @trusted => memset(arr.ptr + l, 0, T.sizeof))();
+					(() @trusted => memset(arr.ptr + l, 0, T.sizeof))();
 			else
-				(() @trusted => memcpy(arr.ptr + l, init.ptr, T.sizeof))();
+						(() @trusted => memcpy(arr.ptr + l, init.ptr, T.sizeof))();
 		}
 		emplace(arr[l++], value);
 	}
@@ -235,20 +245,21 @@ struct DynamicArray(T, Allocator)
 	* ~= operator overload for an array of items
 	*/
 	scope ref typeof(this) opOpAssign(string op, bool checkForOverlap = true)(AppendT[] rhs)
-		if (op == "~" && !is(T == AppendT[]))
+			if (op == "~" && !is(T == AppendT[]))
 	{
 		// Disabling checkForOverlap when this function is called from opBinary!"~"
 		// is not just for efficiency, but to avoid circular function calls that
 		// would prevent inference of @nogc, etc.
 		static if (checkForOverlap)
-		if ((() @trusted => arr.ptr <= rhs.ptr && arr.ptr + arr.length > rhs.ptr)())
-		{
-			// Special case where rhs is a slice of this array.
-			this = this ~ rhs;
-			return this;
-		}
+			if ((()@trusted => arr.ptr <= rhs.ptr && arr.ptr + arr.length > rhs.ptr)())
+				{
+				// Special case where rhs is a slice of this array.
+				this = this ~ rhs;
+				return this;
+			}
 		reserve(l + rhs.length);
-		import std.traits: hasElaborateAssign, hasElaborateDestructor;
+		import std.traits : hasElaborateAssign, hasElaborateDestructor;
+
 		static if (is(T == struct) && (hasElaborateAssign!T || hasElaborateDestructor!T))
 		{
 			foreach (ref value; rhs)
@@ -264,7 +275,7 @@ struct DynamicArray(T, Allocator)
 
 	/// ditto
 	scope ref typeof(this) opOpAssign(string op)(ref AppendTypeOfThis rhs)
-		if (op == "~")
+			if (op == "~")
 	{
 		return this ~= rhs.arr[0 .. rhs.l];
 	}
@@ -303,8 +314,8 @@ struct DynamicArray(T, Allocator)
 			size_t c = 4;
 			if (c < n)
 				c = n;
-			void[] a = allocator.allocate(c * T.sizeof) ;
-			arr = cast(typeof(arr))a;
+			void[] a = allocator.allocate(c * T.sizeof);
+			arr = cast(typeof(arr)) a;
 		}
 		else
 		{
@@ -312,22 +323,22 @@ struct DynamicArray(T, Allocator)
 			if (c < n)
 				c = n;
 			void[] a = cast(void[]) arr;
-      		allocator.reallocate(a, c * T.sizeof);
+			allocator.reallocate(a, c * T.sizeof);
 			arr = cast(typeof(arr)) a;
 		}
 	}
 
-	static if (is(typeof({T value;}))) // default construction is allowed
+	static if (is(typeof({ T value; }))) // default construction is allowed
 	{
-		/**
+			/**
 		 * Change the array length.
 		 * When growing, initialize new elements to the default value.
 		 */
-		void resize(size_t n)
-		{
-			resize(n, T.init);
+			void resize(size_t n)
+			{
+				resize(n, T.init);
+			}
 		}
-	}
 
 	/**
 	 * Change the array length.
@@ -340,21 +351,22 @@ struct DynamicArray(T, Allocator)
 
 		if (l < n) // Growing?
 		{
-			import std.traits: hasElaborateAssign, hasElaborateDestructor;
+			import std.traits : hasElaborateAssign, hasElaborateDestructor;
+
 			static if (is(T == struct) && (hasElaborateAssign!T || hasElaborateDestructor!T))
 			{
-				foreach (i; l..n)
+				foreach (i; l .. n)
 					emplace(arr[l], value);
 			}
 			else
-				arr[l..n] = value;
+				arr[l .. n] = value;
 		}
 		else
 		{
 			static if ((is(T == struct) || is(T == union))
 				&& __traits(hasMember, T, "__xdtor"))
 			{
-				foreach (i; n..l)
+				foreach (i; n .. l)
 					arr[i].__xdtor();
 			}
 		}
@@ -367,19 +379,19 @@ struct DynamicArray(T, Allocator)
 	 */
 	void remove(const size_t i)
 	{
-    assert(i < this.l);
-    auto next = i + 1;
-    while (next < this.l)
-    {
-      arr[next - 1] = arr[next];
-      ++next;
-    }
+		assert(i < this.l);
+		auto next = i + 1;
+		while (next < this.l)
+		{
+			arr[next - 1] = arr[next];
+			++next;
+		}
 
-    --l;
-    static if ((is(T == struct) || is(T == union)) && __traits(hasMember, T, "__xdtor"))
-    {
-      arr[l].__xdtor();
-    }
+		--l;
+		static if ((is(T == struct) || is(T == union)) && __traits(hasMember, T, "__xdtor"))
+		{
+			arr[l].__xdtor();
+		}
 	}
 
 	/**
@@ -387,24 +399,25 @@ struct DynamicArray(T, Allocator)
 	 */
 	void removeBack()
 	{
-    assert(l > 0);
-    --l;
-    static if ((is(T == struct) || is(T == union)) && __traits(hasMember, T, "__xdtor"))
-    {
-      arr[l].__xdtor();
-    }
+		assert(l > 0);
+		--l;
+		static if ((is(T == struct) || is(T == union)) && __traits(hasMember, T, "__xdtor"))
+		{
+			arr[l].__xdtor();
+		}
 	}
 
-  void shrinkTo(const size_t nl) {
-    assert(l >= nl);
-    static if ((is(T == struct) || is(T == union)) && __traits(hasMember, T, "__xdtor"))
-    {
-      foreach_reverse(i; nl..l)
-        arr[i].__xdtor();
-    }
+	void shrinkTo(const size_t nl)
+	{
+		assert(l >= nl);
+		static if ((is(T == struct) || is(T == union)) && __traits(hasMember, T, "__xdtor"))
+		{
+			foreach_reverse (i; nl .. l)
+				arr[i].__xdtor();
+		}
 
-    l = nl;
-  }
+		l = nl;
+	}
 
 	/// Index assignment support
 	void opIndexAssign(T value, size_t i) @nogc
@@ -425,13 +438,19 @@ struct DynamicArray(T, Allocator)
 	}
 
 	/// Returns: the number of items in the array
-	size_t length() const nothrow pure @property @safe @nogc { return l; }
+	size_t length() const nothrow pure @property @safe @nogc
+	{
+		return l;
+	}
 
 	/// Ditto
 	alias opDollar = length;
 
 	/// Returns: whether or not the DynamicArray is empty.
-	bool empty() const nothrow pure @property @safe @nogc { return l == 0; }
+	bool empty() const nothrow pure @property @safe @nogc
+	{
+		return l == 0;
+	}
 
 	/**
 	 * Returns: a slice to the underlying array.
@@ -461,7 +480,7 @@ private:
 
 	@trusted static void emplace(ref ContainerStorageType!T target, ref AppendT source)
 	{
-		(cast(void[])((&target)[0..1]))[] = cast(void[])((&source)[0..1]);
+		(cast(void[])((&target)[0 .. 1]))[] = cast(void[])((&source)[0 .. 1]);
 		// static if (__traits(hasMember, T, "__xpostblit"))
 		// 	target.__xpostblit();
 	}
@@ -471,28 +490,30 @@ private:
 	size_t l;
 }
 
-template removePred(alias pred) {
-  auto removePred(T)(ref DynamicArray!T arr) {
-    size_t target = 0;
-    auto len = arr.l < arr.arr.length ? arr.l : arr.arr.length;
-    foreach (i; 0 .. len)
-    {
-      if (pred(arr.arr[i]))
-      {
-        static if ((is(T == struct) || is(T == union)) && __traits(hasMember, T, "__xdtor"))
-        {
-          arr.arr[l].__xdtor();
-        }
-        continue;
-      }
-      else
-      {
-        arr.arr[target] = arr.arr[i];
-        target++;
-      }
-    }
-    arr.l = target;
-  }
+template removePred(alias pred)
+{
+	auto removePred(T)(ref DynamicArray!T arr)
+	{
+		size_t target = 0;
+		auto len = arr.l < arr.arr.length ? arr.l : arr.arr.length;
+		foreach (i; 0 .. len)
+		{
+			if (pred(arr.arr[i]))
+			{
+				static if ((is(T == struct) || is(T == union)) && __traits(hasMember, T, "__xdtor"))
+				{
+					arr.arr[l].__xdtor();
+				}
+				continue;
+			}
+			else
+			{
+				arr.arr[target] = arr.arr[i];
+				target++;
+			}
+		}
+		arr.l = target;
+	}
 }
 
 template ContainerStorageType(T)
@@ -500,22 +521,23 @@ template ContainerStorageType(T)
 	import std.traits : hasElaborateCopyConstructor, hasElaborateDestructor,
 		hasElaborateAssign, isBasicType, isDynamicArray, isPointer, Unqual;
 	import std.typecons : Rebindable;
-	static if (is (T == const) || is (T == immutable))
+
+	static if (is(T == const) || is(T == immutable))
 	{
 		static if (isBasicType!T || isDynamicArray!T || isPointer!T)
 			alias ContainerStorageType = Unqual!T;
-		else static if (is (T == class) || is (T == interface))
+		else static if (is(T == class) || is(T == interface))
 			alias ContainerStorageType = Rebindable!T;
-		else static if (is (T == struct))
+		else static if (is(T == struct))
 		{
 			alias U = Unqual!T;
 			static if (hasElaborateAssign!U || hasElaborateCopyConstructor!U || hasElaborateDestructor!U)
-				static assert (false, "Cannot store " ~ T.stringof ~ " because of postblit, opAssign, or ~this");
+				static assert(false, "Cannot store " ~ T.stringof ~ " because of postblit, opAssign, or ~this");
 			else
 				alias ContainerStorageType = U;
 		}
 		else
-			static assert (false, "Don't know how to handle type " ~ T.stringof);
+			static assert(false, "Don't know how to handle type " ~ T.stringof);
 	}
 	else
 		alias ContainerStorageType = T;
@@ -524,44 +546,57 @@ template ContainerStorageType(T)
 ///
 unittest
 {
-	static assert (is (ContainerStorageType!(int) == int));
-	static assert (is (ContainerStorageType!(const int) == int));
+	static assert(is(ContainerStorageType!(int) == int));
+	static assert(is(ContainerStorageType!(const int) == int));
 }
 
 ///
 unittest
 {
 	import std.typecons : Rebindable;
-	static assert (is (ContainerStorageType!(Object) == Object));
-	static assert (is (ContainerStorageType!(const(Object)) == Rebindable!(const(Object))));
+
+	static assert(is(ContainerStorageType!(Object) == Object));
+	static assert(is(ContainerStorageType!(const(Object)) == Rebindable!(const(Object))));
 }
 
 ///
 unittest
 {
-	struct A { int foo; }
-	struct B { void opAssign(typeof(this)) { this.foo *= 2; }  int foo;}
+	struct A
+	{
+		int foo;
+	}
+
+	struct B
+	{
+		void opAssign(typeof(this))
+		{
+			this.foo *= 2;
+		}
+
+		int foo;
+	}
 
 	// A can be stored easily because it is plain data
-	static assert (is (ContainerStorageType!(A) == A));
-	static assert (is (ContainerStorageType!(const(A)) == A));
+	static assert(is(ContainerStorageType!(A) == A));
+	static assert(is(ContainerStorageType!(const(A)) == A));
 
 	// const(B) cannot be stored in the container because of its
 	// opAssign. Casting away const could lead to some very unexpected
 	// behavior.
-	static assert (!is (typeof(ContainerStorageType!(const(B)))));
+	static assert(!is(typeof(ContainerStorageType!(const(B)))));
 	// Mutable B is not a problem
-	static assert (is (ContainerStorageType!(B) == B));
+	static assert(is(ContainerStorageType!(B) == B));
 
 	// Arrays can be stored because the entire pointer-length pair is moved as
 	// a unit.
-	static assert (is (ContainerStorageType!(const(int[])) == const(int)[]));
+	static assert(is(ContainerStorageType!(const(int[])) == const(int)[]));
 }
 
 ///
 unittest
 {
-	static assert (is (ContainerStorageType!(const(int*)) == const(int)*));
+	static assert(is(ContainerStorageType!(const(int*)) == const(int)*));
 }
 
 template ContainerElementType(ContainerType, ElementType)
@@ -619,169 +654,180 @@ template ContainerElementType(ContainerType, ElementType)
 	}
 }
 
-struct StringAppender(Allocator) {
+struct StringAppender(Allocator)
+{
 	DynamicArray!(char, Allocator) arr = void;
-	this(ref Allocator allocator) {
+	this(ref Allocator allocator)
+	{
 		arr = DynamicArray!(char, Allocator)(allocator);
 	}
-  alias arr this;
-  void put(string s) {
-    foreach(c; s)
-      arr.put(c);
-  }
-  void put(char c) {
-    arr.put(c);
-  }
-  void put(char[] cs) {
-    foreach(c; cs)
-      arr.put(c);
-  }
+
+	alias arr this;
+	void put(string s)
+	{
+		foreach (c; s)
+			arr.put(c);
+	}
+
+	void put(char c)
+	{
+		arr.put(c);
+	}
+
+	void put(char[] cs)
+	{
+		foreach (c; cs)
+			arr.put(c);
+	}
 }
 
-@trusted string text(Allocator, T...)(ref Allocator allocator, T t) {
-  auto app = StringAppender!(Allocator)(allocator);
-  write(app, t);
-  auto end = app.length;
-  return cast(string)app[0..end];
+@trusted string text(Allocator, T...)(ref Allocator allocator, T t)
+{
+	auto app = StringAppender!(Allocator)(allocator);
+	write(app, t);
+	auto end = app.length;
+	return cast(string) app[0 .. end];
 }
 
-@trusted string text(T...)(T t) {
-  StringAppender!() app;
-  write(app, t);
-  auto end = app.length;
-  return cast(string)app[0..end];
+@trusted string text(T...)(T t)
+{
+	StringAppender!() app;
+	write(app, t);
+	auto end = app.length;
+	return cast(string) app[0 .. end];
 }
 
 char[] unsignedToTempString()(ulong value, return scope char[] buf, uint radix = 10) @safe
 {
-  if (radix < 2) // not a valid radix, just return an empty string
-    return buf[$ .. $];
+	if (radix < 2) // not a valid radix, just return an empty string
+		return buf[$ .. $];
 
-  size_t i = buf.length;
-  do
-  {
-    if (value < radix)
-    {
-      ubyte x = cast(ubyte) value;
-      buf[--i] = cast(char)((x < 10) ? x + '0' : x - 10 + 'a');
-      break;
-    }
-    else
-    {
-      ubyte x = cast(ubyte)(value % radix);
-      value = value / radix;
-      buf[--i] = cast(char)((x < 10) ? x + '0' : x - 10 + 'a');
-    }
-  }
-  while (value);
-  return buf[i .. $];
+	size_t i = buf.length;
+	do
+	{
+		if (value < radix)
+		{
+			ubyte x = cast(ubyte) value;
+			buf[--i] = cast(char)((x < 10) ? x + '0' : x - 10 + 'a');
+			break;
+		}
+		else
+		{
+			ubyte x = cast(ubyte)(value % radix);
+			value = value / radix;
+			buf[--i] = cast(char)((x < 10) ? x + '0' : x - 10 + 'a');
+		}
+	}
+	while (value);
+	return buf[i .. $];
 }
 
 private struct TempStringNoAlloc
 {
-  // need to handle 65 bytes for radix of 2 with negative sign.
-  private char[65] _buf = 0;
-  private ubyte _len;
-  auto get() return
-  {
-    return _buf[$ - _len .. $];
-  }
+	// need to handle 65 bytes for radix of 2 with negative sign.
+	private char[65] _buf = 0;
+	private ubyte _len;
+	auto get() return
+	{
+		return _buf[$ - _len .. $];
+	}
 
-  alias get this;
+	alias get this;
 }
 
 auto unsignedToTempString()(ulong value, uint radix = 10) @safe
 {
-  TempStringNoAlloc result = void;
-  result._len = unsignedToTempString(value, result._buf, radix).length & 0xff;
-  return result;
+	TempStringNoAlloc result = void;
+	result._len = unsignedToTempString(value, result._buf, radix).length & 0xff;
+	return result;
 }
 
 char[] signedToTempString(long value, return scope char[] buf, uint radix = 10) @safe
 {
-  bool neg = value < 0;
-  if (neg)
-    value = cast(ulong)-value;
-  auto r = unsignedToTempString(value, buf, radix);
-  if (neg)
-  {
-    // about to do a slice without a bounds check
-    auto trustedSlice(return char[] r) @trusted
-    {
-      assert(r.ptr > buf.ptr);
-      return (r.ptr - 1)[0 .. r.length + 1];
-    }
+	bool neg = value < 0;
+	if (neg)
+		value = cast(ulong)-value;
+	auto r = unsignedToTempString(value, buf, radix);
+	if (neg)
+	{
+		// about to do a slice without a bounds check
+		auto trustedSlice(return char[] r) @trusted
+		{
+			assert(r.ptr > buf.ptr);
+			return (r.ptr - 1)[0 .. r.length + 1];
+		}
 
-    r = trustedSlice(r);
-    r[0] = '-';
-  }
-  return r;
+		r = trustedSlice(r);
+		r[0] = '-';
+	}
+	return r;
 }
 
 auto signedToTempString(long value, uint radix = 10) @safe
 {
-  bool neg = value < 0;
-  if (neg)
-    value = cast(ulong)-value;
-  auto r = unsignedToTempString(value, radix);
-  if (neg)
-  {
-    r._len++;
-    r.get()[0] = '-';
-  }
-  return r;
+	bool neg = value < 0;
+	if (neg)
+		value = cast(ulong)-value;
+	auto r = unsignedToTempString(value, radix);
+	if (neg)
+	{
+		r._len++;
+		r.get()[0] = '-';
+	}
+	return r;
 }
 
 import std.traits : isIntegral, isArray;
+
 // TODO: std.range.put doesn't do scope on second args therefor compiler thinks buf escapes. resolve it and we can avoid the @trusted
 @trusted
-void toTextRange(T, W)(T value, auto ref W writer)
-    if (isIntegral!T && isArray!T)
+void toTextRange(T, W)(T value, auto ref W writer) if (isIntegral!T && isArray!T)
 {
-  import core.internal.string : SignedStringBuf,
-    UnsignedStringBuf;
+	import core.internal.string : SignedStringBuf,
+		UnsignedStringBuf;
 
-  if (value < 0)
-  {
-    SignedStringBuf buf = void;
-    writer.put(signedToTempString(value, buf, 10));
-  }
-  else
-  {
-    UnsignedStringBuf buf = void;
-    writer.put(unsignedToTempString(value, buf, 10));
-  }
+	if (value < 0)
+	{
+		SignedStringBuf buf = void;
+		writer.put(signedToTempString(value, buf, 10));
+	}
+	else
+	{
+		UnsignedStringBuf buf = void;
+		writer.put(unsignedToTempString(value, buf, 10));
+	}
 }
 
-void write(Sink, S...)(auto ref Sink sink, S args) {
-  import std.traits : isBoolean, isIntegral, isAggregateType, isSomeString, isSomeChar;
+void write(Sink, S...)(auto ref Sink sink, S args)
+{
+	import std.traits : isBoolean, isIntegral, isAggregateType, isSomeString, isSomeChar;
 
-  foreach (arg; args)
-  {
-    alias A = typeof(arg);
-    static if (isAggregateType!A || is(A == enum))
-    {
-      sink.put(arg.toString());
-    }
-    else static if (isSomeString!A)
-    {
-      sink.put(arg);
-    }
-    else static if (isIntegral!A)
-    {
-      toTextRange(arg, sink);
-    }
-    else static if (isBoolean!A)
-    {
-      sink.put(arg ? "true" : "false");
-    }
-    else static if (isSomeChar!A)
-    {
-      sink.put(arg);
-    }
-    else
-    {
-      static assert(0);
-    }
-  }
+	foreach (arg; args)
+	{
+		alias A = typeof(arg);
+		static if (isAggregateType!A || is(A == enum))
+		{
+			sink.put(arg.toString());
+		}
+		else static if (isSomeString!A)
+		{
+			sink.put(arg);
+		}
+		else static if (isIntegral!A)
+		{
+			toTextRange(arg, sink);
+		}
+		else static if (isBoolean!A)
+		{
+			sink.put(arg ? "true" : "false");
+		}
+		else static if (isSomeChar!A)
+		{
+			sink.put(arg);
+		}
+		else
+		{
+			static assert(0);
+		}
+	}
 }
