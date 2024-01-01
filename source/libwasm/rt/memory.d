@@ -5,7 +5,7 @@ version (WebAssembly) import libwasm.rt.allocator : WasmAllocator;
 version (LDC) import ldc.attributes;
 import libwasm.intrinsics;
 
-extern (C) void _d_print_throwable(Throwable t)
+version (WebAssembly) extern (C) void _d_print_throwable(Throwable t)
 {
   import libwasm.bindings.Console;
 
