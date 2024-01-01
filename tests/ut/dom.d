@@ -140,6 +140,7 @@ unittest
 
   App app;
   auto node = app.renderToNode;
+
   node.renderToString().should == `<section><div count=6></div></section>`;
   app.update.number = 5;
   node.renderToString().should == `<section><div count=5></div></section>`;
@@ -147,7 +148,7 @@ unittest
 
 unittest
 {
-  alias ChildNode = NamedNodeDef!"root"*;
+  alias ChildNode = NamedNode!"root"*;
   static struct Parent
   {
     mixin NodeDef!"section";
@@ -179,7 +180,7 @@ unittest
 
 unittest
 {
-  alias ChildNode = NamedNodeDef!"root"*;
+  alias ChildNode = NamedNode!"root"*;
   static struct Parent
   {
     mixin NodeDef!"section";

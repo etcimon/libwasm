@@ -22,7 +22,7 @@ else
 alias Handle = uint;
 version (unittest)
 {
-@safe:
+@safe extern (C):
   Handle libwasm_add__object()
   {
     return 0;
@@ -31,13 +31,107 @@ version (unittest)
   void libwasm_removeObject(Handle)
   {
   }
+
+  void Static_Call_Handle__void(string, string, Handle)
+  {
+  }
+
+  string ldexec_Handle__string(Handle, string, bool delegate(), void delegate(Handle))
+  {
+    return "";
+  }
+
+  long ldexec_Handle__long(Handle, string, bool delegate(), void delegate(Handle))
+  {
+    return 0;
+  }
+
+  double ldexec_Handle__double(Handle, string, bool delegate(), void delegate(Handle))
+  {
+    return 0;
+  }
+
+  Handle ldexec_Handle__Handle(Handle, string, bool delegate(), void delegate(Handle))
+  {
+    return Handle.init;
+  }
+
+  string ldexec_string__string(string, string, bool delegate(), void delegate(Handle), bool)
+  {
+    return "";
+  }
+
+  long ldexec_string__long(string, string, bool delegate(), void delegate(Handle), bool)
+  {
+    return 0;
+  }
+
+  double ldexec_string__double(string, string, bool delegate(), void delegate(Handle), bool)
+  {
+    return 0;
+  }
+
+  Handle ldexec_string__Handle(string, string, bool delegate(), void delegate(Handle), bool)
+  {
+    return Handle.init;
+  }
+
+  long ldexec_long__long(long, string, bool delegate(), void delegate(Handle))
+  {
+    return 0;
+  }
+
+  double ldexec_long__double(long, string, bool delegate(), void delegate(Handle))
+  {
+    return 0;
+  }
+
+  string ldexec_long__string(long, string, bool delegate(), void delegate(Handle))
+  {
+    return "";
+  }
+
+  Handle ldexec_long__Handle(long, string, bool delegate(), void delegate(Handle))
+  {
+    return Handle.init;
+  }
+
+  Handle libwasm_add__string(scope ref string)
+  {
+    return Handle.init;
+  }
+
+  int setTimeout(int ctx, int ptr, int ms)
+  {
+    return 0;
+  }
+
 }
 else
 {
   extern (C) @safe
   {
     Handle libwasm_add__object();
+    Handle libwasm_add__string(scope ref string);
     void libwasm_removeObject(Handle);
+    void Static_Call_Handle__void(string, string, Handle);
+
+    string ldexec_Handle__string(Handle, string, bool delegate(), void delegate(Handle));
+    long ldexec_Handle__long(Handle, string, bool delegate(), void delegate(Handle));
+    double ldexec_Handle__double(Handle, string, bool delegate(), void delegate(Handle));
+    Handle ldexec_Handle__Handle(Handle, string, bool delegate(), void delegate(Handle));
+
+    string ldexec_string__string(string, string, bool delegate(), void delegate(Handle), bool);
+    long ldexec_string__long(string, string, bool delegate(), void delegate(Handle), bool);
+    double ldexec_string__double(string, string, bool delegate(), void delegate(Handle), bool);
+    Handle ldexec_string__Handle(string, string, bool delegate(), void delegate(Handle), bool);
+
+    long ldexec_long__long(long, string, bool delegate(), void delegate(Handle));
+    double ldexec_long__double(long, string, bool delegate(), void delegate(Handle));
+    string ldexec_long__string(long, string, bool delegate(), void delegate(Handle));
+    Handle ldexec_long__Handle(long, string, bool delegate(), void delegate(Handle));
+    int setTimeout(int ctx, int ptr, int ms);
+
   }
 }
 
@@ -56,7 +150,6 @@ extern (C)
   Handle libwasm_add__double(double);
   Handle libwasm_add__byte(byte);
   Handle libwasm_add__ubyte(ubyte);
-  Handle libwasm_add__string(scope ref string);
   Handle libwasm_copyObjectRef(Handle);
   void libwasm_set__function(string, int ctx, int ptr);
   void libwasm_unset__function(string);
@@ -74,7 +167,6 @@ extern (C)
   byte libwasm_get__byte(Handle);
   ubyte libwasm_get__ubyte(Handle);
   string libwasm_get__string(Handle);
-  void Static_Call_Handle__void(string, string, Handle);
   void Static_Call_string__void(string, string, string);
   void Object_Call__void(Handle, string);
   void Object_Call_string__void(Handle, string, string);
@@ -131,25 +223,9 @@ extern (C)
   ulong Object_VarArgCall__ulong(Handle, string, string, string);
   long getTimeStamp();
 
-  string ldexec_Handle__string(Handle, string, bool delegate(), void delegate(Handle));
-  long ldexec_Handle__long(Handle, string, bool delegate(), void delegate(Handle));
-  double ldexec_Handle__double(Handle, string, bool delegate(), void delegate(Handle));
-  Handle ldexec_Handle__Handle(Handle, string, bool delegate(), void delegate(Handle));
-
-  string ldexec_string__string(string, string, bool delegate(), void delegate(Handle), bool);
-  long ldexec_string__long(string, string, bool delegate(), void delegate(Handle), bool);
-  double ldexec_string__double(string, string, bool delegate(), void delegate(Handle), bool);
-  Handle ldexec_string__Handle(string, string, bool delegate(), void delegate(Handle), bool);
-
-  long ldexec_long__long(long, string, bool delegate(), void delegate(Handle));
-  double ldexec_long__double(long, string, bool delegate(), void delegate(Handle));
-  string ldexec_long__string(long, string, bool delegate(), void delegate(Handle));
-  Handle ldexec_long__Handle(long, string, bool delegate(), void delegate(Handle));
-
   Handle JSON_parse_string(string);
   string JSON_stringify(Handle);
 
-  int setTimeout(int ctx, int ptr, int ms);
   int setInterval(int ctx, int ptr, int ms);
   void clearTimeout(int id);
   void clearInterval(int id);
@@ -171,7 +247,7 @@ void exportDelegate(Delegate)(string name, Delegate del)
   return libwasm_set__function(name, del.toTuple.expand);
 }
 
-void unexportDelegate(string name)
+void unexportDelegate()(string name)
 {
   return libwasm_unset__function(name);
 }
@@ -349,7 +425,7 @@ nothrow:
     return Lodash(this.handle, VarType.handle, 128);
   }
 
-  this(typeof(this) rhs)
+  this()(typeof(this) rhs)
   {
     console.log("Copying handle ");
     console.log(cast(int) rhs.handle);
@@ -748,7 +824,7 @@ nothrow:
       "return JsPromise!(ResultType)(" ~ funName ~ "(handle, cast(JoinedCallback!(BridgeType!ResultType))cb));");
   }
 
-  auto error(void delegate(U) nothrow cb) @trusted
+  auto error()(void delegate(U) nothrow cb) @trusted
   {
     enum TMangled = libwasmMangle!U;
     enum funName = "promise_error_" ~ TMangled.length.stringof ~ TMangled;
@@ -793,7 +869,7 @@ nothrow:
     _array = TypedArray!(byte)(h);
   }
 
-  static auto create(const byte[] data)
+  static auto create()(const byte[] data)
   {
     return Int8Array(Int8Array_Create(data));
   }
@@ -820,7 +896,7 @@ nothrow:
     _array = TypedArray!(int)(h);
   }
 
-  static auto create(const int[] data)
+  static auto create()(const int[] data)
   {
     return Int32Array(Int32Array_Create(data));
   }
@@ -836,7 +912,7 @@ nothrow:
     _array = TypedArray!(ubyte)(h);
   }
 
-  static auto create(const ubyte[] data)
+  static auto create()(const ubyte[] data)
   {
     return Uint8Array(Uint8Array_Create(data));
   }
@@ -874,7 +950,7 @@ nothrow:
     _array = TypedArray!(float)(h);
   }
 
-  static auto create(const float[] data)
+  static auto create()(const float[] data)
   {
     return Float32Array(Float32Array_Create(data));
   }
@@ -912,7 +988,7 @@ nothrow:
     this.handle = JsHandle(h);
   }
 
-  static auto create(const ubyte[] data)
+  static auto create()(const ubyte[] data)
   {
     return DataView(DataView_Create(data));
   }
@@ -1022,12 +1098,12 @@ nothrow:
     this.handle = JsHandle(h);
   }
 
-  auto opIndex(string name)
+  auto opIndex()(string name)
   {
     return JSON(libwasm_get__field(this.handle, name));
   }
 
-  auto opIndex(uint idx)
+  auto opIndex()(uint idx)
   {
     return JSON(libwasm_get_idx__field(this.handle, idx));
   }
@@ -1037,12 +1113,12 @@ nothrow:
     return .as!(Target)(this);
   }
 
-  static Handle parse(string json)
+  static Handle parse()(string json)
   {
     return JSON_parse_string(json);
   }
 
-  static string stringify(ref JSON obj)
+  static string stringify()(ref JSON obj)
   {
     return JSON_stringify(obj.handle);
   }

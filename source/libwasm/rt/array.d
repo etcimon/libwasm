@@ -192,18 +192,19 @@ struct DynamicArray(T, Allocator = ThreadMemAllocator)
 	 */
 	@trusted void insertBack(T value)
 	{
-		immutable size_t c = arr.length > 512 ? arr.length + 1024 : arr.length << 1;
 
 		if (arr.length == 0)
 		{
+			immutable size_t c = 4;
 			void[] a = allocator.allocate(c * T.sizeof);
 			arr = cast(typeof(arr)) a;
 		}
 		else if (l >= arr.length)
 		{
+			immutable size_t c = arr.length > 512 ? arr.length + 1024 : arr.length << 1;
 			void[] a = cast(void[]) arr;
-			allocator.reallocate(a, c * T.sizeof);
-			arr = cast(typeof(arr)) a;
+			void[] b = allocator.reallocate(a, c * T.sizeof);
+			arr = cast(typeof(arr)) b;
 		}
 		import std.traits : hasElaborateAssign, hasElaborateDestructor;
 
@@ -481,8 +482,8 @@ private:
 	@trusted static void emplace(ref ContainerStorageType!T target, ref AppendT source)
 	{
 		(cast(void[])((&target)[0 .. 1]))[] = cast(void[])((&source)[0 .. 1]);
-		// static if (__traits(hasMember, T, "__xpostblit"))
-		// 	target.__xpostblit();
+		static if (__traits(hasMember, T, "__xpostblit"))
+			target.__xpostblit();
 	}
 
 	enum bool useGC = false;

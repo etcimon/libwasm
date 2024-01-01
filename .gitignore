@@ -9,3 +9,5 @@ Dockerfile.build
 package-lock.json
 *.selections.json
 *.lib
+*.exe
+*.pdb

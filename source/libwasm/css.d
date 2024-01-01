@@ -376,13 +376,13 @@ template hashChunk(string a, B...)
 
 template cssIdentifierChar32(size_t idx)
 {
-  static enum string chars = "abcdefghijklmnopqrstuvwxyz123456";
+  immutable string chars = "abcdefghijklmnopqrstuvwxyz123456";
   enum cssIdentifierChar32 = chars[idx .. idx + 1];
 }
 
 template cssIdentifierChar(size_t idx)
 {
-  static enum string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+  immutable string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
   enum cssIdentifierChar = chars[idx .. idx + 1];
 }
 
@@ -506,27 +506,27 @@ template GetPseudoCssSelector(alias symbol)
 
 unittest
 {
-  GetPseudoCssSelector!(Style.root.after).should == ".AGILZSwUB:after";
+  GetPseudoCssSelector!(Style.root.after).should == ".ACEXGQpUC:after";
 }
 
 unittest
 {
-  GetPseudoCssSelector!(Style.root.afterDisabled).should == ".AGILZSwUB.EDbAPAWCD:after";
+  GetPseudoCssSelector!(Style.root.afterDisabled).should == ".ACEXGQpUC.DQpGODSBD:after";
 }
 
 unittest
 {
-  GetPseudoCssSelector!(Style.root.afterNotFocused).should == ".AGILZSwUB:not(.BEfMCBUJD):after";
+  GetPseudoCssSelector!(Style.root.afterNotFocused).should == ".ACEXGQpUC:not(.GGGMBFYVA):after";
 }
 
 unittest
 {
-  GetPseudoCssSelector!(Style.root.hoverBefore).should == ".AGILZSwUB:hover:not(.EDbAPAWCD):before";
+  GetPseudoCssSelector!(Style.root.hoverBefore).should == ".ACEXGQpUC:hover:not(.DQpGODSBD):before";
 }
 
 unittest
 {
-  GetPseudoCssSelector!(Style.root.resetTouch).should == ".AGILZSwUB@media(hover: none)";
+  GetPseudoCssSelector!(Style.root.resetTouch).should == ".ACEXGQpUC@media(hover: none)";
 }
 
 unittest
@@ -535,7 +535,7 @@ unittest
   {
   }
 
-  GenerateCssSet!(Style, Empty).should == `.AGILZSwUB{background-color:blue}.AGILZSwUB:after{content:""}.AGILZSwUB.EDbAPAWCD:after{content:""}.AGILZSwUB:not(.BEfMCBUJD):after{content:""}.AGILZSwUB:hover:not(.EDbAPAWCD):before{content:""}.AGILZSwUB@media(hover: none){content:""}`;
+  GenerateCssSet!(Style, Empty).should == `.ACEXGQpUC{background-color:blue}.ACEXGQpUC:after{content:""}.ACEXGQpUC.DQpGODSBD:after{content:""}.ACEXGQpUC:not(.GGGMBFYVA):after{content:""}.ACEXGQpUC:hover:not(.DQpGODSBD):before{content:""}.ACEXGQpUC@media(hover: none){content:""}`;
 }
 
 unittest
@@ -553,7 +553,7 @@ unittest
     }
   }
 
-  GenerateCssSet!(Derived, Empty).should == `.ETbCNAQeD{background-color:blue;color:green}`;
+  GenerateCssSet!(Derived, Empty).should == `.DRECNBcCA{background-color:blue;color:green}`;
 }
 
 template GenerateNestedCssClass(alias symbol)

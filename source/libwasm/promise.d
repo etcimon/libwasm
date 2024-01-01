@@ -137,13 +137,25 @@ private:
 	}
 
 	/// Implements the [[Resolve]](promise, x) resolution procedure.
-	void resolve(scope lazy T valueExpr)
+	void resolve(R, T)(R delegate(T) nothrow del, scope T param) nothrow
 	{
 		Box box;
-		static if (is(T == void))
-			valueExpr;
+		static if (is(R == void))
+			del(param);
 		else
-			box.value = valueExpr;
+			box.value = del(param);
+
+		fulfill(box.tupleof);
+	}
+
+	/// Implements the [[Resolve]](promise, x) resolution procedure.
+	void resolve(R)(R delegate() nothrow del) nothrow
+	{
+		Box box;
+		static if (is(R == void))
+			del();
+		else
+			box.value = del();
 
 		fulfill(box.tupleof);
 	}
@@ -228,12 +240,12 @@ private:
 				static if (is(T == void))
 					assert(p.state != PromiseState.fulfilled);
 
-				import core.stdc.stdio : fprintf, stderr;
+				import libwasm.bindings.Console;
+				import libwasm.types : format;
 
-				fprintf(stderr, "Leaked %s %s\n",
-					p.state == PromiseState.fulfilled ? "fulfilled".ptr
-						: "rejected".ptr,
-					typeof(this).stringof.ptr);
+				console.error(format!"Leaked %s %s\n"(
+						p.state == PromiseState.fulfilled ? "fulfilled" : "rejected",
+						typeof(this).stringof)[]);
 				if (p.state == PromiseState.rejected)
 					_d_print_throwable(p.error);
 				_d_print_throwable(p.leakedPromiseError);
@@ -310,7 +322,7 @@ public:
 			assert(this.state == PromiseState.fulfilled);
 			if (onFulfilled)
 			{
-				next.resolve(onFulfilled(this.value.tupleof));
+				next.resolve(onFulfilled, this.value.tupleof);
 			}
 			else
 			{
@@ -331,7 +343,7 @@ public:
 			assert(this.state == PromiseState.rejected);
 			if (onRejected)
 			{
-				next.resolve(onRejected(this.error));
+				next.resolve(onRejected, this.error);
 			}
 			else
 				next.reject(this.error);
@@ -383,7 +395,7 @@ public:
 			assert(this.state == PromiseState.rejected);
 			if (onRejected)
 			{
-				next.resolve(onRejected(this.error));
+				next.resolve(onRejected, this.error);
 			}
 			else
 				next.reject(this.error);
@@ -427,10 +439,10 @@ public:
 
 		auto next = new typeof(return);
 
-		void handler() /*nothrow*/
+		void handler() nothrow
 		{
 			assert(this.state == PromiseState.fulfilled || this.state == PromiseState.rejected);
-			next.resolve(onResolved());
+			next.resolve(onResolved);
 		}
 
 		final switch (this.state)
@@ -484,7 +496,7 @@ private template Unpromise(P)
 }
 
 // This is the only non-"pure" part of this implementation.
-private void callSoon(void delegate() nothrow dg) @safe nothrow
+private void callSoon()(void delegate() nothrow dg) @safe nothrow
 {
 	setTimeout(dg, 1);
 }

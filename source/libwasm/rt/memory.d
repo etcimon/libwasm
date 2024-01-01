@@ -1,79 +1,138 @@
 module libwasm.rt.memory;
 
-import libwasm.rt.allocator : WasmAllocator;
+version (WebAssembly) import libwasm.rt.allocator : WasmAllocator;
 
-version (LDC)
-import ldc.attributes;
+version (LDC) import ldc.attributes;
 import libwasm.intrinsics;
+
+extern (C) void _d_print_throwable(Throwable t)
+{
+  import libwasm.bindings.Console;
+
+  console.error(t.toString());
+}
+
 nothrow:
 
-extern(C) @safe {
+extern (C) @safe
+{
   void[] FL_allocate(size_t);
   void[] FL_reallocate(void[], size_t);
   void FL_deallocate(void[]);
 }
-@safe nothrow void alloc_init(uint heap_base) {
-  WasmAllocator.init(heap_base);
+
+version (WebAssembly)
+{
+  @safe nothrow void alloc_init(uint heap_base)
+  {
+    WasmAllocator.init(heap_base);
+  }
+
+  extern (C) export void* wasm_malloc(size_t num)
+  {
+    return WasmAllocator.allocate(num).ptr;
+  }
+
+  extern (C) export void wasm_free(void* ptr, size_t size)
+  {
+    // this doesn't free. Try to un-grow?
+    WasmAllocator.deallocate(ptr[0 .. size]);
+    import ldc.intrinsics;
+
+    memset(ptr, 0, size);
+  }
+
+  extern (C) export void* wasm_realloc(void* ptr, size_t oldsize, size_t size)
+  {
+    void* ret = WasmAllocator.allocate(size).ptr;
+    import ldc.intrinsics;
+
+    memcpy(ret, ptr, oldsize);
+    memset(ptr, 0, oldsize);
+    return ret;
+  }
+
+  extern (C) export void* memset(void* ptr, ubyte value, size_t num)
+  {
+
+    ubyte val = cast(ubyte) value;
+    ubyte* p = cast(ubyte*) ptr;
+    foreach (i; 0 .. num)
+      p[i] = val;
+    return ptr;
+  }
 }
 
-extern (C) export void * wasm_malloc(size_t num) {
-  return WasmAllocator.allocate(num).ptr;
+version (unittest)
+{
+  import ldc.intrinsics : llvm_memset;
+
+  @safe nothrow void alloc_init(uint heap_base)
+  {
+  }
+
+  extern (C) export void* wasm_malloc(size_t num)
+  {
+    return (new ubyte[num]).ptr;
+  }
+
+  extern (C) export void wasm_free(void* ptr, size_t size)
+  {
+    // this doesn't free. Try to un-grow?
+    // WasmAllocator.deallocate(ptr[0 .. size]);
+    import ldc.intrinsics;
+
+    llvm_memset(ptr, 0, size);
+  }
+
+  extern (C) export void* wasm_realloc(void* ptr, size_t oldsize, size_t size)
+  {
+    void* ret = wasm_malloc(size);
+    import ldc.intrinsics;
+
+    memcpy(ret, ptr, oldsize);
+    llvm_memset(ptr, 0, oldsize);
+    return ret;
+  }
 }
 
-extern (C) export void wasm_free(void* ptr, size_t size) {
-  // this doesn't free. Try to un-grow?
-  WasmAllocator.deallocate(ptr[0 .. size]);
-  import ldc.intrinsics;
-  memset(ptr, 0, size);
-}
-
-extern (C) export void* wasm_realloc(void* ptr, size_t oldsize, size_t size) {
-  void* ret = WasmAllocator.allocate(size).ptr;
-  import ldc.intrinsics;
-  memcpy(ret, ptr, oldsize);
-  memset(ptr, 0, oldsize);
-  return ret;
-}
-
-extern (C) export void * memcpy(void * destination, const void * source, size_t num) {
-  foreach(i; 0..num) {
-    (cast(ubyte*)destination)[i] = (cast(ubyte*)source)[i];
+extern (C) export void* memcpy(void* destination, const void* source, size_t num)
+{
+  foreach (i; 0 .. num)
+  {
+    (cast(ubyte*) destination)[i] = (cast(ubyte*) source)[i];
   }
   return destination;
 }
 
-extern (C) export void * memset(void* ptr, ubyte value, size_t num) {
-
-  ubyte val = cast(ubyte)value;
-  ubyte* p = cast(ubyte*)ptr;
-  foreach(i;0..num)
-    p[i] = val;
-  return ptr;
+extern (C) export
+int memcmp(void* a, void* b, size_t cnt)
+{
+  foreach (i; 0 .. cnt)
+  {
+    if ((cast(byte*) a)[i] < (cast(byte*) b)[i])
+      return -1;
+    if ((cast(byte*) a)[i] > (cast(byte*) b)[i])
+      return 1;
+  }
+  return 0;
 }
 
-extern(C) export
-  int memcmp(void*a,void*b,size_t cnt) {
-    foreach(i;0..cnt) {
-      if ((cast(byte*)a)[i] < (cast(byte*)b)[i])
-        return -1;
-      if ((cast(byte*)a)[i] > (cast(byte*)b)[i])
-        return 1;
-    }
-    return 0;
+extern (C):
+export void* memmove(void* dest, void* src, size_t num)
+{
+  ubyte[] tmp = cast(ubyte[]) FL_allocate(num);
+  foreach (i; 0 .. num)
+  {
+    *cast(ubyte*)&tmp[i] = *cast(ubyte*)&src[i];
   }
-  
-extern(C):
-  export void* memmove(void*dest,void*src,size_t num) {
-    ubyte[] tmp = cast(ubyte[])FL_allocate(num);
-    foreach(i; 0..num) {
-      *cast(ubyte*)&tmp[i] = *cast(ubyte*)&src[i];
-    }
-    foreach(i; 0..num) {
-      *cast(ubyte*)&dest[i] = *cast(ubyte*)&tmp[i];
-    }
-    FL_deallocate(tmp);
-    return dest;
+  foreach (i; 0 .. num)
+  {
+    *cast(ubyte*)&dest[i] = *cast(ubyte*)&tmp[i];
   }
+  FL_deallocate(tmp);
+  return dest;
+}
 // per-element array init routines
 
 // void _d_array_init_i16(ushort* a, size_t n, ushort v)
