@@ -1,24 +1,39 @@
-name: build
-on: [push, pull_request]
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+    # allow this workflow to be triggered manually
 
 jobs:
-    test:
-        name: Dub Tests
-        strategy:
-            matrix:
-                os: [ubuntu-latest]
-                dc: [ldc-latest, ldc-1.20.0, ldc-1.19.0, ldc-1.18.0, ldc-1.17.0]
-        runs-on: ${{ matrix.os }}
-        steps:
-            - uses: actions/checkout@v1
-
-            - name: Install D compiler
-              uses: mihails-strasuns/setup-dlang@v0.4.0
-              with:
-                  compiler: ${{ matrix.dc }}
-
-            - name: Run tests
-              run: make test
-              
-            - name: Build
-              run: make build
+  builder:
+    name: "Build and test on ${{ matrix.arch }}-${{ matrix.os }}/${{ matrix.dc }}"
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ contains(matrix.dc, 'beta') }}
+    env:
+      ARCH: ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        dc: [ldc-latest]
+        os: [ubuntu-latest]
+        arch: [x86_64]
+        include:
+          - dc: ldc-latest
+            os: macos-latest
+            arch: x86_64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dlang-community/setup-dlang@v1
+        with:
+          compiler: ${{ matrix.dc }}
+      - id: build
+        name: Test building
+        run: |
+          dub test --arch=$ARCH
+        shell: bash
