@@ -106,6 +106,30 @@ version (unittest)
     return 0;
   }
 
+  Handle libwasm_add__bool(bool)
+  {
+    return Handle.init;
+  }
+
+  void Object_VarArgCall__void(Handle, string, string, string)
+  {
+
+  }
+
+  Optional!Handle Object_Getter__OptionalHandle(Handle, string)
+  {
+    return Optional!Handle.init;
+  }
+
+  string Object_Getter__string(Handle, string)
+  {
+    return "";
+  }
+
+  Handle Object_Getter__Handle(Handle, string)
+  {
+    return Handle.init;
+  }
 }
 else
 {
@@ -131,6 +155,11 @@ else
     string ldexec_long__string(long, string, bool delegate(), void delegate(Handle));
     Handle ldexec_long__Handle(long, string, bool delegate(), void delegate(Handle));
     int setTimeout(int ctx, int ptr, int ms);
+    Handle libwasm_add__bool(bool);
+    void Object_VarArgCall__void(Handle, string, string, string);
+    Optional!Handle Object_Getter__OptionalHandle(Handle, string);
+    string Object_Getter__string(Handle, string);
+    Handle Object_Getter__Handle(Handle, string);
 
   }
 }
@@ -139,7 +168,6 @@ extern (C)
 {
 @safe:
   void doLog(uint val);
-  Handle libwasm_add__bool(bool);
   Handle libwasm_add__int(int);
   Handle libwasm_add__uint(uint);
   Handle libwasm_add__long(long);
@@ -179,7 +207,6 @@ extern (C)
   void Object_Call_Handle__void(Handle, string, Handle);
   void Object_Call_string_string__void(Handle, string, string, string);
   void Object_Call_double_double__void(Handle, string, double, double);
-  Handle Object_Getter__Handle(Handle, string);
   Handle Object_Call_string__Handle(Handle, string, string);
   Handle Object_Call_uint__Handle(Handle, string, uint);
   Handle Object_Call_int__Handle(Handle, string, int);
@@ -191,13 +218,11 @@ extern (C)
   Optional!double Object_Getter__OptionalDouble(Handle, string);
   Optional!bool Object_Getter__OptionalBool(Handle, string);
   Optional!string Object_Call_string__OptionalString(Handle, string, string);
-  Optional!Handle Object_Getter__OptionalHandle(Handle, string);
   EventHandler Object_Getter__EventHandler(Handle, string);
   Optional!Handle Object_Call_string__OptionalHandle(Handle, string, string);
   Optional!Handle Object_Call_uint__OptionalHandle(Handle, string, uint);
   Optional!Handle Object_Call_int__OptionalHandle(Handle, string, int);
   Optional!Handle Object_Call_bool__OptionalHandle(Handle, string, bool);
-  string Object_Getter__string(Handle, string);
   int Object_Getter__int(Handle, string);
   uint Object_Getter__uint(Handle, string);
   ushort Object_Getter__ushort(Handle, string);
@@ -209,7 +234,6 @@ extern (C)
   string Object_Call_uint__string(Handle, string, uint);
   string Object_Call_uint_uint__string(Handle, string, uint, uint);
 
-  void Object_VarArgCall__void(Handle, string, string, string);
   bool Object_VarArgCall__bool(Handle, string, string, string);
   string Object_VarArgCall__string(Handle, string, string, string);
   int Object_VarArgCall__int(Handle, string, string, string);
