@@ -3,10 +3,11 @@ copyright "Copyright © 2018, Ali Akhtarzada"
 description "An optional/maybe type with safe dispatchingrange semantics"
 authors "Ali Akhtarzada"
 license "MIT"
-sourcePaths "source/"
-targetPath "bin"
+sourcePaths "source/" 
+targetType "staticLibrary"
 
 configuration "normal" {
+    importPaths "../druntime/"
     dflags "--fvisibility=hidden" "--fno-exceptions"
 }
 

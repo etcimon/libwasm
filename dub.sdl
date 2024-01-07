@@ -11,7 +11,7 @@ dependency "optional-wasm" path="./optional"
 subPackage "webidl"
 dflags "-dip1000"
 
-toolchainRequirements ldc=">=1.35.0"
+toolchainRequirements ldc=">=1.36.0"
 versions "CRuntime_LIBWASM"
 buildRequirements "allowWarnings" # required for ldc 1.16
 sourcePaths "source" 
