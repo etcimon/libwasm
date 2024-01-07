@@ -8,7 +8,7 @@ targetType "staticLibrary"
 
 configuration "normal" {
     importPaths "../druntime/"
-    dflags "--fvisibility=hidden" "--fno-exceptions"
+    dflags "--fvisibility=hidden" "--fno-exceptions" "-fno-moduleinfo"
 }
 
 configuration "unittest" {

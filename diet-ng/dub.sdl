@@ -12,7 +12,7 @@ targetType "library"
 subPackage "makepot"
 
 configuration "normal" {    
-    dflags "-fvisibility=hidden" "-fno-exceptions" #"--vv" "--vtemplates" "--vcolumns" "--v-cg" "--verrors-context" #"--verrors-spec" #"-Oz" "-fvisibility=hidden" "-dip1000"
+    dflags "-fvisibility=hidden" "-fno-exceptions" "-fno-moduleinfo" #"--vv" "--vtemplates" "--vcolumns" "--v-cg" "--verrors-context" #"--verrors-spec" #"-Oz" "-fvisibility=hidden" "-dip1000"
 }
 configuration "unittest" {
     targetType "library"
