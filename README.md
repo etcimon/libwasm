@@ -1,4 +1,5 @@
-# libwasm
+# libwasm [![CI](https://github.com/etcimon/libwasm/actions/workflows/main.yml/badge.svg)](https://github.com/etcimon/libwasm/actions/workflows/main.yml)
+
 
 libwasm is a library based on [spasm](https://github.com/skoppe/spasm/) to develop single page applications in D that compile to webassembly.
 
