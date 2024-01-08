@@ -136,7 +136,7 @@ else
   extern (C) @safe
   {
     Handle libwasm_add__object();
-    Handle libwasm_add__string(scope ref string);
+    Handle libwasm_add__string(string);
     void libwasm_removeObject(Handle);
     void Static_Call_Handle__void(string, string, Handle);
 
@@ -168,6 +168,7 @@ extern (C)
 {
 @safe:
   void doLog(uint val);
+  void libwasm_await__void(Handle);
   Handle libwasm_add__int(int);
   Handle libwasm_add__uint(uint);
   Handle libwasm_add__long(long);
@@ -178,7 +179,11 @@ extern (C)
   Handle libwasm_add__double(double);
   Handle libwasm_add__byte(byte);
   Handle libwasm_add__ubyte(ubyte);
+  Handle libwasm_add__handles(Handle[]);
   Handle libwasm_copyObjectRef(Handle);
+  Handle libasync_promise_all__promise(Handle);
+  Handle libasync_promise_any__promise(Handle);
+  Handle libasync_promise_allsatisfy__promise(Handle);
   void libwasm_set__function(string, int ctx, int ptr);
   void libwasm_unset__function(string);
   Handle libwasm_get__field(Handle, string);
@@ -812,7 +817,7 @@ nothrow:
   }
 }
 
-struct JsPromise(T)
+struct JsPromise(T = Any)
 {
   alias U = Any;
 nothrow:
@@ -821,6 +826,19 @@ nothrow:
   this(Handle h)
   {
     this.handle = JsHandle(h);
+  }
+
+  static auto all()(auto ref JsHandle[] args) {
+    auto handle = JsObject(libwasm_add__handles(args));
+    mixin("return JsPromise!Any(libasync_promise_all__promise(handle));");
+  }
+  static auto allSatisfy()(auto ref JsHandle[] args) {   
+    auto handle = JsObject(libwasm_add__handles(args));
+    mixin("return JsPromise!Any(libasync_promise_allsatisfy__promise(handle));");
+  }
+  static auto any()(auto ref JsHandle[] args) {   
+    auto handle = JsObject(libwasm_add__handles(args));
+    mixin("return JsPromise!Any(libasync_promise_any__promise(handle));");
   }
 
   alias JoinedType = BridgeType!T;
@@ -859,6 +877,11 @@ nothrow:
   // todo: .Finally(()=>
   // todo: Promise.cancel(), Promise.state()
 
+}
+
+/// Waits for the promise to finish
+void await(T: JSPromise!T)(auto ref JSPromise!T promise) {
+  libwasm_await__void(promise.handle.handle);
 }
 
 struct Sequence(T)
