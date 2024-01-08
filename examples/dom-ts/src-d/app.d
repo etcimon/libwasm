@@ -12,7 +12,6 @@ import fast.json;
 import fast.format;
 import libwasm.moment;
 import optional;
-import object;
 import libwasm.promise;
 nothrow:
 @safe:
@@ -72,12 +71,35 @@ struct Main {
   }
 
   void catchOnClick(Handle hndl) {
+    auto pool = ScopedPool(m_pool);
     MouseEvent ev = MouseEvent(hndl);
     console.log("Hello from D");
     console.log(ev);
+    auto requestInfo = RequestInfo("https://reqres.in/api/users/2");
+        RequestInit ri = RequestInit(JSON.parse(`{
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json;charset=utf-8"
+      },
+      "body": "{\"user\": 123}"
+    }`));
+    auto promise = window.fetch(requestInfo, ri);
+    promise.then(r => r.text).then((scope data){
+      console.log("Resolved");
+        console.log(typeof(data).stringof);
+        auto sp = ScopedPool(m_pool);
+        console.log(data.as!string);
+        auto user_json = parseJSON!PoolStackAllocator(data.as!string);
+        User user = user_json.read!User;
+        console.log(user.createdAt);
+      }).error((scope reason) {
+        console.log("Caught error");
+        console.log(reason);
+      }).await();
+      console.log("Finished");
   }
 
-  @connect!("field.enter") void enter() @trusted {
+  @connect!("field.enter") void enter() {
     auto pool = ScopedPool(m_pool);
     import diet.html : compileHTMLDietFile;
         RequestInit ri = RequestInit(JSON.parse(`{
@@ -93,14 +115,14 @@ struct Main {
       console.log("Resolved");
         console.log(typeof(data).stringof);
         auto sp = ScopedPool(m_pool);
+        console.log(data.as!string);
         auto user_json = parseJSON!PoolStackAllocator(data.as!string);
         User user = user_json.read!User;
         console.log(user.createdAt);
       }).error((scope reason) {
         console.log("Caught error");
         console.log(reason);
-      });
-
+      }).await();
     string s = new string(5);
     s = "hello";
     console.log(s);

@@ -1,5 +1,7 @@
 declare let window: any
 
+import { instantiateStreaming } from './asyncify';
+
 const abort = (what: string, file: string, line: number, msg: string) => {
     console.error(`ABORT: ${what} @ ${file}:${line} ${msg}`)
     throw `ABORT: ${what} @ ${file}:${line} ${msg}`
@@ -74,7 +76,7 @@ const libwasm: any = {
                 (window.ao = libwasm.addObject)
             window.es = encoders.string
             window.nodes = libwasm.objects
-            window.callNative = (fct_name: string, val: any) => {
+            window.callNative = async (fct_name: string, val: any) => {
                 let fct = libwasm.nativeFunctionMap[fct_name]
                 if (fct && fct.fun) {
                     let handle = addObject(val)
@@ -86,35 +88,17 @@ const libwasm: any = {
                 } else console.error(`Function ${fct_name} is not registered.`)
             }
         }
-        if ('undefined' === typeof WebAssembly.instantiateStreaming) {
-            fetch('dom.wasm')
-                .then((request) => request.arrayBuffer())
-                .then((bytes) => WebAssembly.compile(bytes))
-                .then((module) => {
-                    let instance = new WebAssembly.Instance(
-                        module,
-                        libwasm.exports
-                    )
-                    libwasm.instance = instance
-                    setupMemory(instance.exports.memory)
-                    ;(instance.exports as any)._start(
-                        instance.exports.__heap_base
-                    )
-                    heap_base_value = (instance.exports as any).__heap_base
-                        .value
-                })
-        } else {
-            WebAssembly.instantiateStreaming(
-                fetch('dom.wasm'),
-                libwasm.exports
-            ).then((obj) => {
-                let instance = obj.instance
-                libwasm.instance = instance
-                setupMemory(instance.exports.memory)
-                ;(instance.exports as any)._start(instance.exports.__heap_base)
-                heap_base_value = (instance.exports as any).__heap_base.value
-            })
-        }
+        instantiateStreaming(
+            fetch('dom.wasm'),
+            libwasm.exports
+        ).then((obj) => {
+            let instance = obj.instance
+            libwasm.instance = instance
+            libwasm.exports = instance.exports
+            setupMemory(instance.exports.memory)
+            ;(instance.exports as any)._start(instance.exports.__heap_base)
+            heap_base_value = (instance.exports as any).__heap_base.value
+        }).catch(alert)
     },
     objects,
     addObject: addObject,
@@ -177,6 +161,18 @@ const decoders = {
         }
         return str
     },
+    handles: (len: number, offset: number, heapi32u: any = null) => {
+        if (offset == null) {
+            if (!heapi32u) heapi32u = new Uint32Array(libwasm.memory.buffer)
+            offset = heapi32u[(len + 4) / 4]
+            len = heapi32u[len / 4]
+        }
+        let handles: number[] | undefined
+        const dv = new DataView(libwasm.memory.buffer, offset, len)
+        for (let i = 0; i < len; i++)
+            handles?.push(dv.getUint32(i))
+        return handles
+    },
 }
 let jsExports = {
     env: {
@@ -199,6 +195,10 @@ let jsExports = {
         libwasm_add__string: (len: number, offset: number) => {
             let str = decoders.string(len, offset)
             return addObject(str)
+        },
+        libwasm_add__handles: (len: number, offset: number) => {
+            let handles = decoders.handles(len, offset)
+            return addObject(handles)
         },
         libwasm_set__function: (
             len: number,
@@ -236,6 +236,12 @@ let jsExports = {
         libwasm_get__ubyte: getObject,
         libwasm_get__string: (rawResult: number, ptr: number) => {
             encoders.string(rawResult, getObject(ptr))
+        },
+        libwasm_await__void: async (handle: number)=>{
+            let promise = getObject(handle)
+            return new Promise((resolve) => {
+              promise.finally(()=>resolve(null))        
+            });
         },
         libwasm_removeObject: (ptr: number) => {
             if (objects[ptr] === undefined) return

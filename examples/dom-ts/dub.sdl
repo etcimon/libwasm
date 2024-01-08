@@ -11,9 +11,10 @@ dflags "-fvisibility=hidden" "-flto=full" "--wasm-enable-eh" "-fno-exceptions" "
 lflags "-strip-all"
 
 targetPath "public"
-targetName "dom"
+targetName "dom-raw"
 
 sourcePaths "src-d"
 importPaths "../../source" "../../druntime"
 stringImportPaths "src-d-views"
 buildRequirements "allowWarnings"
+postBuildCommands "wasm-opt --asyncify --pass-arg=asyncify-imports@env.libwasm_await__void public/dom-raw.wasm -o public/dom.wasm"

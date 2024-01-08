@@ -2,11 +2,11 @@
 import _ from 'lodash'
 import { libwasm, decoders as decoder, encoders as encoder } from './libwasm.js'
 
-const eventHandler = (event: any) => {
+const eventHandler = async (event: any) => {
     const handlers = event.currentTarget.wasmEvents[event.type]
     const cbs = handlers.cbs
 
-    cbs.forEach((cb: any) => {
+    cbs.forEach(async (cb: any) => {
         let idx = libwasm.addObject(event)
         libwasm.instance.exports.domEvent(cb.ctx, cb.fun, idx)
     })
@@ -33,7 +33,6 @@ export let jsExports = {
             libwasm.addObject(style)
         },
         addClass: (node: number, classLen: number, classOffset: number) => {
-            console.log(libwasm)
             libwasm.objects[node].classList.add(
                 decoder.string(classLen, classOffset)
             )

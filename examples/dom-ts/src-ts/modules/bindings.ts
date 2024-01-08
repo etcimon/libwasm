@@ -133,13 +133,6 @@ const Object_VarArgCall = (
     jsonArgsLen: number,
     jsonArgsOffset: number
 ) => {
-    console.log(nodePtr)
-    console.log(propLen)
-    console.log(propOffset)
-    console.log(argsdefLen)
-    console.log(argsdefOffset)
-    console.log(jsonArgsLen)
-    console.log(jsonArgsOffset)
 
     setupMemory([libwasm.MemoryIdentifiers.i32u])
     let node: any = libwasm.objects[nodePtr]
@@ -149,13 +142,11 @@ const Object_VarArgCall = (
         argsdefOffset,
         memory.heapi32u
     )
-    console.log(argsdef)
     let jsonArgs: string = decoder.string(
         jsonArgsLen,
         jsonArgsOffset,
         memory.heapi32u
     )
-    console.log(jsonArgs)
     let args: any = JSON.parse(jsonArgs)
     let argsdef_arr: any = argsdef.split(';')
     let args_arr: any = []
@@ -335,6 +326,30 @@ export let jsExports = {
                 })
             )
             return ret
+        },
+        libasync_promise_all__promise: (ctx: number) => {
+            const handles = libwasm.getObject(ctx)
+            let promises : any[] = []
+            handles.forEach((handle: number)=> {
+                promises.push(libwasm.getObject(handle))
+            })
+            return Promise.all(promises)
+        },
+        libasync_promise_allsettled__promise: (ctx: number) => {
+            const handles = libwasm.getObject(ctx)
+            let promises : any[] = []
+            handles.forEach((handle: number)=> {
+                promises.push(libwasm.getObject(handle))
+            })
+            return Promise.allSettled(promises)
+        },
+        libasync_promise_any__promise: (ctx: number) => {
+            const handles = libwasm.getObject(ctx)
+            let promises : any[] = []
+            handles.forEach((handle: number)=> {
+                promises.push(libwasm.getObject(handle))
+            })
+            return Promise.any(promises)
         },
         promise_then_6uhandlehandle: (
             handle: number,
@@ -1072,7 +1087,6 @@ export let jsExports = {
                 )
                 const commands = JSON.parse(commands_str)
                 //
-                console.log(commands_str)
                 // find locals
                 for (let idx in commands) {
                     if (commands[idx]['local'] !== undefined) {

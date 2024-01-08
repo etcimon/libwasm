@@ -183,7 +183,7 @@ extern (C)
   Handle libwasm_copyObjectRef(Handle);
   Handle libasync_promise_all__promise(Handle);
   Handle libasync_promise_any__promise(Handle);
-  Handle libasync_promise_allsatisfy__promise(Handle);
+  Handle libasync_promise_allsettled__promise(Handle);
   void libwasm_set__function(string, int ctx, int ptr);
   void libwasm_unset__function(string);
   Handle libwasm_get__field(Handle, string);
@@ -832,9 +832,9 @@ nothrow:
     auto handle = JsObject(libwasm_add__handles(args));
     mixin("return JsPromise!Any(libasync_promise_all__promise(handle));");
   }
-  static auto allSatisfy()(auto ref JsHandle[] args) {   
+  static auto allSettled()(auto ref JsHandle[] args) {   
     auto handle = JsObject(libwasm_add__handles(args));
-    mixin("return JsPromise!Any(libasync_promise_allsatisfy__promise(handle));");
+    mixin("return JsPromise!Any(libasync_promise_allsettled__promise(handle));");
   }
   static auto any()(auto ref JsHandle[] args) {   
     auto handle = JsObject(libwasm_add__handles(args));
@@ -856,7 +856,7 @@ nothrow:
     alias RejectCallback = extern (C) void delegate(U) nothrow;
   }
 
-  auto then(ResultType)(ResultType delegate(T) nothrow cb) @trusted
+  auto then(ResultType)(scope ResultType delegate(T) nothrow cb) @trusted
   {
     enum TMangled = libwasmMangle!T;
     enum ResultTypeMangled = libwasmMangle!ResultType;
@@ -866,7 +866,7 @@ nothrow:
       "return JsPromise!(ResultType)(" ~ funName ~ "(handle, cast(JoinedCallback!(BridgeType!ResultType))cb));");
   }
 
-  auto error()(void delegate(U) nothrow cb) @trusted
+  auto error()(scope void delegate(U) nothrow cb) @trusted
   {
     enum TMangled = libwasmMangle!U;
     enum funName = "promise_error_" ~ TMangled.length.stringof ~ TMangled;
@@ -880,8 +880,11 @@ nothrow:
 }
 
 /// Waits for the promise to finish
-void await(T: JSPromise!T)(auto ref JSPromise!T promise) {
+void await(T)(auto ref T promise) {
+  import libwasm.bindings.Console;
+  console.log("Awaiting");
   libwasm_await__void(promise.handle.handle);
+  console.log("Awaited");
 }
 
 struct Sequence(T)

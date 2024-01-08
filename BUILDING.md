@@ -20,3 +20,7 @@ Use this version of dub which supports probing without importing druntime: https
 A simple `dub build --arch=wasm32-unknown-wasi` should just work.
 
 The only supported compiler is ldc >= 1.35.0
+
+You can .await() promises if you run `wasm-opt --asincify yourfile.wasm -o yourfile-opt.wasm`
+
+Add the `-Oz` flag to optimize the wasm.

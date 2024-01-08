@@ -5,9 +5,9 @@ libwasm is a library based on [spasm](https://github.com/skoppe/spasm/) to devel
 
 It has been modified to contain working bindings to all of the javascript browser APIs, listed in libwasm.bindings. In addition, lodash and moment is added by default and bindigns are in libwasm.lodash and libwasm.moment. There is also an experimental router to handle navigation changes, and a compile-time diet template html generator which can call back native code easily.
 
-The dom-ts example compiles into a 54kb gzipped wasm and a 30kb gzipped javascript library with lodash and momentjs. All of druntime is supported but the phobos standard library is still in the process of being integrated.
+The dom-ts example compiles into a 49kb gzipped wasm and a 30kb gzipped javascript library with lodash and momentjs. All of druntime is supported but the phobos standard library is still in the process of being integrated.
 
-As well as a small but powerful SPA framework, which includes CSS. Yes. CSS-in-wasm.
+You can also use `.await` on promises, which will yield and resume, thanks to `binaryen`'s `wasm-opt --asyncify`.
 
 ## Table Of Contents
 
