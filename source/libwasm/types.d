@@ -5,6 +5,7 @@ nothrow:
 public import optional;
 public import libwasm.sumtype;
 public import libwasm.lodash;
+public import libwasm.bindings.Console;
 import memutils.vector;
 import std.traits : hasMember, isCallable, isBasicType, isSomeString;
 import libwasm.event : toTuple;
@@ -130,6 +131,12 @@ version (unittest)
   {
     return Handle.init;
   }
+  string libwasm_get__string(Handle) {
+    return "";
+  }
+  
+  void libwasm_set__function(string, int ctx, int ptr) {}
+  void Object_Call_EventHandler__void(Handle, string, bool, scope EventHandlerNonNull) {}
 }
 else
 {
@@ -160,6 +167,9 @@ else
     Optional!Handle Object_Getter__OptionalHandle(Handle, string);
     string Object_Getter__string(Handle, string);
     Handle Object_Getter__Handle(Handle, string);
+    string libwasm_get__string(Handle);
+    void libwasm_set__function(string, int ctx, int ptr);
+    void Object_Call_EventHandler__void(Handle, string, bool, scope EventHandlerNonNull);
 
   }
 }
@@ -185,7 +195,6 @@ extern (C)
   Handle libasync_promise_all__promise(Handle);
   Handle libasync_promise_any__promise(Handle);
   Handle libasync_promise_allsettled__promise(Handle);
-  void libwasm_set__function(string, int ctx, int ptr);
   void libwasm_unset__function(string);
   Handle libwasm_get__field(Handle, string);
   Handle libwasm_get_idx__field(Handle, uint);
@@ -200,14 +209,12 @@ extern (C)
   double libwasm_get__double(Handle);
   byte libwasm_get__byte(Handle);
   ubyte libwasm_get__ubyte(Handle);
-  string libwasm_get__string(Handle);
   void Static_Call_string__void(string, string, string);
   void Object_Call__void(Handle, string);
   void Object_Call_string__void(Handle, string, string);
   void Object_Call_uint__void(Handle, string, uint);
   void Object_Call_int__void(Handle, string, int);
   void Object_Call_bool__void(Handle, string, bool);
-  void Object_Call_EventHandler__void(Handle, string, bool, scope EventHandlerNonNull);
   void Object_Call_double__void(Handle, string, double);
   void Object_Call_float__void(Handle, string, float);
   void Object_Call_Handle__void(Handle, string, Handle);
@@ -272,8 +279,17 @@ int setInterval(Delegate)(Delegate del, int ms)
   return setInterval(del.toTuple.expand, ms);
 }
 
-void exportDelegate(Delegate)(string name, Delegate del)
+void exportDelegate()(string name, auto ref void delegate(Handle) del) @trusted
 {
+  //console.log("exportDelegate(Del)");
+  return libwasm_set__function(name, del.toTuple.expand);
+}
+
+void exportDelegate()(string name, auto ref void function(Handle) fun) @trusted {  
+  auto del = (Handle hndl) {
+    fun(hndl);
+  };
+  //console.log("exportDelegate(Fun)");
   return libwasm_set__function(name, del.toTuple.expand);
 }
 

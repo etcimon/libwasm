@@ -42,7 +42,7 @@ https://github.com/CyberShadow/ae/blob/master/utils/promise/package.d
 
 private enum maxRouteParameters = 64;
 
-private struct Route
+private class Route
 {
 @safe nothrow:
 
@@ -51,11 +51,17 @@ private struct Route
     Optional!(Promise!void) delegate(ref RouterEvent ev) entering_cb;
     Optional!(Promise!void) delegate(ref RouterEvent ev) leaving_cb;
     Optional!(Promise!void) delegate(ref RouterEvent ev) always_cb;
+    this(Array!char _pattern) { pattern = _pattern; }
+    ~this() {
+        //console.log("Route destroyed for pattern");
+        //console.log(pattern[]);
+    }
 
-    bool matches()(string url, ref HashMap!(string, string) params) @trusted
+    bool matches(string url, ref HashMap!(string, string) params) @trusted
     {
         size_t i, j;
-
+        //console.log("Matches");
+        //console.log(url);
         // store parameters until a full match is confirmed
         import memutils.ct;
 
@@ -97,8 +103,10 @@ private struct Route
         return false;
     }
 
-    bool matches()(string url)
+    bool matches(string url)
     {
+        //console.log("matches");
+        //console.log(url);
         size_t i, j;
 
         for (i = 0, j = 0; i < url.length && j < pattern.length;)
@@ -150,7 +158,7 @@ static:
     }
 }
 
-struct URLRouter
+class URLRouter
 {
 @safe nothrow:
 
@@ -169,11 +177,16 @@ struct URLRouter
         Array!char m_pendingURL;
 
         Array!char m_title;
+        ManagedPool m_pool;
+    }
+
+    this() {
+        m_pool = ManagedPool(64*1024);
+        setupRouter();
     }
 
     ~this()
     {
-        import libwasm.bindings.Console;
 
         console.error("Destroying router");
 
@@ -199,7 +212,19 @@ struct URLRouter
         return m_base_path[];
     }
 
-    void setupRouter()() @trusted
+    void delegate(Handle) getDelegate() {
+        return (Handle hndl) {
+                //console.log("In delegate");
+                string path = libwasm_get__string(hndl);
+                //console.log("Got path");
+                //console.log(path);
+                navigateTo(path);
+                //console.log("Done");
+                libwasm_removeObject(hndl);
+            };
+    }
+
+    private void setupRouter()
     {
         if (!m_is_setup)
         {
@@ -207,11 +232,12 @@ struct URLRouter
             import libwasm.bindings.Location;
             import libwasm.bindings.Window;
             import libwasm.bindings.EventHandler;
+            //console.log("Allocating delegate");
+            exportDelegate("navigate_to", getDelegate());
+            //console.log("Allocated delegate");
 
-            auto scoped = ScopedPool();
             auto onpopstate = EventHandler(cast(EventHandlerNonNull)(&onPopState));
             window().onpopstate(onpopstate);
-            navigateTo(document().location().front.pathname());
             m_is_setup = true;
         }
     }
@@ -228,6 +254,8 @@ struct URLRouter
         void setupIterator(Array!Route _leaving_candidates, Array!Route _entering_candidates, Array!char _newPath)
         {
             leaving_candidates = _leaving_candidates;
+            //console.log("Setting up iterator with n entering candidates");
+            //console.log(_entering_candidates.length);
             entering_candidates = _entering_candidates;
             newPath = _newPath;
         }
@@ -237,12 +265,15 @@ struct URLRouter
             bool still_busy;
             import libwasm.bindings.Console;
 
-            console.log("Iterate: ");
-            console.log(m_title[]);
-            console.log(newPath[]);
-            console.log(newPath[] == "/home");
+            auto scoped = ScopedPool(m_pool);
+            //console.log("Iterate: ");
+            //console.log(m_title[]);
+            //console.log(newPath[]);
+            //console.log(newPath[] == "/home");
             if (!leaving_candidates.empty)
             {
+                //console.log("Leaving candidates n:");
+                //console.log(leaving_candidates.length);
                 auto r = leaving_candidates.back;
                 leaving_candidates.removeBack();
                 if (!r.matches(newPath[]))
@@ -252,7 +283,8 @@ struct URLRouter
                     ev.prevURL = m_currentURL[];
                     r.matches(r.active_url[], ev.parameters);
 
-                    Optional!(Promise!void) promise = r.leaving_cb(ev);
+                    Optional!(Promise!void) promise;
+                    if (r.leaving_cb) promise = r.leaving_cb(ev);
                     r.active_url.clear();
                     // remove from activeRoutes
                     if (!promise.empty)
@@ -264,48 +296,60 @@ struct URLRouter
             }
             else if (!entering_candidates.empty)
             {
+                //console.log("We have entering candidates");
                 RouterEvent ev;
                 auto r = entering_candidates.front;
                 entering_candidates.removeFront();
 
-                console.log(newPath[]);
-                import std.algorithm : canFind;
-
-                if (!m_activeRoutes[].canFind(r))
+                //console.log(newPath[]);
+                bool found;
+                foreach (route; m_activeRoutes[]) {
+                    if (route.pattern[] == r.pattern[]) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
                 {
-                    console.log(newPath[]);
+                    //console.log("We cannot find this active route");
+                    //console.log(newPath[]);
                     if (r.matches(newPath[], ev.parameters))
                     {
-                        console.log(newPath[]);
+                        //console.log(newPath[]);
                         ev.newURL = newPath[];
                         ev.prevURL = m_currentURL[];
-                        console.log(newPath[]);
+                        //console.log(newPath[]);
 
-                        Optional!(Promise!void) promise = r.entering_cb(ev);
+                        Optional!(Promise!void) promise;
+                        if (r.entering_cb) promise = r.entering_cb(ev);
                         r.active_url[] = cast(char[]) newPath[];
-                        console.log("Added to active url");
-                        console.log(newPath[]);
+                        //console.log("Added to active url");
+                        //console.log(newPath[]);
                         m_activeRoutes ~= r;
                         if (!promise.empty)
                         {
-                            console.log("Promise was not empty");
+                            //console.log("Promise was not empty");
                             promise.front.then(&iterate);
                             still_busy = true;
                         }
                     }
+                } else {
+                    
+                    //console.log("We found this active route");
                 }
             }
             else
             {
+                    //console.log("Both entering and leaving candidates were empty");
                 m_busy = false;
 
                 import libwasm.bindings.Window;
                 import libwasm.bindings.History;
                 import libwasm.dom : window;
 
-                console.log("Pushing state: ");
-                console.log(m_title[]);
-                console.log(newPath[]);
+                //console.log("Pushing state: ");
+                //console.log(m_title[]);
+                //console.log(newPath[]);
                 if (m_is_setup)
                     window().history().pushState(null, m_title[], Optional!string(newPath[]));
 
@@ -332,6 +376,9 @@ struct URLRouter
     void register(string path)(Optional!(Promise!void) delegate(
             ref RouterEvent ev) nothrow @safe cb, Direction direction)
     {
+        auto scoped = ScopedPool(m_pool);
+        //console.log("Registering");
+        //console.log(path);
         //static assert(path.count(':') <= maxRouteParameters, "Too many route parameters");
         bool found;
         foreach (route; m_routes[])
@@ -341,6 +388,7 @@ struct URLRouter
                 final switch (direction)
                 {
                 case Direction.Entering:
+                     //console.log("Is entering cb");
                     route.entering_cb = cb;
                     break;
                 case Direction.Leaving:
@@ -356,13 +404,15 @@ struct URLRouter
         }
         if (!found)
         {
-            auto route = Route(Array!char(path));
+            auto route = new Route(Array!char(path));
             final switch (direction)
             {
             case Direction.Entering:
+                     //console.log("Is entering cb");
                 route.entering_cb = cb;
                 break;
             case Direction.Leaving:
+                     //console.log("Is leaving cb");
                 route.leaving_cb = cb;
                 break;
             case Direction.Always:
@@ -375,14 +425,14 @@ struct URLRouter
     }
 
     /// Handles a HTTP request by dispatching it to the registered route handlers.
-    void navigateTo()(string new_url)
+    void navigateTo(string new_url)
     {
-        import libwasm.bindings.Console;
-
-        console.log("navigating to");
-        console.log(new_url);
-
-        if (new_url.length < m_base_path.length || new_url[0 .. m_base_path.length] != m_base_path[])
+        //console.log("navigating to1");
+        auto scoped = ScopedPool(m_pool);
+        //console.log("navigating to");
+        //console.log(new_url);
+        //console.log(m_base_path.length);
+        if (new_url.length < m_base_path.length || (m_base_path.length > 0 && new_url[0 .. m_base_path.length] != m_base_path[]))
             return;
         new_url = new_url[m_base_path.length .. $];
 
@@ -395,13 +445,17 @@ struct URLRouter
 
         m_busy = true;
 
+        //console.log("Setup Iterator");
+        //console.log(m_routes.length);
         setupIterator(Array!Route(m_activeRoutes[]), Array!Route(m_routes[]), Array!char(new_url));
+        //console.log("Iterate");
         iterate();
 
     }
 
     void handleLinkEvent()(MouseEvent ev)
     {
+        auto scoped = ScopedPool(m_pool);
         import libwasm.bindings.HTMLLinkElement;
         import libwasm.bindings.Node;
 
@@ -425,7 +479,7 @@ struct URLRouter
         import libwasm.bindings.Location;
         import libwasm.bindings.Window;
 
-        auto scoped = ScopedPool();
+        auto scoped = ScopedPool(m_pool);
         navigateTo(document().location().front.pathname());
         return Any.init;
     }
@@ -499,10 +553,10 @@ void registerRoutes(T)(auto ref T t) @trusted
 
 void setupRouter()()
 {
-    g_router.setupRouter();
+    g_router = new URLRouter();
 }
 
-ref URLRouter router()
+URLRouter router()
 {
     return g_router;
 }

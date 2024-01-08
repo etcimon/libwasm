@@ -187,7 +187,9 @@ version (WebAssembly)
 {
     import memutils.scoped;
 
-    auto ret = PoolStack.top.alloc(bytes + 1);
+    void[] ret;
+    if (!PoolStack.empty) ret = PoolStack.top.alloc(bytes + 1);
+    else ret = FL_allocate(bytes+1);
     *cast(ubyte*)(ret.ptr + ret.length - 1) = '\0'; // always return zero-ended. wrong size can be sent because this is not freed
     return cast(ubyte*) ret.ptr;
 }
@@ -198,8 +200,12 @@ version (WebAssembly)
 extern (C) export void* _d_allocmemory(size_t sz)
 {
     import memutils.scoped;
-
-    return PoolStack.top.alloc(sz).ptr;
+    if (!PoolStack.empty)
+        return PoolStack.top.alloc(sz).ptr;    
+    else
+        return FL_allocate(sz).ptr;
+    
+    
 }
 
 struct ThreadMemAllocator

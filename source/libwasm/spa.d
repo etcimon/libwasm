@@ -115,8 +115,9 @@ mixin template Spa(Application, Theme)
     import libwasm.rt.memory;
     import fast.internal.helpers : logInfo, logError;
     import memutils.constants : writeln, parseInt;
-
+    import memutils.scoped;
     alloc_init(heap_base);
+    PoolStack.initialize();
     auto root = getRoot();
     addApplicationCss!(Application, Theme)();
     writeln = &log_info;
@@ -128,9 +129,14 @@ mixin template Spa(Application, Theme)
       application.main();
     }
     application.compile();
+    setupRouter();
     application.registerRoutes();
     libwasm.dom.render(root, application);
-    setupRouter();
+    static if (__traits(hasMember, Application, "ready"))
+    {
+      application.ready();
+    }
+    else router().navigateTo(document().location().front.pathname());
   }
 
   version (hmr)

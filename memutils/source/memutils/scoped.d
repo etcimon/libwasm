@@ -29,10 +29,11 @@ nothrow:
 
 	this(ManagedPool pool) {
 		PoolStack.push(pool);
+		id = PoolStack.top.id;
 	}
 
 	~this() {
-		if (id != PoolStack.top.id) return;
+		assert (id == PoolStack.top.id);
 		PoolStack.pop();
 	}
 
@@ -135,7 +136,11 @@ struct PoolStack {
 static:
 nothrow:
 	@property bool empty() { return m_tstack.empty; }
-
+	@property size_t length() { return m_tstack.length; }
+	void initialize() {
+		m_tstack = ThreadPoolStack.init;
+		m_tfreezer = ThreadPoolFreezer.init;
+	}
 	/// returns the most recent unfrozen pool, null if none available
 	@property ManagedPool top() {
 		return m_tstack.top;
@@ -263,7 +268,7 @@ nothrow:
 	@property size_t length() const { return m_pools.length; }
 	@property bool empty() const { return length == 0; }
 	size_t opDollar() const { return length; }
-	@property bool hasTop() { return length > 0 && cnt == top.id; }
+	@property bool hasTop() { return length > 0; }
 
 
 	ManagedPool opIndex(size_t n) {
@@ -288,13 +293,13 @@ nothrow:
 		//logTrace("Pop Thread Pool of ", length, " top: ", cnt, " back id: ", m_pools.back.id);
 		//auto pool = m_pools.back;
 		//assert(pool.id == cnt);
-		--cnt;
 		m_pools.removeBack();
 		//logTrace("Popped Thread Pool of ", length, " top: ", cnt, " back id: ", m_pools.length > 0 ? charFromInt[m_pools.back.id] : '?');
 	}
 
 	void push(ManagedPool pool) {
-		pool.id = ++cnt;
+		pool.id = *cast(int*)&pool.id;
+
 		m_pools.pushBack(pool);
 	}
 	
@@ -302,7 +307,7 @@ nothrow:
 		//if (!m_pools.empty) logTrace("Push Thread Pool of ", length, " top: ", cnt, " back id: ", m_pools.back.id);
 		//else logTrace("Push Thread Pool of ", length, " top: ", cnt);
 		ManagedPool pool = ManagedPool(max_mem);
-		pool.id = ++cnt;
+		pool.id = *cast(int*)&pool.id;
 		m_pools.pushBack(pool);
 		//logTrace("Pushed Thread Pool of ", length, " top: ", cnt, " back id: ", m_pools.back.id);
 	}
