@@ -179,7 +179,8 @@ extern (C)
   Handle libwasm_add__double(double);
   Handle libwasm_add__byte(byte);
   Handle libwasm_add__ubyte(ubyte);
-  Handle libwasm_add__handles(Handle[]);
+  Handle libwasm_add__ints(int[]);
+  Handle libwasm_add__uints(uint[]);
   Handle libwasm_copyObjectRef(Handle);
   Handle libasync_promise_all__promise(Handle);
   Handle libasync_promise_any__promise(Handle);
@@ -456,8 +457,6 @@ nothrow:
 
   this()(typeof(this) rhs)
   {
-    console.log("Copying handle ");
-    console.log(cast(int) rhs.handle);
     handle = libwasm_copyObjectRef(rhs.handle);
   }
 
@@ -738,6 +737,10 @@ Handle getOrCreateHandle(T)(scope ref T data) @trusted
   {
     static if (isSomeString!T && !is(T : string))
       mixin("return libwasm_add__string(*cast(string*)&data);");
+    else static if (is(T == int[]))
+      mixin("return libwasm_add__ints(data);");
+    else static if (is(T == uint[]))
+      mixin("return libwasm_add__uints(data);");
     else
       mixin("return libwasm_add__" ~ T.stringof ~ "(data);");
   }
@@ -817,6 +820,35 @@ nothrow:
   }
 }
 
+auto all()(scope JsHandle[] args) {
+  Vector!Handle handles;
+  handles.reserve(args.length);
+  foreach (ref arg; args) {
+    handles ~= arg.handle;
+  }
+  
+  auto handle = JsObject(libwasm_add__uints(handles[]));
+  mixin("return JsPromise!Any(libasync_promise_all__promise(handle));");
+}
+auto allSettled()(scope JsHandle[] args) {  
+  Vector!Handle handles;
+  handles.reserve(args.length);
+  foreach (ref arg; args) {
+    handles ~= arg.handle;
+  } 
+  auto handle = JsObject(libwasm_add__uints(handles[]));
+  mixin("return JsPromise!Any(libasync_promise_allsettled__promise(handle));");
+}
+auto any()(scope JsHandle[] args) {   
+  Vector!Handle handles;
+  handles.reserve(args.length);
+  foreach (ref arg; args) {
+    handles ~= arg.handle;
+  }
+  auto handle = JsObject(libwasm_add__uints(handles[]));
+  mixin("return JsPromise!Any(libasync_promise_any__promise(handle));");
+}
+
 struct JsPromise(T = Any)
 {
   alias U = Any;
@@ -826,19 +858,6 @@ nothrow:
   this(Handle h)
   {
     this.handle = JsHandle(h);
-  }
-
-  static auto all()(auto ref JsHandle[] args) {
-    auto handle = JsObject(libwasm_add__handles(args));
-    mixin("return JsPromise!Any(libasync_promise_all__promise(handle));");
-  }
-  static auto allSettled()(auto ref JsHandle[] args) {   
-    auto handle = JsObject(libwasm_add__handles(args));
-    mixin("return JsPromise!Any(libasync_promise_allsettled__promise(handle));");
-  }
-  static auto any()(auto ref JsHandle[] args) {   
-    auto handle = JsObject(libwasm_add__handles(args));
-    mixin("return JsPromise!Any(libasync_promise_any__promise(handle));");
   }
 
   alias JoinedType = BridgeType!T;
@@ -856,7 +875,7 @@ nothrow:
     alias RejectCallback = extern (C) void delegate(U) nothrow;
   }
 
-  auto then(ResultType)(scope ResultType delegate(T) nothrow cb) @trusted
+  auto then(ResultType)(scope ResultType delegate(T) nothrow cb) return scope @trusted
   {
     enum TMangled = libwasmMangle!T;
     enum ResultTypeMangled = libwasmMangle!ResultType;
@@ -866,7 +885,7 @@ nothrow:
       "return JsPromise!(ResultType)(" ~ funName ~ "(handle, cast(JoinedCallback!(BridgeType!ResultType))cb));");
   }
 
-  auto error()(scope void delegate(U) nothrow cb) @trusted
+  auto error()(scope void delegate(U) nothrow cb) return scope @trusted
   {
     enum TMangled = libwasmMangle!U;
     enum funName = "promise_error_" ~ TMangled.length.stringof ~ TMangled;
@@ -881,10 +900,7 @@ nothrow:
 
 /// Waits for the promise to finish
 void await(T)(auto ref T promise) {
-  import libwasm.bindings.Console;
-  console.log("Awaiting");
   libwasm_await__void(promise.handle.handle);
-  console.log("Awaited");
 }
 
 struct Sequence(T)

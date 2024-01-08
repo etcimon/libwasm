@@ -4095,7 +4095,7 @@ private void _doPostblit(T)(T[] arr)
 }
 
 // compiler frontend lowers dynamic array comparison to this
-bool __ArrayEq(T1, T2)(T1[] a, T2[] b)
+bool __ArrayEq(T1, T2)(scope T1[] a, scope T2[] b)
 {
     if (a.length != b.length)
         return false;
@@ -4108,14 +4108,14 @@ bool __ArrayEq(T1, T2)(T1[] a, T2[] b)
 }
 
 // compiler frontend lowers struct array postblitting to this
-void __ArrayPostblit(T)(T[] a)
+void __ArrayPostblit(T)(scope T[] a)
 {
     foreach (ref T e; a)
         e.__xpostblit();
 }
 
 // compiler frontend lowers dynamic array deconstruction to this
-void __ArrayDtor(T)(T[] a)
+void __ArrayDtor(T)(scope T[] a)
 {
     foreach_reverse (ref T e; a)
         e.__xdtor();

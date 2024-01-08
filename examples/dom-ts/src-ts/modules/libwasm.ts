@@ -161,16 +161,22 @@ const decoders = {
         }
         return str
     },
-    handles: (len: number, offset: number, heapi32u: any = null) => {
-        if (offset == null) {
-            if (!heapi32u) heapi32u = new Uint32Array(libwasm.memory.buffer)
-            offset = heapi32u[(len + 4) / 4]
-            len = heapi32u[len / 4]
+    uints: (len: number, offset: number) => {
+        let handles: number[] | undefined = []
+        let heapi32u = new Uint32Array(libwasm.memory.buffer)
+        const offset_adj = offset/4
+        for (let i = 0; i < len; i++) {
+            handles?.push(heapi32u[offset_adj + i])
         }
-        let handles: number[] | undefined
-        const dv = new DataView(libwasm.memory.buffer, offset, len)
-        for (let i = 0; i < len; i++)
-            handles?.push(dv.getUint32(i))
+        return handles
+    },
+    ints: (len: number, offset: number) => {
+        let handles: number[] | undefined = []
+        let heapi32s = new Int32Array(libwasm.memory.buffer)
+        const offset_adj = offset/4
+        for (let i = 0; i < len; i++) {
+            handles?.push(heapi32s[offset_adj + i])
+        }
         return handles
     },
 }
@@ -196,8 +202,12 @@ let jsExports = {
             let str = decoders.string(len, offset)
             return addObject(str)
         },
-        libwasm_add__handles: (len: number, offset: number) => {
-            let handles = decoders.handles(len, offset)
+        libwasm_add__ints: (len: number, offset: number) => {
+            let handles = decoders.ints(len, offset)
+            return addObject(handles)
+        },
+        libwasm_add__uints: (len: number, offset: number) => {
+            let handles = decoders.uints(len, offset)
             return addObject(handles)
         },
         libwasm_set__function: (

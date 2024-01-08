@@ -111,7 +111,7 @@ struct Main {
     }`));
     auto requestInfo = RequestInfo("https://reqres.in/api/users/2");
     auto promise = window.fetch(requestInfo, ri);
-    promise.then(r => r.text).then((scope data){
+    auto promise_then = promise.then(r => r.text).then((scope data){
       console.log("Resolved");
         console.log(typeof(data).stringof);
         auto sp = ScopedPool(m_pool);
@@ -122,7 +122,10 @@ struct Main {
       }).error((scope reason) {
         console.log("Caught error");
         console.log(reason);
-      }).await();
+      });
+      
+    auto new_promise = [promise_then.handle].all();
+    new_promise.await();
     string s = new string(5);
     s = "hello";
     console.log(s);

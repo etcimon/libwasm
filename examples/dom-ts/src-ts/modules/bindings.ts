@@ -328,28 +328,28 @@ export let jsExports = {
             return ret
         },
         libasync_promise_all__promise: (ctx: number) => {
-            const handles = libwasm.getObject(ctx)
+            const handles = libwasm.objects[ctx]
             let promises : any[] = []
             handles.forEach((handle: number)=> {
-                promises.push(libwasm.getObject(handle))
+                promises.push(libwasm.objects[handle])
             })
-            return Promise.all(promises)
+            return libwasm.addObject(Promise.all(promises))
         },
         libasync_promise_allsettled__promise: (ctx: number) => {
-            const handles = libwasm.getObject(ctx)
+            const handles = libwasm.objects[ctx]
             let promises : any[] = []
             handles.forEach((handle: number)=> {
-                promises.push(libwasm.getObject(handle))
+                promises.push(libwasm.objects[handle])
             })
-            return Promise.allSettled(promises)
+            return libwasm.addObject(Promise.allSettled(promises))
         },
         libasync_promise_any__promise: (ctx: number) => {
-            const handles = libwasm.getObject(ctx)
+            const handles = libwasm.objects[ctx]
             let promises : any[] = []
             handles.forEach((handle: number)=> {
-                promises.push(libwasm.getObject(handle))
+                promises.push(libwasm.objects[handle])
             })
-            return Promise.any(promises)
+            return libwasm.addObject(Promise.any(promises))
         },
         promise_then_6uhandlehandle: (
             handle: number,
