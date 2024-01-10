@@ -48,9 +48,15 @@ Not only are your applications fast, they are also small. The [todo-mvc example]
 
 ## How to start
 
-Make sure to have at least ldc 1.36.0-beta1 installed along with this version of dub: https://github.com/etcimon/dub/tree/probe_with_betterc
+Make sure to have at least ldc 1.36.0-beta1 installed along with a version of dub compiled from ~master branch after 2024-01-10.
 
 - Clone this repository with git clone
+- Remove druntime from LDC's ldc2.conf ```
+"^wasm(32|64)-":
+{
+    post-switches = [ ]; // this removes druntime/std imports
+  [..]
+```
 - Compile the dom-ts example with dub build --arch=wasm32-unknown-wasi --compiler=ldc2
 - With nodejs and yarn installed, run `yarn install --dev` to load the dependencies and then `yarn dev` to start a dev server
 
@@ -58,20 +64,11 @@ Make sure to have at least ldc 1.36.0-beta1 installed along with this version of
 
 The `libwasm.bindings` module defines most web apis. You probably need to import `libwasm.dom` and `libwasm.types` too as well.
 
-Make sure to run `dub run libwasm:webidl -- --bindgen` after compiling to ensure all required js glue code is generated.
+If you want to update the bindings, you can use webidl subpackage with `dub run libwasm:webidl --`, but it requires some bug fixes afterwards.
 
 ## How to compile your application
 
 Make sure to have at least ldc 1.36.0-beta1 installed. Also, make sure that `ldc2 --version` returns the `wasm32` among its target types. If not, you may need to install ldc from official sources or run one in docker (e.g. `dlang2/ldc-ubuntu:1.20.0`).
-
-Edit your ldc2.conf file and remove the druntime imports from wasm builds, it should have:
-
-```
-"^wasm(32|64)-":
-{
-    post-switches = [ ]; // this removes druntime/std imports
-  [..]
-```
 
 Run `dub build --arch=wasm32-unknown-wasi --compiler=ldc2 --build=release` to compile your application, then run `npx webpack` to generate the `index.html`.
 

@@ -15,7 +15,7 @@ Edit your ldc2.conf file and remove the druntime imports from wasm builds, it sh
   [..]
 ```
 
-Use this version of dub which supports probing without importing druntime: https://github.com/etcimon/dub/tree/probe_with_betterc
+You must use a version of dub that was compiled from the ~master branch after 2024-01-10.
 
 A simple `dub build --arch=wasm32-unknown-wasi` should just work.
 
