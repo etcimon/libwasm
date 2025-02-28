@@ -271,6 +271,7 @@ bool isPrintable(T)(T c) @safe pure nothrow @nogc
 	return c >= ' ' && c <= '~';
 }
 
+extern(C)
 size_t strlen(inout(char*) str) pure
 {
 	size_t len_;

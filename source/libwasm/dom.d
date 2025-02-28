@@ -277,6 +277,7 @@ else
   private extern (C)
   {
     Handle createElement(NodeType type);
+    Handle createCustomElement(string type);
     void addClass(Handle node, string className);
     void setProperty(Handle node, string prop, string value);
     void removeChild(Handle childPtr);
@@ -1482,10 +1483,13 @@ auto applyStyles(T, styles...)(Handle node)
 Handle createNode(T)(Handle parent, ref T t)
 {
   enum hasNode = hasMember!(T, "node");
-  static if (hasNode && is(typeof(t.node) : NamedNode!tag, alias tag))
+  static if (hasNode && is(typeof(t.node) : NamedNode!tag, alias tag) && __traits(compiles, mixin("NodeType." ~ tag)))
   {
     mixin("NodeType n = NodeType." ~ tag ~ ";");
     return createElement(n);
+  }
+  else static if (hasNode) {
+    return createCustomElement(tag);
   }
   else
     return parent;

@@ -4,6 +4,9 @@ import core.simd;
 
 nothrow @nogc:
 
+pragma(LDC_intrinsic, "llvm.nvvm.activemask")
+    int __nvvm_activemask();
+
 pragma(LDC_intrinsic, "llvm.nvvm.add.rm.d")
     double __nvvm_add_rm_d(double, double) pure @safe;
 
@@ -246,6 +249,9 @@ pragma(LDC_intrinsic, "llvm.nvvm.ex2.approx.f")
 
 pragma(LDC_intrinsic, "llvm.nvvm.ex2.approx.ftz.f")
     float __nvvm_ex2_approx_ftz_f(float) pure @safe;
+
+pragma(LDC_intrinsic, "llvm.nvvm.exit")
+    void __nvvm_exit();
 
 pragma(LDC_intrinsic, "llvm.nvvm.f2h.rn")
     short __nvvm_f2h_rn(float) pure @safe;
@@ -652,11 +658,20 @@ pragma(LDC_intrinsic, "llvm.nvvm.mulhi.i")
 pragma(LDC_intrinsic, "llvm.nvvm.mulhi.ll")
     long __nvvm_mulhi_ll(long, long) pure @safe;
 
+pragma(LDC_intrinsic, "llvm.nvvm.mulhi.s")
+    short __nvvm_mulhi_s(short, short) pure @safe;
+
 pragma(LDC_intrinsic, "llvm.nvvm.mulhi.ui")
     int __nvvm_mulhi_ui(int, int) pure @safe;
 
 pragma(LDC_intrinsic, "llvm.nvvm.mulhi.ull")
     long __nvvm_mulhi_ull(long, long) pure @safe;
+
+pragma(LDC_intrinsic, "llvm.nvvm.mulhi.us")
+    short __nvvm_mulhi_us(short, short) pure @safe;
+
+pragma(LDC_intrinsic, "llvm.nvvm.nanosleep")
+    void __nvvm_nanosleep(int);
 
 pragma(LDC_intrinsic, "llvm.nvvm.prmt")
     int __nvvm_prmt(int, int, int) pure @safe;
@@ -817,6 +832,9 @@ pragma(LDC_intrinsic, "llvm.nvvm.read.ptx.sreg.envreg8")
 pragma(LDC_intrinsic, "llvm.nvvm.read.ptx.sreg.envreg9")
     int __nvvm_read_ptx_sreg_envreg9() pure @safe;
 
+pragma(LDC_intrinsic, "llvm.nvvm.read.ptx.sreg.globaltimer")
+    long __nvvm_read_ptx_sreg_globaltimer();
+
 pragma(LDC_intrinsic, "llvm.nvvm.read.ptx.sreg.gridid")
     int __nvvm_read_ptx_sreg_gridid() pure @safe;
 
@@ -925,6 +943,9 @@ pragma(LDC_intrinsic, "llvm.nvvm.redux.sync.umin")
 pragma(LDC_intrinsic, "llvm.nvvm.redux.sync.xor")
     int __nvvm_redux_sync_xor(int, int);
 
+pragma(LDC_intrinsic, "llvm.nvvm.reflect")
+    int __nvvm_reflect(void*) pure @safe;
+
 pragma(LDC_intrinsic, "llvm.nvvm.rotate.b32")
     int __nvvm_rotate_b32(int, int) pure @safe;
 
@@ -949,14 +970,29 @@ pragma(LDC_intrinsic, "llvm.nvvm.rsqrt.approx.d")
 pragma(LDC_intrinsic, "llvm.nvvm.rsqrt.approx.f")
     float __nvvm_rsqrt_approx_f(float) pure @safe;
 
+pragma(LDC_intrinsic, "llvm.nvvm.rsqrt.approx.ftz.d")
+    double __nvvm_rsqrt_approx_ftz_d(double) pure @safe;
+
 pragma(LDC_intrinsic, "llvm.nvvm.rsqrt.approx.ftz.f")
     float __nvvm_rsqrt_approx_ftz_f(float) pure @safe;
 
 pragma(LDC_intrinsic, "llvm.nvvm.sad.i")
     int __nvvm_sad_i(int, int, int) pure @safe;
 
+pragma(LDC_intrinsic, "llvm.nvvm.sad.ll")
+    long __nvvm_sad_ll(long, long, long) pure @safe;
+
+pragma(LDC_intrinsic, "llvm.nvvm.sad.s")
+    short __nvvm_sad_s(short, short, short) pure @safe;
+
 pragma(LDC_intrinsic, "llvm.nvvm.sad.ui")
     int __nvvm_sad_ui(int, int, int) pure @safe;
+
+pragma(LDC_intrinsic, "llvm.nvvm.sad.ull")
+    long __nvvm_sad_ull(long, long, long) pure @safe;
+
+pragma(LDC_intrinsic, "llvm.nvvm.sad.us")
+    short __nvvm_sad_us(short, short, short) pure @safe;
 
 pragma(LDC_intrinsic, "llvm.nvvm.saturate.d")
     double __nvvm_saturate_d(double) pure @safe;

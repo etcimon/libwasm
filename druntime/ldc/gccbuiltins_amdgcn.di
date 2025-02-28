@@ -68,13 +68,22 @@ pragma(LDC_intrinsic, "llvm.amdgcn.cvt.sr.fp8.f32")
     int __builtin_amdgcn_cvt_sr_fp8_f32(float, int, int, int) pure @safe;
 
 pragma(LDC_intrinsic, "llvm.amdgcn.dispatch.id")
-    long __builtin_amdgcn_dispatch_id() pure @safe;
+    long __builtin_amdgcn_dispatch_id();
+
+pragma(LDC_intrinsic, "llvm.amdgcn.dot4.f32.bf8.bf8")
+    float __builtin_amdgcn_dot4_f32_bf8_bf8(int, int, float) pure @safe;
+
+pragma(LDC_intrinsic, "llvm.amdgcn.dot4.f32.bf8.fp8")
+    float __builtin_amdgcn_dot4_f32_bf8_fp8(int, int, float) pure @safe;
+
+pragma(LDC_intrinsic, "llvm.amdgcn.dot4.f32.fp8.bf8")
+    float __builtin_amdgcn_dot4_f32_fp8_bf8(int, int, float) pure @safe;
+
+pragma(LDC_intrinsic, "llvm.amdgcn.dot4.f32.fp8.fp8")
+    float __builtin_amdgcn_dot4_f32_fp8_fp8(int, int, float) pure @safe;
 
 pragma(LDC_intrinsic, "llvm.amdgcn.ds.bpermute")
     int __builtin_amdgcn_ds_bpermute(int, int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.amdgcn.ds.fadd.v2bf16")
-    short2 __builtin_amdgcn_ds_atomic_fadd_v2bf16(void*, short2);
 
 pragma(LDC_intrinsic, "llvm.amdgcn.ds.gws.barrier")
     void __builtin_amdgcn_ds_gws_barrier(int, int);
@@ -103,17 +112,14 @@ pragma(LDC_intrinsic, "llvm.amdgcn.ds.swizzle")
 pragma(LDC_intrinsic, "llvm.amdgcn.endpgm")
     void __builtin_amdgcn_endpgm();
 
-pragma(LDC_intrinsic, "llvm.amdgcn.fdot2.bf16.bf16")
-    short __builtin_amdgcn_fdot2_bf16_bf16(short2, short2, short) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.amdgcn.fdot2.f32.bf16")
-    float __builtin_amdgcn_fdot2_f32_bf16(short2, short2, float, bool) pure @safe;
-
 pragma(LDC_intrinsic, "llvm.amdgcn.fmul.legacy")
     float __builtin_amdgcn_fmul_legacy(float, float) pure @safe;
 
+pragma(LDC_intrinsic, "llvm.amdgcn.global.load.lds")
+    void __builtin_amdgcn_global_load_lds(void*, void*, int, int, int);
+
 pragma(LDC_intrinsic, "llvm.amdgcn.groupstaticsize")
-    int __builtin_amdgcn_groupstaticsize() pure @safe;
+    int __builtin_amdgcn_groupstaticsize();
 
 pragma(LDC_intrinsic, "llvm.amdgcn.iglp.opt")
     void __builtin_amdgcn_iglp_opt(int);
@@ -268,14 +274,11 @@ pragma(LDC_intrinsic, "llvm.amdgcn.msad.u8")
 pragma(LDC_intrinsic, "llvm.amdgcn.perm")
     int __builtin_amdgcn_perm(int, int, int) pure @safe;
 
-pragma(LDC_intrinsic, "llvm.amdgcn.permlane16")
-    int __builtin_amdgcn_permlane16(int, int, int, int, bool, bool) pure @safe;
+pragma(LDC_intrinsic, "llvm.amdgcn.permlane16.var")
+    int __builtin_amdgcn_permlane16_var(int, int, int, bool, bool) pure @safe;
 
-pragma(LDC_intrinsic, "llvm.amdgcn.permlane64")
-    int __builtin_amdgcn_permlane64(int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.amdgcn.permlanex16")
-    int __builtin_amdgcn_permlanex16(int, int, int, int, bool, bool) pure @safe;
+pragma(LDC_intrinsic, "llvm.amdgcn.permlanex16.var")
+    int __builtin_amdgcn_permlanex16_var(int, int, int, bool, bool) pure @safe;
 
 pragma(LDC_intrinsic, "llvm.amdgcn.qsad.pk.u16.u8")
     long __builtin_amdgcn_qsad_pk_u16_u8(long, int, long) pure @safe;
@@ -286,17 +289,35 @@ pragma(LDC_intrinsic, "llvm.amdgcn.queue.ptr")
 pragma(LDC_intrinsic, "llvm.amdgcn.rcp.legacy")
     float __builtin_amdgcn_rcp_legacy(float) pure @safe;
 
-pragma(LDC_intrinsic, "llvm.amdgcn.readfirstlane")
-    int __builtin_amdgcn_readfirstlane(int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.amdgcn.readlane")
-    int __builtin_amdgcn_readlane(int, int) pure @safe;
-
 pragma(LDC_intrinsic, "llvm.amdgcn.rsq.legacy")
     float __builtin_amdgcn_rsq_legacy(float) pure @safe;
 
 pragma(LDC_intrinsic, "llvm.amdgcn.s.barrier")
     void __builtin_amdgcn_s_barrier() pure @safe;
+
+pragma(LDC_intrinsic, "llvm.amdgcn.s.barrier.init")
+    void __builtin_amdgcn_s_barrier_init(int, int) pure @safe;
+
+pragma(LDC_intrinsic, "llvm.amdgcn.s.barrier.join")
+    void __builtin_amdgcn_s_barrier_join(int) pure @safe;
+
+pragma(LDC_intrinsic, "llvm.amdgcn.s.barrier.leave")
+    bool __builtin_amdgcn_s_barrier_leave() pure @safe;
+
+pragma(LDC_intrinsic, "llvm.amdgcn.s.barrier.signal")
+    void __builtin_amdgcn_s_barrier_signal(int);
+
+pragma(LDC_intrinsic, "llvm.amdgcn.s.barrier.signal.isfirst")
+    bool __builtin_amdgcn_s_barrier_signal_isfirst(int);
+
+pragma(LDC_intrinsic, "llvm.amdgcn.s.barrier.signal.isfirst.var")
+    bool __builtin_amdgcn_s_barrier_signal_isfirst_var(int) pure @safe;
+
+pragma(LDC_intrinsic, "llvm.amdgcn.s.barrier.signal.var")
+    void __builtin_amdgcn_s_barrier_signal_var(int) pure @safe;
+
+pragma(LDC_intrinsic, "llvm.amdgcn.s.barrier.wait")
+    void __builtin_amdgcn_s_barrier_wait(short);
 
 pragma(LDC_intrinsic, "llvm.amdgcn.s.dcache.inv")
     void __builtin_amdgcn_s_dcache_inv() pure @safe;
@@ -313,11 +334,14 @@ pragma(LDC_intrinsic, "llvm.amdgcn.s.dcache.wb.vol")
 pragma(LDC_intrinsic, "llvm.amdgcn.s.decperflevel")
     void __builtin_amdgcn_s_decperflevel(int);
 
+pragma(LDC_intrinsic, "llvm.amdgcn.s.get.barrier.state")
+    int __builtin_amdgcn_s_get_barrier_state(int) pure @safe;
+
 pragma(LDC_intrinsic, "llvm.amdgcn.s.get.waveid.in.workgroup")
-    int __builtin_amdgcn_s_get_waveid_in_workgroup() pure @safe;
+    int __builtin_amdgcn_s_get_waveid_in_workgroup();
 
 pragma(LDC_intrinsic, "llvm.amdgcn.s.getpc")
-    long __builtin_amdgcn_s_getpc() pure @safe;
+    long __builtin_amdgcn_s_getpc();
 
 pragma(LDC_intrinsic, "llvm.amdgcn.s.getreg")
     int __builtin_amdgcn_s_getreg(int) pure @safe;
@@ -346,11 +370,23 @@ pragma(LDC_intrinsic, "llvm.amdgcn.s.setreg")
 pragma(LDC_intrinsic, "llvm.amdgcn.s.sleep")
     void __builtin_amdgcn_s_sleep(int);
 
+pragma(LDC_intrinsic, "llvm.amdgcn.s.sleep.var")
+    void __builtin_amdgcn_s_sleep_var(int) pure @safe;
+
+pragma(LDC_intrinsic, "llvm.amdgcn.s.ttracedata")
+    void __builtin_amdgcn_s_ttracedata(int) pure @safe;
+
+pragma(LDC_intrinsic, "llvm.amdgcn.s.ttracedata.imm")
+    void __builtin_amdgcn_s_ttracedata_imm(short) pure @safe;
+
 pragma(LDC_intrinsic, "llvm.amdgcn.s.wait.event.export.ready")
     void __builtin_amdgcn_s_wait_event_export_ready() pure @safe;
 
 pragma(LDC_intrinsic, "llvm.amdgcn.s.waitcnt")
     void __builtin_amdgcn_s_waitcnt(int);
+
+pragma(LDC_intrinsic, "llvm.amdgcn.s.wakeup.barrier")
+    void __builtin_amdgcn_s_wakeup_barrier(int) pure @safe;
 
 pragma(LDC_intrinsic, "llvm.amdgcn.sad.hi.u8")
     int __builtin_amdgcn_sad_hi_u8(int, int, int) pure @safe;
@@ -431,17 +467,14 @@ pragma(LDC_intrinsic, "llvm.amdgcn.wave.barrier")
     void __builtin_amdgcn_wave_barrier() pure @safe;
 
 pragma(LDC_intrinsic, "llvm.amdgcn.wavefrontsize")
-    int __builtin_amdgcn_wavefrontsize() pure @safe;
+    int __builtin_amdgcn_wavefrontsize();
 
 pragma(LDC_intrinsic, "llvm.amdgcn.workgroup.id.x")
-    int __builtin_amdgcn_workgroup_id_x() pure @safe;
+    int __builtin_amdgcn_workgroup_id_x();
 
 pragma(LDC_intrinsic, "llvm.amdgcn.workgroup.id.y")
-    int __builtin_amdgcn_workgroup_id_y() pure @safe;
+    int __builtin_amdgcn_workgroup_id_y();
 
 pragma(LDC_intrinsic, "llvm.amdgcn.workgroup.id.z")
-    int __builtin_amdgcn_workgroup_id_z() pure @safe;
-
-pragma(LDC_intrinsic, "llvm.amdgcn.writelane")
-    int __builtin_amdgcn_writelane(int, int, int) pure @safe;
+    int __builtin_amdgcn_workgroup_id_z();
 

@@ -111,6 +111,11 @@ struct Optional(T) {
         assert(!empty, "Attempting to fetch the front of an empty optional.");
         return this._value;
     }
+
+    @property ref inout(T) getValue() inout {
+        return this._value;
+    }
+
     void popFront() { this.defined = false; }
 
     /**

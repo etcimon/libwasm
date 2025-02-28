@@ -922,6 +922,9 @@ pragma(LDC_intrinsic, "llvm.ppc.fctudz")
 pragma(LDC_intrinsic, "llvm.ppc.fctuwz")
     double __builtin_ppc_fctuwz(double) pure @safe;
 
+pragma(LDC_intrinsic, "llvm.ppc.fence")
+    void __builtin_ppc_fence();
+
 pragma(LDC_intrinsic, "llvm.ppc.fmsub")
     double __builtin_ppc_fmsub(double, double, double) pure @safe;
 
@@ -1006,6 +1009,9 @@ pragma(LDC_intrinsic, "llvm.ppc.maddhdu")
 pragma(LDC_intrinsic, "llvm.ppc.maddld")
     long __builtin_ppc_maddld(long, long, long) pure @safe;
 
+pragma(LDC_intrinsic, "llvm.ppc.mffsl")
+    double __builtin_ppc_mffsl();
+
 pragma(LDC_intrinsic, "llvm.ppc.mfmsr")
     int __builtin_ppc_mfmsr() pure @safe;
 
@@ -1044,6 +1050,12 @@ pragma(LDC_intrinsic, "llvm.ppc.pextd")
 
 pragma(LDC_intrinsic, "llvm.ppc.readflm")
     double __builtin_readflm();
+
+pragma(LDC_intrinsic, "llvm.ppc.rlwimi")
+    int __builtin_ppc_rlwimi(int, int, int, int) pure @safe;
+
+pragma(LDC_intrinsic, "llvm.ppc.rlwnm")
+    int __builtin_ppc_rlwnm(int, int, int) pure @safe;
 
 pragma(LDC_intrinsic, "llvm.ppc.set.texasr")
     void __builtin_set_texasr(long);

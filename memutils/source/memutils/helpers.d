@@ -263,7 +263,7 @@ if (!is(Range == char[]) && !is(Range == wchar[]))
                 for (int i = 0 ; i < range.length ; i++ )
                     memset(addressOf(range[i]), 0, T.sizeof);
     }
-    else
+    else static if (!is(T == void))
         fill(range, T.init);
 }
 /// ditto

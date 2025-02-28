@@ -466,24 +466,6 @@ pragma(LDC_intrinsic, "llvm.x86.avx512.div.pd.512")
 pragma(LDC_intrinsic, "llvm.x86.avx512.div.ps.512")
     float16 __builtin_ia32_divps512(float16, float16, int) pure @safe;
 
-pragma(LDC_intrinsic, "llvm.x86.avx512.exp2.pd")
-    double8 __builtin_ia32_exp2pd_mask(double8, double8, byte, int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.x86.avx512.exp2.ps")
-    float16 __builtin_ia32_exp2ps_mask(float16, float16, short, int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.x86.avx512.gatherpf.dpd.512")
-    void __builtin_ia32_gatherpfdpd(byte, int8, void*, int, int);
-
-pragma(LDC_intrinsic, "llvm.x86.avx512.gatherpf.dps.512")
-    void __builtin_ia32_gatherpfdps(short, int16, void*, int, int);
-
-pragma(LDC_intrinsic, "llvm.x86.avx512.gatherpf.qpd.512")
-    void __builtin_ia32_gatherpfqpd(byte, long8, void*, int, int);
-
-pragma(LDC_intrinsic, "llvm.x86.avx512.gatherpf.qps.512")
-    void __builtin_ia32_gatherpfqps(byte, long8, void*, int, int);
-
 pragma(LDC_intrinsic, "llvm.x86.avx512.mask.add.sd.round")
     double2 __builtin_ia32_addsd_round_mask(double2, double2, double2, byte, int) pure @safe;
 
@@ -1450,18 +1432,6 @@ pragma(LDC_intrinsic, "llvm.x86.avx512.rcp14.sd")
 pragma(LDC_intrinsic, "llvm.x86.avx512.rcp14.ss")
     float4 __builtin_ia32_rcp14ss_mask(float4, float4, float4, byte) pure @safe;
 
-pragma(LDC_intrinsic, "llvm.x86.avx512.rcp28.pd")
-    double8 __builtin_ia32_rcp28pd_mask(double8, double8, byte, int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.x86.avx512.rcp28.ps")
-    float16 __builtin_ia32_rcp28ps_mask(float16, float16, short, int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.x86.avx512.rcp28.sd")
-    double2 __builtin_ia32_rcp28sd_round_mask(double2, double2, double2, byte, int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.x86.avx512.rcp28.ss")
-    float4 __builtin_ia32_rcp28ss_round_mask(float4, float4, float4, byte, int) pure @safe;
-
 pragma(LDC_intrinsic, "llvm.x86.avx512.rsqrt14.pd.128")
     double2 __builtin_ia32_rsqrt14pd128_mask(double2, double2, byte) pure @safe;
 
@@ -1485,30 +1455,6 @@ pragma(LDC_intrinsic, "llvm.x86.avx512.rsqrt14.sd")
 
 pragma(LDC_intrinsic, "llvm.x86.avx512.rsqrt14.ss")
     float4 __builtin_ia32_rsqrt14ss_mask(float4, float4, float4, byte) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.x86.avx512.rsqrt28.pd")
-    double8 __builtin_ia32_rsqrt28pd_mask(double8, double8, byte, int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.x86.avx512.rsqrt28.ps")
-    float16 __builtin_ia32_rsqrt28ps_mask(float16, float16, short, int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.x86.avx512.rsqrt28.sd")
-    double2 __builtin_ia32_rsqrt28sd_round_mask(double2, double2, double2, byte, int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.x86.avx512.rsqrt28.ss")
-    float4 __builtin_ia32_rsqrt28ss_round_mask(float4, float4, float4, byte, int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.x86.avx512.scatterpf.dpd.512")
-    void __builtin_ia32_scatterpfdpd(byte, int8, void*, int, int);
-
-pragma(LDC_intrinsic, "llvm.x86.avx512.scatterpf.dps.512")
-    void __builtin_ia32_scatterpfdps(short, int16, void*, int, int);
-
-pragma(LDC_intrinsic, "llvm.x86.avx512.scatterpf.qpd.512")
-    void __builtin_ia32_scatterpfqpd(byte, long8, void*, int, int);
-
-pragma(LDC_intrinsic, "llvm.x86.avx512.scatterpf.qps.512")
-    void __builtin_ia32_scatterpfqps(byte, long8, void*, int, int);
 
 pragma(LDC_intrinsic, "llvm.x86.avx512.sub.pd.512")
     double8 __builtin_ia32_subpd512(double8, double8, int) pure @safe;
@@ -2031,9 +1977,6 @@ pragma(LDC_intrinsic, "llvm.x86.lwpval64")
 
 pragma(LDC_intrinsic, "llvm.x86.mmx.emms")
     void __builtin_ia32_emms();
-
-pragma(LDC_intrinsic, "llvm.x86.mmx.femms")
-    void __builtin_ia32_femms();
 
 pragma(LDC_intrinsic, "llvm.x86.monitorx")
     void __builtin_ia32_monitorx(void*, int, int);
@@ -2628,6 +2571,12 @@ pragma(LDC_intrinsic, "llvm.x86.umonitor")
 
 pragma(LDC_intrinsic, "llvm.x86.umwait")
     byte __builtin_ia32_umwait(int, int, int);
+
+pragma(LDC_intrinsic, "llvm.x86.urdmsr")
+    long __builtin_ia32_urdmsr(long);
+
+pragma(LDC_intrinsic, "llvm.x86.uwrmsr")
+    void __builtin_ia32_uwrmsr(long, long);
 
 pragma(LDC_intrinsic, "llvm.x86.vbcstnebf162ps128")
     float4 __builtin_ia32_vbcstnebf162ps128(const void*);

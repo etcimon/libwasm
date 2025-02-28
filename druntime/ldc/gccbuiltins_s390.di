@@ -25,9 +25,6 @@ pragma(LDC_intrinsic, "llvm.s390.tend")
 pragma(LDC_intrinsic, "llvm.s390.vaccb")
     byte16 __builtin_s390_vaccb(byte16, byte16) pure @safe;
 
-pragma(LDC_intrinsic, "llvm.s390.vacccq")
-    byte16 __builtin_s390_vacccq(byte16, byte16, byte16) pure @safe;
-
 pragma(LDC_intrinsic, "llvm.s390.vaccf")
     int4 __builtin_s390_vaccf(int4, int4) pure @safe;
 
@@ -36,15 +33,6 @@ pragma(LDC_intrinsic, "llvm.s390.vaccg")
 
 pragma(LDC_intrinsic, "llvm.s390.vacch")
     short8 __builtin_s390_vacch(short8, short8) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.s390.vaccq")
-    byte16 __builtin_s390_vaccq(byte16, byte16) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.s390.vacq")
-    byte16 __builtin_s390_vacq(byte16, byte16, byte16) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.s390.vaq")
-    byte16 __builtin_s390_vaq(byte16, byte16) pure @safe;
 
 pragma(LDC_intrinsic, "llvm.s390.vavgb")
     byte16 __builtin_s390_vavgb(byte16, byte16) pure @safe;
@@ -102,30 +90,6 @@ pragma(LDC_intrinsic, "llvm.s390.verimg")
 
 pragma(LDC_intrinsic, "llvm.s390.verimh")
     short8 __builtin_s390_verimh(short8, short8, short8, int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.s390.verllb")
-    byte16 __builtin_s390_verllb(byte16, int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.s390.verllf")
-    int4 __builtin_s390_verllf(int4, int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.s390.verllg")
-    long2 __builtin_s390_verllg(long2, int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.s390.verllh")
-    short8 __builtin_s390_verllh(short8, int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.s390.verllvb")
-    byte16 __builtin_s390_verllvb(byte16, byte16) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.s390.verllvf")
-    int4 __builtin_s390_verllvf(int4, int4) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.s390.verllvg")
-    long2 __builtin_s390_verllvg(long2, long2) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.s390.verllvh")
-    short8 __builtin_s390_verllvh(short8, short8) pure @safe;
 
 pragma(LDC_intrinsic, "llvm.s390.vfaeb")
     byte16 __builtin_s390_vfaeb(byte16, byte16, int) pure @safe;
@@ -187,9 +151,6 @@ pragma(LDC_intrinsic, "llvm.s390.vgfmab")
 pragma(LDC_intrinsic, "llvm.s390.vgfmaf")
     long2 __builtin_s390_vgfmaf(int4, int4, long2) pure @safe;
 
-pragma(LDC_intrinsic, "llvm.s390.vgfmag")
-    byte16 __builtin_s390_vgfmag(long2, long2, byte16) pure @safe;
-
 pragma(LDC_intrinsic, "llvm.s390.vgfmah")
     int4 __builtin_s390_vgfmah(short8, short8, int4) pure @safe;
 
@@ -198,9 +159,6 @@ pragma(LDC_intrinsic, "llvm.s390.vgfmb")
 
 pragma(LDC_intrinsic, "llvm.s390.vgfmf")
     long2 __builtin_s390_vgfmf(int4, int4) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.s390.vgfmg")
-    byte16 __builtin_s390_vgfmg(long2, long2) pure @safe;
 
 pragma(LDC_intrinsic, "llvm.s390.vgfmh")
     int4 __builtin_s390_vgfmh(short8, short8) pure @safe;
@@ -221,7 +179,7 @@ pragma(LDC_intrinsic, "llvm.s390.vll")
     byte16 __builtin_s390_vll(int, const void*);
 
 pragma(LDC_intrinsic, "llvm.s390.vlrl")
-    byte16 __builtin_s390_vlrl(int, const void*);
+    byte16 __builtin_s390_vlrlr(int, const void*);
 
 pragma(LDC_intrinsic, "llvm.s390.vmaeb")
     short8 __builtin_s390_vmaeb(byte16, byte16, short8) pure @safe;
@@ -331,9 +289,6 @@ pragma(LDC_intrinsic, "llvm.s390.vmof")
 pragma(LDC_intrinsic, "llvm.s390.vmoh")
     int4 __builtin_s390_vmoh(short8, short8) pure @safe;
 
-pragma(LDC_intrinsic, "llvm.s390.vmslg")
-    byte16 __builtin_s390_vmslg(long2, long2, byte16, int) pure @safe;
-
 pragma(LDC_intrinsic, "llvm.s390.vpdi")
     long2 __builtin_s390_vpdi(long2, long2, int) pure @safe;
 
@@ -358,12 +313,6 @@ pragma(LDC_intrinsic, "llvm.s390.vpksg")
 pragma(LDC_intrinsic, "llvm.s390.vpksh")
     byte16 __builtin_s390_vpksh(short8, short8) pure @safe;
 
-pragma(LDC_intrinsic, "llvm.s390.vsbcbiq")
-    byte16 __builtin_s390_vsbcbiq(byte16, byte16, byte16) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.s390.vsbiq")
-    byte16 __builtin_s390_vsbiq(byte16, byte16, byte16) pure @safe;
-
 pragma(LDC_intrinsic, "llvm.s390.vscbib")
     byte16 __builtin_s390_vscbib(byte16, byte16) pure @safe;
 
@@ -376,9 +325,6 @@ pragma(LDC_intrinsic, "llvm.s390.vscbig")
 pragma(LDC_intrinsic, "llvm.s390.vscbih")
     short8 __builtin_s390_vscbih(short8, short8) pure @safe;
 
-pragma(LDC_intrinsic, "llvm.s390.vscbiq")
-    byte16 __builtin_s390_vscbiq(byte16, byte16) pure @safe;
-
 pragma(LDC_intrinsic, "llvm.s390.vsl")
     byte16 __builtin_s390_vsl(byte16, byte16) pure @safe;
 
@@ -390,9 +336,6 @@ pragma(LDC_intrinsic, "llvm.s390.vsld")
 
 pragma(LDC_intrinsic, "llvm.s390.vsldb")
     byte16 __builtin_s390_vsldb(byte16, byte16, int) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.s390.vsq")
-    byte16 __builtin_s390_vsq(byte16, byte16) pure @safe;
 
 pragma(LDC_intrinsic, "llvm.s390.vsra")
     byte16 __builtin_s390_vsra(byte16, byte16) pure @safe;
@@ -431,7 +374,7 @@ pragma(LDC_intrinsic, "llvm.s390.vstrczh")
     short8 __builtin_s390_vstrczh(short8, short8, short8, int) pure @safe;
 
 pragma(LDC_intrinsic, "llvm.s390.vstrl")
-    void __builtin_s390_vstrl(byte16, int, void*);
+    void __builtin_s390_vstrlr(byte16, int, void*);
 
 pragma(LDC_intrinsic, "llvm.s390.vsumb")
     int4 __builtin_s390_vsumb(byte16, byte16) pure @safe;
@@ -444,12 +387,6 @@ pragma(LDC_intrinsic, "llvm.s390.vsumgh")
 
 pragma(LDC_intrinsic, "llvm.s390.vsumh")
     int4 __builtin_s390_vsumh(short8, short8) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.s390.vsumqf")
-    byte16 __builtin_s390_vsumqf(int4, int4) pure @safe;
-
-pragma(LDC_intrinsic, "llvm.s390.vsumqg")
-    byte16 __builtin_s390_vsumqg(long2, long2) pure @safe;
 
 pragma(LDC_intrinsic, "llvm.s390.vtm")
     int __builtin_s390_vtm(byte16, byte16) pure @safe;

@@ -1,6 +1,6 @@
 ﻿module memutils.vector;
 
-import std.traits : ForeachType, isNumeric, isSomeString, hasElaborateDestructor, isPointer, hasIndirections;
+import std.traits : isArray, ForeachType, isNumeric, isSomeString, hasElaborateDestructor, isPointer, hasIndirections;
 import std.range : popFront, front, ElementEncodingType, empty, isInputRange, isForwardRange, isRandomAccessRange, ElementType, refRange, RefRange, hasLength;
 
 import memutils.allocators;
@@ -179,9 +179,8 @@ nothrow:
 			_capacity = elements;
 		}
 
-		static if (is(T == char))
-		pragma(inline, true) size_t pushBack(Stuff)(Stuff stuff) 
-			if (is(Stuff == char[]) || is(Stuff == string))
+		size_t pushBack(Stuff)(Stuff stuff) 
+			if (isSomeString!Stuff)
 		{
 			logTrace("Vector.append @disabled this(this)");
 			if (_capacity <= length + stuff.length)
@@ -202,24 +201,9 @@ nothrow:
 			return 1;
 		}
 
-		pragma(inline, true) size_t pushBack(Stuff)(auto ref Stuff stuff)
-			if (!isImplicitlyConvertibleLegacy!(T, T) && is(T == Stuff))
-		{
-			logTrace("Vector.append @disabled this(this)");
-			if (_capacity == length)
-			{
-				reserve(1 + capacity * 3 / 2);
-			}
-			assert(capacity > length && _payload);
-			_length += 1;
-			_payload[_length - 1] = cast(T)stuff;
-			
-			return 1;
-		}
-		
 		// Insert one item
-		pragma(inline, true) size_t pushBack(Stuff)(auto ref Stuff stuff)
-			if (isImplicitlyConvertibleLegacy!(T, T) && isImplicitlyConvertibleLegacy!(Stuff, T))
+		size_t pushBack(Stuff)(auto ref Stuff stuff)
+			if (!isArray!Stuff && !isSomeString!Stuff)
 		{
 			logTrace("Vector.append");
 			//logTrace("Capacity: ", _capacity, " length: ", length);
@@ -233,10 +217,10 @@ nothrow:
 			_payload[_length - 1] = stuff;
 			return 1;
 		}
-		
+
 		/// Insert a range of items
-		pragma(inline, true) size_t pushBack(Stuff)(auto ref Stuff stuff)
-			if (isInputRange!Stuff && (isImplicitlyConvertibleLegacy!(ElementType!Stuff, T) || is(T == ElementType!Stuff)))
+		size_t pushBack(Stuff)(auto ref Stuff stuff)
+			if (isArray!Stuff && !isSomeString!Stuff)
 		{
 			logTrace("Vector.append 2");
 			static if (hasLength!Stuff)
@@ -279,7 +263,7 @@ nothrow:
         Constructor taking an input range
      */
 	this(Stuff)(Stuff stuff)
-		if (isInputRange!Stuff && isImplicitlyConvertibleLegacy!(UnConst!(ElementType!Stuff), T) && !is(Stuff == T[]))
+		if (isArray!Stuff && isImplicitlyConvertibleLegacy!(UnConst!(ElementType!Stuff), T) && !is(Stuff == T[]))
 	{
 		insertBack(stuff);
 	}
@@ -718,7 +702,7 @@ nothrow:
 		else static if (isSomeString!(Stuff) && isImplicitlyConvertibleLegacy!(Stuff, T)) {
 			return _data.pushBack(cast(T)stuff);
 		}
-		else static if (isInputRange!(Stuff) && isImplicitlyConvertibleLegacy!(ForeachType!Stuff, T)) {
+		else static if (isArray!(Stuff) && isImplicitlyConvertibleLegacy!(ForeachType!Stuff, T)) {
 			return _data.pushBack(stuff);
 		}
 		else
@@ -815,7 +799,7 @@ nothrow:
 	
 	/// ditto
 	size_t insertBefore(Stuff)(size_t i, Stuff stuff)
-		if (isInputRange!Stuff && isImplicitlyConvertibleLegacy!(ElementType!Stuff, T))
+		if (isArray!Stuff && isImplicitlyConvertibleLegacy!(ElementType!Stuff, T))
 	{
 		assert(i <= length);
 		static if (isForwardRange!Stuff)
