@@ -589,7 +589,7 @@ void setChildFromParent(string injected_name, string local_name, T, Ts...)(
 
     static assert(is(ChildMemberNodeType : HTMLElement));
     auto ptr = &__traits(getMember, ts[index], injected_name).node;
-    __traits(getMember, t, local_name) = cast(ChildMemberType) ptr;
+    () @trusted {__traits(getMember, t, local_name) = cast(ChildMemberType) ptr;}();
   }
 }
 
