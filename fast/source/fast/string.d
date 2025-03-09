@@ -406,7 +406,7 @@ template SimdMatcher(string match)
 			}
 		}
 
-		enum genMatchCode(bool sse)(string var)
+		auto genMatchCode(bool sse)(string var)
 		{
 			import std.exception;
 
@@ -558,7 +558,7 @@ template SimdMatcher(string match)
 			return result;
 		}
 
-		enum genMatchTable()
+		auto genMatchTable()
 		{
 			ubyte[1 << 16] table;
 			ubyte[256] lut;

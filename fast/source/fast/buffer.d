@@ -202,12 +202,12 @@ auto asOutputRange(T)(T* t) @safe pure
 	static assert(isOutputRange!(PointerRange, T));
 	return PointerRange(t, t);
 }
-
+/*
 enum bufferArg(alias size)()
 {
 	return "((size <= allocaLimit) ? alloca(size) : null)";
 }
-
+*/
 package:
 
 struct StackBuffer(size_t bytes)

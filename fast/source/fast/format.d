@@ -289,7 +289,7 @@ template spaceRequirement(string format, T) if (hasKnownSpaceRequirement!T)
 		static assert(0, "Don't know how to handle " ~ T.stringof);
 }
 
-enum spaceRequirements(string format, Args...)()
+auto spaceRequirements(string format, Args...)()
 			if (allSatisfy!(hasKnownSpaceRequirement, Args))
 {
 	size_t sum = 0;
@@ -337,7 +337,7 @@ ptrdiff_t indexOf(T)(T s, char c) pure nothrow
 
 template tokenizedFormatString(string fmt)
 {
-	enum impl()
+	auto impl()
 	{
 		Tuple!(string, size_t)[8] parts;
 		size_t i = 0;

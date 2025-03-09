@@ -89,7 +89,7 @@ template UnsignedOf(I) if (isIntegral!I)
  * See_Also:
  *   $(LINK2 http://forum.dlang.org/thread/vqfvihyezbmwcjkmpzin@forum.dlang.org, A simple way to do compile time loop unrolling)
  */
-enum ctfeJoin(size_t length)(in string fmt, in string joiner = null)
+auto ctfeJoin(size_t length)(in string fmt, in string joiner = null)
 {
 	import std.range : iota;
 	import std.algorithm : map;
@@ -105,7 +105,7 @@ enum ctfeJoin(size_t length)(in string fmt, in string joiner = null)
 	return result;
 }
 
-enum getUDA(alias sym, T)()
+auto getUDA(alias sym, T)()
 {
 	foreach (uda; __traits(getAttributes, sym))
 		static if (is(typeof(uda) == T))

@@ -846,7 +846,7 @@ void skipToNextLine(ref const(char)* p)
 		p++;
 }
 
-private enum sanitizeChars(string cs)
+private auto sanitizeChars(string cs)
 {
 	bool has0 = false;
 	foreach (c; cs)
@@ -860,7 +860,7 @@ private enum sanitizeChars(string cs)
 	return cs;
 }
 
-private enum sanitizeRanges(string cs)
+private auto sanitizeRanges(string cs)
 {
 	bool has0 = false;
 	foreach (i; 0 .. cs.length / 2)
