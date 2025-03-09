@@ -622,7 +622,7 @@ template isTOrPointer(T, Target)
 }
 
 // TODO: implement others as well
-enum ListenerType
+/*enum ListenerType
 {
   click = 0,
   change = 1,
@@ -636,7 +636,7 @@ enum ListenerType
   mousedown = 9,
   keypress = 10,
   focus = 11
-}
+}*/
 
 enum EventType
 {

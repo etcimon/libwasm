@@ -9,9 +9,6 @@ let tags = ["a","abbr","address","area","article","aside","audio","b","base","bd
 const getTagFromType = (type) => {
     return tags[type];
 }
-
-let events = ['click','change','input','keydown','keyup','dblclick','blur','mousemove','mouseup','mousedown','keypress'];
-
 let currentEvent= null;
 
 const eventHandler = (event) => {
@@ -81,13 +78,14 @@ export let jsExports = {
             const value = decoder.string(valueLen,valueOffset);
             nodes[node].setAttribute(attr, value);
         },
-        addEventListener: (nodePtr, listenerType, ctx, fun, eventType) => {
-            var listenerTypeStr = events[listenerType];
+        addEventListener: (nodePtr, listenerTypeLen, listenerTypeOffset, ctx, fun, eventType) => {
+            var listenerTypeStr = decoder.string(listenerTypeLen,listenerTypeOffset);
             var node = nodes[nodePtr];
+            var nodeEvents
             if (node.wasmEvents === undefined)
-                var nodeEvents = node.wasmEvents = {};
+                nodeEvents = node.wasmEvents = {};
             else
-                var nodeEvents = nodes[nodePtr].wasmEvents;
+                nodeEvents = nodes[nodePtr].wasmEvents;
             if (nodeEvents[listenerTypeStr] && nodeEvents[listenerTypeStr].cbs.length > 0) {
                 nodeEvents[listenerTypeStr].cbs.push({ctx:ctx,fun:fun});
             } else {
@@ -95,8 +93,8 @@ export let jsExports = {
                 node.addEventListener(listenerTypeStr, eventHandler);
             }
         },
-        removeEventListener: (nodePtr, listenerType, ctx, fun, eventType) => {
-            var listenerTypeStr = events[listenerType];
+        removeEventListener: (nodePtr, listenerTypeLen, listenerTypeOffset, ctx, fun, eventType) => {
+            var listenerTypeStr = decoder.string(listenerTypeLen,listenerTypeOffset);
             var node = nodes[nodePtr];
             if (node.wasmEvents === undefined)
                 return;

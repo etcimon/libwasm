@@ -148,7 +148,7 @@ unittest
 
 unittest
 {
-  alias ChildNode = NamedNode!"root"*;
+  alias ChildNode = NamedNode!("root","root")*;
   static struct Parent
   {
     mixin NodeDef!"section";
@@ -180,7 +180,7 @@ unittest
 
 unittest
 {
-  alias ChildNode = NamedNode!"root"*;
+  alias ChildNode = NamedNode!("root","root")*;
   static struct Parent
   {
     mixin NodeDef!"section";

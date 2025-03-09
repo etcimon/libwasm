@@ -41,8 +41,8 @@ nothrow:
 
 private extern(C) {
   nothrow:
-  void removeEventListener(Handle node, ListenerType type, uint ctx, uint fun, EventType type);
-  void addEventListener(Handle node, ListenerType type, uint ctx, uint fun, EventType type);
+  void removeEventListener(Handle node, string listener_type, uint ctx, uint fun, EventType type);
+  void addEventListener(Handle node, string listener_type, uint ctx, uint fun, EventType type);
 }
 enum eventemitter;
 
@@ -67,47 +67,39 @@ auto toTuple(Delegate)(Delegate d) {
   return tuple!("ctx","func")(ctx,func);
 }
 
-EventType toEventType(Node)(ListenerType listener) {
-  with (ListenerType) {
-    switch(listener) {
-        case click:
-          return EventType.mouse;
-        case input:
-          return EventType.input;
-        case change:
-          return EventType.event;
-        case keyup:
-        case keydown:
-        case keypress:
-          return EventType.keyboard;
-        case dblclick:
-          return EventType.mouse;
-        case focus:
-          return EventType.focus;
-        case blur:
-          return EventType.event;
-        case mouseup:
-        case mousedown:
-        case mousemove:
-          return EventType.mouse;
-        default:
-          return EventType.custom;
-      }
-  }
+EventType toEventType(Node)(string listener) {
+  switch(listener) {
+      case "click":
+        return EventType.mouse;
+      case "input":
+        return EventType.input;
+      case "change":
+        return EventType.event;
+      case "keyup":
+      case "keydown":
+      case "keypress":
+        return EventType.keyboard;
+      case "dblclick":
+        return EventType.mouse;
+      case "focus":
+        return EventType.focus;
+      case "blur":
+        return EventType.event;
+      case "mouseup":
+      case "mousedown":
+      case "mousemove":
+        return EventType.mouse;
+      default:
+        return EventType.custom;
+    }
 }
-
-template toListenerType(string t) {
-  mixin("enum toListenerType = ListenerType."~t~";");
-}
-
 
 // TODO: please combine with function below
 auto removeEventListenerTyped(string name, T)(Handle node, auto ref T t) {
   import std.traits : fullyQualifiedName, Parameters;
   import memutils.ct : toLower;
   // TODO: really want to use std.uni.toLower here but prevented by https://issues.dlang.org/show_bug.cgi?id=19268
-  enum type = toLower!(name[2..$]);
-  enum listenerType = toListenerType!type;
+  enum listenerType = toLower!(name[2..$]);
   auto delPtr = &__traits(getMember, t, name);
   enum eventType = listenerType.toEventType!T;
   alias Event = ToEvent!eventType;
@@ -122,11 +114,11 @@ auto removeEventListenerTyped(string name, T)(Handle node, auto ref T t) {
   removeEventListener(node, listenerType, toTuple(delPtr).expand, eventType);
 }
 
-auto addEventListenerTyped(string type, string name, T)(Handle node, auto ref T t) {
+auto addEventListenerTyped(string listenerType, string name, T)(Handle node, auto ref T t) {
   import std.traits : fullyQualifiedName, Parameters;
   import memutils.ct : toLower;
   // TODO: really want to use std.uni.toLower here but prevented by https://issues.dlang.org/show_bug.cgi?id=19268
-  enum listenerType = toListenerType!type;
+  
   auto delPtr = &__traits(getMember, t, name);
   enum eventType = listenerType.toEventType!T;
   alias Event = ToEvent!eventType;

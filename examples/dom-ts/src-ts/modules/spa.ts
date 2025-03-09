@@ -214,36 +214,23 @@ export let jsExports = {
         },
         addEventListener: (
             nodePtr: number,
-            listenerType: number,
+            listenerTypeLen: number,
+            listenerTypeOffset: number,
             ctx: number,
             fun: number,
             eventType: number
         ) => {
-            let events = [
-                'click',
-                'change',
-                'input',
-                'keydown',
-                'keyup',
-                'dblclick',
-                'blur',
-                'mousemove',
-                'mouseup',
-                'mousedown',
-                'keypress',
-                'focus',
-            ]
-            let listenerTypeStr: any = events[listenerType]
+            let listenerTypeStr: any = decoder.string(listenerTypeLen,listenerTypeOffset)
             let node: any = libwasm.objects[nodePtr]
             let existing_cb: any
             if (
                 typeof node.wasmEventHandlers === 'object' &&
-                typeof node.wasmEventHandlers[listenerType] === 'object'
+                typeof node.wasmEventHandlers[listenerTypeStr] === 'object'
             ) {
                 console.warn(`Node had existing event handler(s):`)
                 console.warn(node)
-                existing_cb = node.wasmEventHandlers[listenerType]
-                delete node.wasmEventHandlers[listenerType]
+                existing_cb = node.wasmEventHandlers[listenerTypeStr]
+                delete node.wasmEventHandlers[listenerTypeStr]
             }
             if (node.wasmEvents === undefined)
                 var nodeEvents: any = (node.wasmEvents = {})
@@ -265,28 +252,13 @@ export let jsExports = {
         },
         removeEventListener: (
             nodePtr: number,
-            listenerType: number,
+            listenerTypeLen: number,
+            listenerTypeOffset: number,
             ctx: number,
             fun: number,
             eventType: number
         ) => {
-            
-            let events = [
-                'click',
-                'change',
-                'input',
-                'keydown',
-                'keyup',
-                'dblclick',
-                'blur',
-                'mousemove',
-                'mouseup',
-                'mousedown',
-                'keypress',
-                'focus',
-            ]
-
-            var listenerTypeStr = events[listenerType]
+            var listenerTypeStr = decoder.string(listenerTypeLen,listenerTypeOffset)
             var node = libwasm.objects[nodePtr]
             if (node.wasmEvents === undefined) return
             var nodeEvents = libwasm.objects[nodePtr].wasmEvents
