@@ -85,7 +85,7 @@ unittest
   struct Inner
   {
     mixin NodeDef!"span";
-    @attr int* key;
+    @attr!"key" int* key;
   }
 
   struct App
@@ -127,7 +127,7 @@ unittest
   static struct Inner
   {
     mixin NodeDef!"div";
-    @attr int* count;
+    @attr!"count" int* count;
   }
 
   static struct App
@@ -159,7 +159,7 @@ unittest
   static struct Div
   {
     mixin NodeDef!"div";
-    @prop string innerHTML;
+    @prop!"innerHTML" string innerHTML;
   }
 
   static struct App
