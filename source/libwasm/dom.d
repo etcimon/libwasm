@@ -580,7 +580,7 @@ void setChildFromParent(string injected_name, string local_name, T, Ts...)(
     static assert(__traits(hasMember, ParentMemberType, "node"), __traits(identifier, ParentMemberType) ~ " doesn't have a member 'node'.");
     alias ParentMemberNodeType = typeof(ParentMemberType.node);
     alias ChildMemberNodeType = typeof(ChildMemberType.node);
-    static assert(is(ParentMemberNodeType : NamedNode!type, string type), __traits(identifier, ParentMemberType) ~ "'s member 'node' needs to be of type NamedNode.");
+    static assert(is(ParentMemberNodeType : NamedNode!(type, tag), string type, string tag), __traits(identifier, ParentMemberType) ~ "'s member 'node' needs to be of type NamedNode.");
     // NOTE: for now we assert that the ChildMemberNodeType is an HTMLElement, it would be nice to
     // allow the component to restrict the nodetype of child elements, in which case
     // we need to check if ChildMemberNodeType is a supertype or the same as ParentMemberNodeType
@@ -652,7 +652,7 @@ auto compile(T, Ts...)(return auto ref T t, return auto ref Ts ts) @trusted
       static if (!isImmutable)
       {
 
-        static if (is(ChildType : NamedNode!name, string name))
+        static if (is(ChildType : NamedNode!(name, tag), string name, string tag))
         {
           static if (i != "node")
           { // reference to a parent struct
@@ -804,7 +804,7 @@ ref auto getNamedNode(T)(return auto ref T t) if (!isPointer!T)
 {
   import libwasm.node : NamedNode;
 
-  static if (is(T : NamedNode!name, string name))
+  static if (is(T : NamedNode!(name, tag), string name, string tag))
   {
     return t;
   }
@@ -833,7 +833,7 @@ template createNestedChildRenderFuncs(string memberName)
       static if (!__traits(hasMember, MemberType, "node"))
         enum isNestedChild = false;
       else
-        enum isNestedChild = is(typeof(MemberType.node) : NamedNode!type, string type);
+        enum isNestedChild = is(typeof(MemberType.node) : NamedNode!(type, tag), string type, string tag);
     }
 
     template extractName(alias param)
@@ -943,7 +943,7 @@ template renderNestedChild(string field)
                     t.assignEventListeners(*item);
                 }
               }
-              else static if (is(typeof(sym) : NamedNode!(name)*, string name))
+              else static if (is(typeof(sym) : NamedNode!(name, tag)*, string name, string tag))
               {
                 renderNestedChild!(i)(node, t, ts);
               }
@@ -956,11 +956,19 @@ template renderNestedChild(string field)
           }
           else static if (hasUDA!(sym, prop))
           {
-            node.setPropertyTyped!name(__traits(getMember, t, i));
+              alias uda = getUDAs!(sym, prop)[0];
+              static if (is(uda : prop!prop_value, alias prop_value))
+                node.setPropertyTyped!prop_value(__traits(getMember, t, i));
+              else
+                node.setPropertyTyped!name(__traits(getMember, t, i));
           }
           else static if (hasUDA!(sym, attr))
           {
-            node.setAttributeTyped!name(__traits(getMember, t, i));
+              alias uda = getUDAs!(sym, attr)[0];
+              static if (is(uda : attr!attr_value, alias attr_value))
+                node.setAttributeTyped!attr_value(__traits(getMember, t, i));
+              else 
+                node.setAttributeTyped!name(__traits(getMember, t, i));
           }
 
           alias extendedStyles = getStyleSets!(sym);
@@ -1010,16 +1018,30 @@ template renderNestedChild(string field)
           else static if (hasUDA!(sym, prop))
           {
             auto result = callMember!(i)(t);
-            t.getNamedNode.setPropertyTyped!name(result);
+            alias uda = getUDAs!(sym, prop)[0];
+            static if (is(uda : prop!prop_value, alias prop_value))
+              t.getNamedNode.setPropertyTyped!prop_value(result);
+            else
+              t.getNamedNode.setPropertyTyped!name(result);
           }
           else static if (hasUDA!(sym, callback))
           {
-            t.getNamedNode.addEventListenerTyped!i(t);
+            alias uda = getUDAs!(sym, callback)[0];
+            static if (is(uda : callback!cb_value, alias cb_value))
+              t.getNamedNode.addEventListenerTyped!(cb_value,i)(t);
+            else
+              t.getNamedNode.addEventListenerTyped!(i, i)(t);
+
           }
           else static if (hasUDA!(sym, attr))
           {
-            auto result = callMember!(i)(t);
-            t.getNamedNode.setAttributeTyped!name(result);
+              auto result = callMember!(i)(t);
+              alias uda = getUDAs!(sym, attr)[0];
+              static if (is(uda : attr!attr_value, alias attr_value))
+                t.getNamedNode.setAttributeTyped!attr_value(result);
+              else
+                t.getNamedNode.setAttributeTyped!name(result);
+              
           }
           else static if (hasUDA!(sym, style))
           {
@@ -1304,11 +1326,19 @@ template update(alias field)
     alias name = domName!(field.stringof);
     static if (hasUDA!(field, prop))
     {
-      parent.node.setPropertyTyped!name(t);
+      alias uda = getUDAs!(field, prop)[0];
+      static if (is(uda : prop!prop_value, alias prop_value))
+        parent.node.setPropertyTyped!prop_value(t);
+      else
+        parent.node.setPropertyTyped!name(t);
     }
     else static if (hasUDA!(field, attr))
     {
-      parent.node.setAttributeTyped!name(t);
+      alias uda = getUDAs!(field, attr)[0];
+      static if (is(uda : attr!attr_value, alias attr_value))
+        parent.node.setAttributeTyped!attr_value(t);
+      else
+        parent.node.setAttributeTyped!name(t);
     }
     static if (is(T == bool))
     {
@@ -1344,13 +1374,22 @@ template update(alias field)
             {
               alias cleanName = domName!i;
               auto result = callMember!(i)(parent);
-              parent.node.node.setPropertyTyped!cleanName(result);
+              alias uda = getUDAs!(sym, prop)[0];
+              static if (is(uda : prop!prop_value, alias prop_value))
+                parent.node.node.setPropertyTyped!prop_value(result);
+              else 
+                parent.node.node.setPropertyTyped!cleanName(result);
             }
             else static if (hasUDA!(sym, attr))
             {
               alias cleanName = domName!i;
               auto result = callMember!(i)(parent);
-              parent.node.node.setAttributeTyped!cleanName(result);
+              
+              alias uda = getUDAs!(sym, attr)[0];
+              static if (is(uda : attr!attr_value, alias attr_value))
+                parent.node.node.setAttributeTyped!attr_value(result);
+              else 
+                parent.node.node.setAttributeTyped!cleanName(result);
             }
             else static if (hasUDA!(sym, style))
             {
@@ -1482,14 +1521,19 @@ auto applyStyles(T, styles...)(Handle node)
 
 Handle createNode(T)(Handle parent, ref T t)
 {
+  import libwasm.bindings.HTMLElement : HTMLUnknownElement;
   enum hasNode = hasMember!(T, "node");
-  static if (hasNode && is(typeof(t.node) : NamedNode!tag, alias tag) && __traits(compiles, mixin("NodeType." ~ tag)))
+  static if (hasNode && is(typeof(t.node) : NamedNode!(name, tag), string name, string tag))
   {
-    mixin("NodeType n = NodeType." ~ tag ~ ";");
-    return createElement(n);
-  }
-  else static if (hasNode) {
-    return createCustomElement(tag);
+    static if (name == tag && __traits(compiles, mixin("NodeType." ~ tag)))
+    {
+      mixin("NodeType n = NodeType." ~ tag ~ ";");
+      return createElement(n);
+    }
+    else static if (name != tag && __traits(compiles, mixin("NodeType." ~ tag))) {
+      return createCustomElement(name);
+    }
+    else return createCustomElement(name);
   }
   else
     return parent;

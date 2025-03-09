@@ -75,7 +75,7 @@ struct TagHtmlElementMap {
   alias optgroup = HTMLOptGroupElement;
   alias option = HTMLOptionElement;
   alias output = HTMLOutputElement;
-  alias paragraph = HTMLParagraphElement;
+  alias p = HTMLParagraphElement;
   alias param = HTMLParamElement;
   alias picture = HTMLPictureElement;
   alias pre = HTMLPreElement;
@@ -107,14 +107,19 @@ struct TagHtmlElementMap {
   }
 }
 
-struct NamedNode(string tag) {
+struct NamedNode(string name, string tag) {
   alias Element = __traits(getMember, TagHtmlElementMap, tag);
+  alias NodeName = name;
   Element node = invalidHandle;
   bool mounted;
   bool marked;
   alias node this;
 }
 
-mixin template NodeDef(string str) {
-  mixin("NamedNode!\""~str~"\" node;");
+mixin template NodeDef(string name) {
+  mixin("NamedNode!(\""~name~"\", \""~name~"\") node;");
+}
+
+mixin template NodeDef(string name, string tag) {
+  mixin("NamedNode!(\""~name~"\", \""~tag~"\") node;");
 }

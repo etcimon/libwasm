@@ -20,7 +20,7 @@ string dumpState(T)(ref T app) {
         else
           sink.write("f");
         first = false;
-      } else static if (is(typeof(t) : NamedNode!tag, string tag)) {
+      } else static if (is(typeof(t) : NamedNode!(name, tag), string name, string tag)) {
       } else static if (isSomeString!(typeof(t))) {
         if (!first)
           sink.write(",");
@@ -158,7 +158,7 @@ void loadState(T)(ref T app, string state) {
                 app.tupleof[idx] = readBoolean(state);
                 update!(__traits(identifier, t),T)(app);
               }
-            } else static if (is(typeof(t) : NamedNode!tag, string tag)) {
+            } else static if (is(typeof(t) : NamedNode!(name, tag), string name, string tag)) {
             } else static if (isSomeString!(typeof(t))) {
               if (state[0] != 's')
                 skipField(state);

@@ -607,24 +607,14 @@ enum NodeType
 
 // deprecated("Use libwasm.types.Child instead") enum child;
 enum child;
-enum prop;
-enum callback;
-enum attr;
-struct connect(field...)
-{
-};
-struct visible(alias condition)
-{
-};
-struct inject(alias parent_name)
-{
-};
-struct entering(alias path)
-{
-};
-struct leaving(alias path)
-{
-};
+struct prop(alias prop_name){};
+struct callback(alias cb_name){};
+struct attr(alias attr_name){};
+struct connect(field...){};
+struct visible(alias condition){};
+struct inject(alias parent_name){};
+struct entering(alias path){};
+struct leaving(alias path){};
 
 template isTOrPointer(T, Target)
 {
