@@ -196,7 +196,7 @@ unittest
   static struct Top
   {
     mixin NodeDef!"header";
-    @prop string innerHTML = "top";
+    @prop!"innerHTML" string innerHTML = "top";
   }
 
   static struct App

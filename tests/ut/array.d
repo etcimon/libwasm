@@ -20,7 +20,7 @@ struct Item
 {
   mixin NodeDef!"div";
   bool checked;
-  @prop key = 0;
+  @prop!"key" key = 0;
   this(bool c, int k)
   {
     this.checked = c;
