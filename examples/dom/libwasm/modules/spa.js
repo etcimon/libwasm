@@ -75,6 +75,15 @@ export let jsExports = {
             const attr = decoder.string(attrLen,attrOffset);
             libwasm.objects[node].setAttribute(attr, value);
         },
+        setAttributeBool: (node, attrLen, attrOffset, value) => {
+            const attr = decoder.string(attrLen,attrOffset);
+            if (value == 1) nodes[node].setAttribute(attr, value);
+            else nodes[node].removeAttribute(attr);
+        },
+        removeAttribute: (node, attrLen, attrOffset) => {
+            const attr = decoder.string(attrLen,attrOffset);
+            nodes[node].removeAttribute(attr);
+        },
         getTimeStamp: () => {
             return BigInt(window._.now());
         },       

@@ -73,6 +73,15 @@ export let jsExports = {
             const attr = decoder.string(attrLen,attrOffset);
             nodes[node].setAttribute(attr, value);
         },
+        setAttributeBool: (node, attrLen, attrOffset, value) => {
+            const attr = decoder.string(attrLen,attrOffset);
+            if (value == 1) nodes[node].setAttribute(attr, value);
+            else nodes[node].removeAttribute(attr);
+        },
+        removeAttribute: (node, attrLen, attrOffset) => {
+            const attr = decoder.string(attrLen,attrOffset);
+            nodes[node].removeAttribute(attr);
+        },
         setAttribute: (node, attrLen, attrOffset, valueLen, valueOffset) => {
             const attr = decoder.string(attrLen,attrOffset);
             const value = decoder.string(valueLen,valueOffset);

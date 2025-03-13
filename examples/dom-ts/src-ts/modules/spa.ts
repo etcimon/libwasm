@@ -48,14 +48,17 @@ export let jsExports = {
             classOffset: number,
             on: number
         ) => {
-            if (on)
-                libwasm.objects[node].classList.add(
-                    decoder.string(classLen, classOffset)
-                )
-            else
-                libwasm.objects[node].classList.remove(
-                    decoder.string(classLen, classOffset)
-                )
+            let classNames = decoder.string(classLen, classOffset)
+            if (on) {
+                _.foreach(classNames.split(" "), function (className: string) {
+                    libwasm.objects[node].classList.add(className)
+                })
+            }
+            else {
+                _.foreach(classNames.split(" "), function (className: string) {
+                    libwasm.objects[node].classList.remove(className)
+                })
+            }
         },
         unmount: (childPtr: number) => {
             var child = libwasm.objects[childPtr]
@@ -209,8 +212,26 @@ export let jsExports = {
             const attr = decoder.string(attrLen, attrOffset)
             libwasm.objects[node].setAttribute(attr, value)
         },
+        setAttributeBool: (
+            node: number,
+            attrLen: number,
+            attrOffset: number,
+            value: number
+        ) => {
+            const attr = decoder.string(attrLen, attrOffset)
+            if (value == 1) libwasm.objects[node].setAttribute(attr, value)
+            else libwasm.objects[node].removeAttribute(attr);
+        },
+        removeAttribute: (
+            node: number,
+            attrLen: number,
+            attrOffset: number
+        ) => {
+            const attr = decoder.string(attrLen, attrOffset)
+            libwasm.objects[node].removeAttribute(attr);
+        },
         getTimeStamp: () => {
-            return BigInt(window._.now())
+            return BigInt(_.now())
         },
         addEventListener: (
             nodePtr: number,

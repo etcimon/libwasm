@@ -286,9 +286,11 @@ else
     void insertBefore(Handle parentPtr, Handle childPtr, Handle sibling);
     void setAttribute(Handle nodePtr, string attr, string value);
     void setAttributeInt(Handle nodePtr, string attr, int value);
-    void setPropertyBool(Handle nodePtr, string attr, bool value);
-    void setPropertyInt(Handle nodePtr, string attr, int value);
-    void setPropertyDouble(Handle nodePtr, string attr, double value);
+    void setAttributeBool(Handle nodePtr, string prop, bool value);
+    void removeAttribute(Handle nodePtr, string attr);
+    void setPropertyBool(Handle nodePtr, string prop, bool value);
+    void setPropertyInt(Handle nodePtr, string prop, int value);
+    void setPropertyDouble(Handle nodePtr, string prop, double value);
     void innerText(Handle nodePtr, string text);
     void removeClass(Handle node, string className);
     void changeClass(Handle node, string className, bool on);
@@ -709,11 +711,14 @@ auto compile(T, Ts...)(return auto ref T t, return auto ref Ts ts) @trusted
                   alias params = AliasSeq!();
                 static if (isAggregateType!(ChildType))
                 { // recurse through the child members
-
-                  static if (isPointer!(typeof(sym)))
+                  static if (isPointer!(typeof(sym))) {                    
+                    static assert(!is(typeof(*__traits(getMember, t, i)) == void), "Cannot compile void type " ~ typeof(t).stringof ~ "." ~ typeof(sym).stringof ~ " " ~ i ~ " (possibly a redundant identifier?)");
                     compile(*__traits(getMember, t, i), AliasSeq!(params, t, ts));
-                  else
+                  }
+                  else {
+                    static assert(!is(typeof(__traits(getMember, t, i)) == void), "Cannot compile void type "  ~ typeof(t).stringof ~ "." ~ typeof(sym).stringof ~ " " ~ i ~ " (possibly a redundant identifier?)");
                     compile(__traits(getMember, t, i), AliasSeq!(params, t, ts));
+                  }
                 }
               }
             }
@@ -1057,20 +1062,22 @@ template renderNestedChild(string field)
             alias connects = getUDAs!(sym, connect);
             static foreach (c; connects)
             {
-              auto del = &__traits(getMember, t, i);
-              static if (is(c : connect!(a, b), alias a, alias b))
               {
-                mixin("t." ~ a ~ "." ~ replace!(b, '.', '_') ~ ".add(del);");
-              }
-              else static if (is(c : connect!field, alias field))
-              {
-                static assert(__traits(compiles, mixin("t." ~ field)), "Cannot find property " ~ field ~ " on " ~ T
-                    .stringof ~ " in @connect");
-                mixin("t." ~ field ~ ".add(del);");
-              }
-              else static if (is(c : connect!field, string field))
-              {
-                mixin("t." ~ field ~ ".add(del);");
+                auto del = &__traits(getMember, t, i);
+                static if (is(c : connect!(a, b), alias a, alias b))
+                {
+                  mixin("t." ~ a ~ "." ~ replace!(b, '.', '_') ~ ".add(del);");
+                }
+                else static if (is(c : connect!field, alias field))
+                {
+                  static assert(__traits(compiles, mixin("t." ~ field)), "Cannot find property " ~ field ~ " on " ~ T
+                      .stringof ~ " in @connect");
+                  mixin("t." ~ field ~ ".add(del);");
+                }
+                else static if (is(c : connect!field, string field))
+                {
+                  mixin("t." ~ field ~ ".add(del);");
+                }
               }
             }
           }
@@ -1269,17 +1276,27 @@ template updateChildren(alias member)
   }
 }
 
-auto update(T)(ref T node) if (hasMember!(T, "node"))
+auto update(T)(ref T obj) if (hasMember!(T, "node"))
 {
   struct Inner
   {
   nothrow:
-    void opDispatch(string name, V)(auto ref V v) const @safe
+    void opDispatch(string name, V...)(auto ref V v) const @safe
     {
-      mixin("node.update!(node." ~ name ~ ")(v);");
-      // NOTE: static assert won't work in opDispatch, as the compiler will not output the string but just ignore the opDispatch call and error out saying missing field on Inner
-      static if (!hasMember!(T, name))
+      static if (!hasMember!(T, name) || !__traits(compiles, "obj.update!(obj." ~ name ~ ")(v);")) {
+        // try to call on the node directly
+        static if (__traits(compiles, "obj.node." ~ name ~ " = v;"))
+          mixin("obj.node." ~ name ~ " = v;");
+        else static if (__traits(compiles, "obj.node." ~ name ~ "(v);"))
+          mixin("obj.node." ~ name ~ "(v);");
+        else static assert(false, "Cannot find " ~ name ~ " on " ~ typeof(T.node).stringof);
+      }
+      else static if (!hasMember!(T, name))
         pragma(msg, "********* Error: " ~ T.stringof ~ " has no property named " ~ name);
+      else
+        mixin("obj.update!(obj." ~ name ~ ")(v);");
+      // NOTE: static assert won't work in opDispatch, as the compiler will not output the string but just ignore the opDispatch call and error out saying missing field on Inner
+      
     }
   }
 
@@ -1475,8 +1492,9 @@ auto setAttributeTyped(string name, T)(Handle node, auto ref T t)
     if (t !is null)
       node.setAttributeTyped!name(*t);
   }
-  else static if (is(T == bool))
+  else static if (is(T == bool)) {
     node.setAttributeBool(name, t);
+  }
   else static if (is(T : int))
   {
     node.setAttributeInt(name, t);

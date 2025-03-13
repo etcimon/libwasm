@@ -59,7 +59,7 @@ void assignEventListeners(T)(ref HTMLArray!T arr, ref T item)
   alias eventPaths = extractEventPaths!(T);
   static foreach (path; eventPaths)
   {
-    mixin("item." ~ join!(".", path.expand) ~ ".add(&arr.__" ~ join!("_", path.expand) ~ ");");
+    mixin("() @trusted { item." ~ join!(".", path.expand) ~ ".add(&arr.__" ~ join!("_", path.expand) ~ "); }();");
   }
 }
 

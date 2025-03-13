@@ -486,20 +486,22 @@ class URLRouter
 
 }
 
-void registerRoutes(T)(auto ref T t) @trusted
+void registerRoutes(T, Ts...)(return auto ref T t, return auto ref Ts ts) @trusted
 {
     import std.meta : AliasSeq;
     import std.traits : hasUDA, isCallable, getUDAs;
     import libwasm.dom : compile;
 
-    static foreach (i; __traits(allMembers, T))
+    static foreach (sym; T.tupleof)
     {
         {
-            alias sym = __traits(getMember, t, i);
             static if (isPointer!(typeof(sym)))
                 alias ChildType = PointerTarget!(typeof(sym));
             else
                 alias ChildType = typeof(sym);
+
+            enum i = sym.stringof; // TODO: can this be fieldName = __traits(identifier, sym) instead of i = sym.stringof ??
+            enum isImmutable = is(typeof(sym) : immutable(T), T);
             enum isPublic = __traits(getProtection, sym) == "public";
             static if (hasUDA!(sym, entering))
             {
@@ -541,11 +543,26 @@ void registerRoutes(T)(auto ref T t) @trusted
         }*/
             else static if (isPublic && isAggregateType!ChildType && hasUDA!(sym, child) && !isCallable!(
                     typeof(sym)))
-            {
-                static if (isPointer!(typeof(sym)))
-                    registerRoutes(*__traits(getMember, t, i));
+            {                
+                import libwasm.spa;
+
+                alias Params = getUDAs!(sym, Parameters);
+                static if (Params.length > 0)
+                {
+                    verifyChildParams!(T, i, Params);
+                    auto params = createParameterTuple!(Params)(AliasSeq!(t, ts));
+                }
                 else
-                    registerRoutes(__traits(getMember, t, i));
+                    alias params = AliasSeq!();
+                static if (isAggregateType!(ChildType))
+                { // recurse through the child members
+
+                    static if (isPointer!(typeof(sym)))
+                    registerRoutes(*__traits(getMember, t, i), AliasSeq!(params, t, ts));
+                    else
+                    registerRoutes(__traits(getMember, t, i), AliasSeq!(params, t, ts));
+                }
+                
             }
         }
     }

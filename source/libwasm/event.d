@@ -133,44 +133,41 @@ auto addEventListenerTyped(string listenerType, string name, T)(Handle node, aut
   addEventListener(node, listenerType, toTuple(delPtr).expand, eventType);
 }
 
-struct EventEmitter {
+struct EventEmitter(Params...) {
   nothrow:
-  //static if (is(T == void)) {
-  void delegate() plain = null;
-  void add(void delegate() nothrow @safe del) {
-    plain = del;
+  static if (Params.length == 0)
+    alias Delegate = void delegate() nothrow @safe;
+  else
+    alias Delegate = void delegate(Params) nothrow @safe;
+
+  Delegate cb = null;
+  void add(Delegate del) {
+    cb = del;
   }
-  /*} // todo: add parameters to event emitters
-  else {
-    void delegate(T) plain = null;
-    void add(void delegate(T) nothrow @safe del) {
-      plain = del;
-    }
-  }*/
+  
   void delegate(size_t) addr = null;
   void add(void delegate(size_t) nothrow @safe del) {
     addr = del;
   }
 }
 
-mixin template Slot(string type) {
-  mixin("@eventemitter EventEmitter "~type~";");
+mixin template Slot(string type, Params...) {
+  mixin("@eventemitter EventEmitter!" ~ Params.stringof ~ " "~type~";");
 }
 
-auto emit(T)(ref T t, EventEmitter emitter) {
-  if (emitter.plain != null)
-    emitter.plain();
+import std.traits : hasUDA;
+auto emit(T, U, Params...)(auto ref T t, auto ref U emitter, auto ref Params params)
+{
+  static assert(is(U : EventEmitter!Params), "Cannot call emit with a type that is not an event emitter as the first parameter (" ~ U.stringof ~ "). " ~ ((U.stringof == "string") ? "Did you mean to pass the slot identifier without quotes?" : "Did you use the Slot mixin properly?"));
+  if (emitter.cb) emitter.cb(params);
+  static if (Params.length > 0 && is(Params == size_t))
+    if (emitter.addr) emitter.addr(params);
+}
+
+auto emit(EventEmitter!() emitter, size_t addr) {
+  if (emitter.cb != null)
+    emitter.cb();
   if (emitter.addr != null) {
-    size_t addr = cast(size_t)(&t);
     emitter.addr(addr);
   }
 }
-
-auto emit(EventEmitter emitter, size_t addr) {
-  if (emitter.plain != null)
-    emitter.plain();
-  if (emitter.addr != null) {
-    emitter.addr(addr);
-  }
-}
-

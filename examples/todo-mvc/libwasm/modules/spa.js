@@ -68,6 +68,15 @@ export let jsExports = {
         },
         setAttributeInt: setAttribute,
         setAttribute: (nodePtr, attrLen, attrOffset, valueLen, valueOffset) => setAttribute(nodePtr, attrLen, attrOffset, decoder.string(valueLen,valueOffset)),
+        setAttributeBool: (node, attrLen, attrOffset, value) => {
+            const attr = decoder.string(attrLen,attrOffset);
+            if (value == 1) nodes[node].setAttribute(attr, value);
+            else nodes[node].removeAttribute(attr);
+        },
+        removeAttribute: (node, attrLen, attrOffset) => {
+            const attr = decoder.string(attrLen,attrOffset);
+            nodes[node].removeAttribute(attr);
+        },
         addEventListener: (nodePtr, listenerType, ctx, fun, eventType) => {
             var listenerTypeStr = events[listenerType];
             var node = nodes[nodePtr];
