@@ -489,7 +489,7 @@ class URLRouter
 void registerRoutes(T, Ts...)(return auto ref T t, return auto ref Ts ts) @trusted
 {
     import std.meta : AliasSeq;
-    import std.traits : hasUDA, isCallable, getUDAs;
+    import std.traits : hasUDA, isCallable, getUDAs, PointerTarget;
     import libwasm.dom : compile;
 
     static foreach (sym; T.tupleof)

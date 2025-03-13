@@ -4,7 +4,7 @@ import libwasm.types;
 import memutils.ct;
 import std.traits : hasMember, isAggregateType;
 import std.traits : TemplateArgsOf, staticMap, isPointer, PointerTarget, getUDAs, EnumMembers, isInstanceOf, isBasicType, isIntegral;
-import std.traits : getSymbolsByUDA, getUDAs, Parameters;
+import std.traits : getSymbolsByUDA, getUDAs;
 import std.meta : Filter, AliasSeq, ApplyLeft, ApplyRight;
 import libwasm.css;
 import libwasm.node;
@@ -666,7 +666,6 @@ auto compile(T, Ts...)(return auto ref T t, return auto ref Ts ts) @trusted
               static if (is(uda == inject!ref_name, string ref_name))
               {
                 setChildFromParent!(ref_name, __traits(identifier, sym))(t, ts);
-                break;
               }
             }
           }
@@ -683,7 +682,6 @@ auto compile(T, Ts...)(return auto ref T t, return auto ref Ts ts) @trusted
               static if (is(uda == inject!ref_name, string ref_name))
               {
                 setParamFromParent!(ref_name, i)(t, ts);
-                break;
               }
             }
           }
@@ -712,11 +710,11 @@ auto compile(T, Ts...)(return auto ref T t, return auto ref Ts ts) @trusted
                 static if (isAggregateType!(ChildType))
                 { // recurse through the child members
                   static if (isPointer!(typeof(sym))) {                    
-                    static assert(!is(typeof(*__traits(getMember, t, i)) == void), "Cannot compile void type " ~ typeof(t).stringof ~ "." ~ typeof(sym).stringof ~ " " ~ i ~ " (possibly a redundant identifier?)");
+                    //static assert(!is(typeof(*__traits(getMember, t, i)) == void), "Cannot compile void type " ~ typeof(t).stringof ~ "." ~ typeof(sym).stringof ~ " " ~ i ~ " (possibly a redundant identifier?)");
                     compile(*__traits(getMember, t, i), AliasSeq!(params, t, ts));
                   }
                   else {
-                    static assert(!is(typeof(__traits(getMember, t, i)) == void), "Cannot compile void type "  ~ typeof(t).stringof ~ "." ~ typeof(sym).stringof ~ " " ~ i ~ " (possibly a redundant identifier?)");
+                    //static assert(!is(typeof(__traits(getMember, t, i)) == void), "Cannot compile void type "  ~ typeof(t).stringof ~ "." ~ typeof(sym).stringof ~ " " ~ i ~ " (possibly a redundant identifier?)");
                     compile(__traits(getMember, t, i), AliasSeq!(params, t, ts));
                   }
                 }
