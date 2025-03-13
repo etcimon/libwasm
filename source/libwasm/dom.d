@@ -4,7 +4,7 @@ import libwasm.types;
 import memutils.ct;
 import std.traits : hasMember, isAggregateType;
 import std.traits : TemplateArgsOf, staticMap, isPointer, PointerTarget, getUDAs, EnumMembers, isInstanceOf, isBasicType, isIntegral;
-import std.traits : getSymbolsByUDA, getUDAs;
+import std.traits : getSymbolsByUDA, getUDAs, Parameters;
 import std.meta : Filter, AliasSeq, ApplyLeft, ApplyRight;
 import libwasm.css;
 import libwasm.node;
@@ -1066,6 +1066,8 @@ template renderNestedChild(string field)
                 auto del = &__traits(getMember, t, i);
                 static if (is(c : connect!(a, b), alias a, alias b))
                 {
+                  import std.traits: Parameters;
+                  static assert(is(Parameters!(del)[0] == size_t), "First parameter of a list connect must be a size_t index");
                   mixin("t." ~ a ~ "." ~ replace!(b, '.', '_') ~ ".add(del);");
                 }
                 else static if (is(c : connect!field, alias field))

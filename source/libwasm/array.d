@@ -49,17 +49,28 @@ mixin template ArrayItemEvents(T)
 {
   static foreach (path; extractEventPaths!(T))
   {
-    mixin Slot!(join!("_", path.expand));
-    mixin("void __" ~ join!("_", path.expand) ~ "(size_t addr) { " ~ join!("_", path.expand) ~ ".emit(this.getIndexInArray(addr));}");
+    
+    mixin("alias U = typeof(T." ~ join!(".", path.expand) ~ ");");
+    //pragma(msg, U.stringof);
+    static if (is(U : EventEmitter!Params, alias Params))
+    {
+      //pragma(msg, Params);
+      mixin Slot!(join!("_", path.expand), Params);
+      //pragma(msg, "void __" ~ join!("_", path.expand) ~ "(size_t addr, Params params) { " ~ join!("_", path.expand) ~ ".emitIdx(this.getIndexInArray(addr), params);}");
+
+      mixin("void __" ~ join!("_", path.expand) ~ "(size_t addr, Params params) { " ~ join!("_", path.expand) ~ ".emitIdx(this.getIndexInArray(addr), params);}");
+    } else pragma(msg, "******* Error: No eventemitter found for " ~ T.stringof ~ " at " ~ join!("_", path.expand));
+    
   }
 }
 
-void assignEventListeners(T)(ref HTMLArray!T arr, ref T item)
+void assignEventListeners(T)(ref HTMLArray!T arr, ref T item) @trusted
 {
   alias eventPaths = extractEventPaths!(T);
   static foreach (path; eventPaths)
   {
-    mixin("() @trusted { item." ~ join!(".", path.expand) ~ ".add(&arr.__" ~ join!("_", path.expand) ~ "); }();");
+    //pragma(msg, "item." ~ join!(".", path.expand) ~ ".add(&arr.__" ~ join!("_", path.expand) ~ ");");
+    mixin("item." ~ join!(".", path.expand) ~ ".add(&arr.__" ~ join!("_", path.expand) ~ ");");
   }
 }
 

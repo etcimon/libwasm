@@ -2,6 +2,7 @@ module libwasm.event;
 
 import libwasm.types;
 import libwasm.bindings;
+import memutils.vector;
 version (LDC)
 import ldc.attributes;
 
@@ -135,20 +136,28 @@ auto addEventListenerTyped(string listenerType, string name, T)(Handle node, aut
 
 struct EventEmitter(Params...) {
   nothrow:
-  static if (Params.length == 0)
-    alias Delegate = void delegate() nothrow @safe;
-  else
-    alias Delegate = void delegate(Params) nothrow @safe;
+  static if (Params.length == 0) {    
+    Vector!(void delegate() nothrow @safe) cbs;
+    void add(void delegate() nothrow @safe del) {
+      cbs = del;
+    }
+    
+    Vector!(void delegate(size_t) nothrow @safe) addrs;
+    void add(void delegate(size_t) nothrow @safe del) {
+      addrs = del;
+    }
+  }
+  else {
+    Vector!(void delegate(Params) nothrow @safe) cbs;
+    void add(void delegate(Params) nothrow @safe del) {
+      cbs ~= del;
+    }    
+    Vector!(void delegate(size_t, Params) nothrow @safe) addrs;
+    void add(void delegate(size_t, Params) nothrow @safe del) {
+      addrs ~= del;
+    }
+  }
 
-  Delegate cb = null;
-  void add(Delegate del) {
-    cb = del;
-  }
-  
-  void delegate(size_t) addr = null;
-  void add(void delegate(size_t) nothrow @safe del) {
-    addr = del;
-  }
 }
 
 mixin template Slot(string type, Params...) {
@@ -156,18 +165,35 @@ mixin template Slot(string type, Params...) {
 }
 
 import std.traits : hasUDA;
-auto emit(T, U, Params...)(auto ref T t, auto ref U emitter, auto ref Params params)
+auto emit(T, U: EventEmitter!Params, Params...)(auto ref T t, auto ref U emitter, auto ref Params params)
 {
-  static assert(is(U : EventEmitter!Params), "Cannot call emit with a type that is not an event emitter as the first parameter (" ~ U.stringof ~ "). " ~ ((U.stringof == "string") ? "Did you mean to pass the slot identifier without quotes?" : "Did you use the Slot mixin properly?"));
-  if (emitter.cb) emitter.cb(params);
-  static if (Params.length > 0 && is(Params == size_t))
-    if (emitter.addr) emitter.addr(params);
+  //console.log("emit " ~ U.stringof);
+  //static assert(is(U : EventEmitter!Params), "Cannot call emit with a type that is not an event emitter as the first parameter (" ~ U.stringof ~ "). " ~ ((U.stringof == "string") ? "Did you mean to pass the slot identifier without quotes?" : "Did you use the Slot mixin properly?"));
+  if (emitter.addrs.length > 0) {
+    import std.conv : to;
+    size_t addr = cast(size_t)(&t);
+    //console.log("emitter.addr(" ~ addr.to!string ~ ", " ~ params.to!string ~ ")");
+    foreach(ref addrfct; emitter.addrs[]) addrfct(addr, params);
+  }
+  if (emitter.cbs.length > 0) {
+    import std.conv : to;
+    //console.log("emitter.cb(" ~ params.to!string ~ ")");
+    foreach(ref cbfct; emitter.cbs[]) cbfct(params);
+  }
 }
 
-auto emit(EventEmitter!() emitter, size_t addr) {
-  if (emitter.cb != null)
-    emitter.cb();
-  if (emitter.addr != null) {
-    emitter.addr(addr);
-  }
+auto emitIdx(T, U: EventEmitter!Params, Params...)(auto ref T t, auto ref U emitter, size_t idx, auto ref Params params)
+{
+  //console.log("emitIdx1");
+  //static assert(is(U : EventEmitter!Params), "Cannot call emit with a type that is not an event emitter as the first parameter (" ~ U.stringof ~ "). " ~ ((U.stringof == "string") ? "Did you mean to pass the slot identifier without quotes?" : "Did you use the Slot mixin properly?"));
+  if (emitter.addrs.length > 0) foreach(ref addrfct; emitter.addrs[]) addrfct(idx, params);  
+  if (emitter.cbs.length > 0) foreach(ref cbfct; emitter.cbs[]) cbfct(params);
+}
+auto emitIdx(T : EventEmitter!Params, Params...)(auto ref T emitter, size_t idx, auto ref Params params)
+{
+  //console.log("emitIdx2");
+  if (emitter.addrs.length > 0) 
+    foreach(ref addrfct; emitter.addrs[]) addrfct(idx, params);
+  if (emitter.cbs.length > 0)
+    foreach(ref cbfct; emitter.cbs[]) cbfct(params);  
 }
