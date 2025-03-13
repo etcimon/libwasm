@@ -3,7 +3,9 @@
 
 libwasm is a library based on [spasm](https://github.com/skoppe/spasm/) to develop single page applications in D that compile to webassembly.
 
-It has been modified to contain working bindings to all of the javascript browser APIs, listed in libwasm.bindings. In addition, lodash and moment is added by default and bindigns are in libwasm.lodash and libwasm.moment. There is also an experimental router to handle navigation changes, and a compile-time diet template html generator which can call back native code easily.
+It includes druntime and part of the D standard library with slight modifications to avoid the GC. For this reason, **libwasm is only compatible with LDC 1.36.0** as it lags behind in compiler implementations. Refer to [BUILDING.md](BUILDING.md) for details.
+
+Additionally, libwasm has been modified to contain working bindings to all of the javascript browser APIs, listed in libwasm.bindings. In addition, lodash and moment is added by default and bindigns are in libwasm.lodash and libwasm.moment. There is also an experimental router to handle navigation changes, and a compile-time diet template html generator which can call back native code easily.
 
 The dom-ts example compiles into a 49kb gzipped wasm and a 30kb gzipped javascript library with lodash and momentjs. All of druntime is supported but the phobos standard library is still in the process of being integrated.
 
