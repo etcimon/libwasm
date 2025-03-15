@@ -6,7 +6,6 @@ import libwasm.rt.array;
 import libwasm.node;
 import std.traits;
 
-nothrow:
 @trusted:
 
 string dumpState(T)(ref T app) @system {
@@ -54,14 +53,14 @@ string dumpState(T)(ref T app) @system {
   return cast(string)sink[0..end];
 }
 
-ptrdiff_t countUntil(Range, Needle)(Range range, Needle needle) {
+ptrdiff_t countUntil(Range, Needle)(Range range, Needle needle) nothrow {
   foreach(idx, r; range)
     if (r == needle)
       return idx;
   return -1;
 }
 
-bool readBoolean(ref string state) {
+bool readBoolean(ref string state) nothrow {
   auto c = state[0];
   state = state[1..$];
   return c == 't';
@@ -74,7 +73,7 @@ unittest {
   str.should == ",";
 }
 
-int readInt(ref string state) {
+int readInt(ref string state) nothrow {
   size_t p = 0;
   int c = 0;
   while(true) {
@@ -94,14 +93,14 @@ unittest {
   str.should == ",";
 }
 
-string readString(ref string state) {
+string readString(ref string state) nothrow {
   int size = readInt(state);
   string s = text(state[1..size+1]);
   state = state[size+1..$];
   return s;
 }
 
-void skipField(ref string state) {
+void skipField(ref string state) nothrow {
   if (state[0] == 'b')
     readBoolean(state);
   else if (state[0] == 's')
@@ -114,7 +113,7 @@ void skipField(ref string state) {
     state = "}";
 }
 
-void skipObject(ref string state) {
+void skipObject(ref string state) nothrow {
   while(1) {
     auto d = countUntil(state, ':');
     if (d == -1) {
@@ -135,7 +134,7 @@ void skipObject(ref string state) {
   }
 }
 
-private void update(string field, T)(ref T t) {
+private void update(string field, T)(ref T t) nothrow {
   import libwasm.dom;
   alias member = __traits(getMember, t, field);
   libwasm.dom.update!(member)(t);
