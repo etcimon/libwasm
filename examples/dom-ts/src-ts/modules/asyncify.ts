@@ -198,6 +198,6 @@ export async function instantiateStreaming(source: any, imports: any) {
     source,
     state.wrapImports(imports)
   );
-  state.init(result.instance, imports);
+  await state.init(result.instance, imports);
   return result;
 }

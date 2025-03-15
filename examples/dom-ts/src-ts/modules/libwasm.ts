@@ -51,7 +51,7 @@ const libwasm: any = {
     lastPtr: 2,
     lastPromisePtr: 65536,
     instance: null,
-    init: (modules: any) => {
+    init: async (modules: any) => {
         ;(window as any).libwasm = libwasm
         if (!libwasm.exports) {
             let tmp: any = {}
@@ -69,6 +69,9 @@ const libwasm: any = {
                 )
             libwasm.exports = tmp
             libwasm.nativeFunctionMap = {}
+            freelist = []
+            libwasm.freelists = freelist
+            libwasm.lastPromisePtr = 65536
 
             // for lodash
             ;(window.sifg = (ptr: number) =>
@@ -88,7 +91,7 @@ const libwasm: any = {
                 } else console.error(`Function ${fct_name} is not registered.`)
             }
         }
-        instantiateStreaming(
+        await instantiateStreaming(
             fetch('dom.wasm'),
             libwasm.exports
         ).then((obj) => {

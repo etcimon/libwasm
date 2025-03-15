@@ -9,6 +9,7 @@ dependency "fast-wasm" path="../../fast"
 dependency "diet-wasm" path="../../diet-ng"
 dflags "-fvisibility=hidden" "-flto=full" "--wasm-enable-eh" "-fno-exceptions" "-fno-moduleinfo" #"--vv" "--vtemplates" "--vcolumns" "--v-cg" "--verrors-context" #"-Oz" "-fvisibility=hidden" "-dip1000"
 lflags "-strip-all"
+versions "hmr"
 
 targetPath "public"
 targetName "dom-raw"

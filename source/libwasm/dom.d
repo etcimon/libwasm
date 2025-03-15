@@ -389,6 +389,7 @@ auto render(T, Ts...)(Handle parent, return auto ref T t, return auto ref Ts ts)
   {
     if (parent == invalidHandle)
       return;
+    
     renderIntoNode(parent, t, ts);
     static if (hasMember!(T, "node"))
     {

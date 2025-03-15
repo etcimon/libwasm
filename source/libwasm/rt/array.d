@@ -655,12 +655,12 @@ template ContainerElementType(ContainerType, ElementType)
 	}
 }
 
-struct StringAppender(Allocator)
+struct StringAppender(Allocator = ThreadMemAllocator)
 {
 	DynamicArray!(char, Allocator) arr = void;
 	this(ref Allocator allocator)
 	{
-		arr = DynamicArray!(char, Allocator)(allocator);
+		arr = DynamicArray!(char, Allocator)();
 	}
 
 	alias arr this;
@@ -683,6 +683,7 @@ struct StringAppender(Allocator)
 }
 
 @trusted string text(Allocator, T...)(ref Allocator allocator, T t)
+	if (__traits(compiles, write(StringAppender!(Allocator), t)))
 {
 	auto app = StringAppender!(Allocator)(allocator);
 	write(app, t);
@@ -782,7 +783,7 @@ import std.traits : isIntegral, isArray;
 
 // TODO: std.range.put doesn't do scope on second args therefor compiler thinks buf escapes. resolve it and we can avoid the @trusted
 @trusted
-void toTextRange(T, W)(T value, auto ref W writer) if (isIntegral!T && isArray!T)
+void toTextRange(T, W)(T value, auto ref W writer)
 {
 	import core.internal.string : SignedStringBuf,
 		UnsignedStringBuf;

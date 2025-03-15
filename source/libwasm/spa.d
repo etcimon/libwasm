@@ -145,13 +145,13 @@ mixin template Spa(Application, Theme)
     import libwasm.hmr;
 
     pragma(mangle, "dumpApp")
-    extern (C) export string dumpApp()
+    extern (C) export string dumpApp() @system
     {
       return application.dumpState();
     }
 
     pragma(mangle, "loadApp")
-    extern (C) export void loadApp(string state)
+    extern (C) export void loadApp(string state) @system
     {
       application.loadState(state);
     }

@@ -1,12 +1,15 @@
 module libwasm.hmr;
-
+version(unittest) version = hmr;
 version(hmr):
 
 import libwasm.rt.array;
 import libwasm.node;
 import std.traits;
 
-string dumpState(T)(ref T app) {
+nothrow:
+@trusted:
+
+string dumpState(T)(ref T app) @system {
   void recurse(T, Sink)(ref T app, ref Sink sink) {
     enum len = T.tupleof.length;
     bool first = true;
@@ -138,7 +141,7 @@ private void update(string field, T)(ref T t) {
   libwasm.dom.update!(member)(t);
 }
 
-void loadState(T)(ref T app, string state) {
+void loadState(T)(ref T app, string state) @system {
   void readObject(T)(ref T app, ref string state) {
     while(1) {
       auto d = countUntil(state, ':');
@@ -156,16 +159,17 @@ void loadState(T)(ref T app, string state) {
               else {
                 state = state[2..$];
                 app.tupleof[idx] = readBoolean(state);
-                update!(__traits(identifier, t),T)(app);
+                static if (hasMember!(typeof(t), "node")) update!(__traits(identifier, t),T)(app);
               }
             } else static if (is(typeof(t) : NamedNode!(name, tag), string name, string tag)) {
+            } else static if (is(typeof(t) : NamedNode!(name, name), string name, string name)) {
             } else static if (isSomeString!(typeof(t))) {
               if (state[0] != 's')
                 skipField(state);
               else {
                 state = state[2..$];
                 app.tupleof[idx] = readString(state);
-                update!(__traits(identifier, t),T)(app);
+                static if (hasMember!(typeof(t), "node")) update!(__traits(identifier, t),T)(app);
               }
             } else static if (is(typeof(t) == enum)) {
             } else static if (isAggregateType!(typeof(t))) {
@@ -181,7 +185,7 @@ void loadState(T)(ref T app, string state) {
               else {
                 state = state[2..$];
                 app.tupleof[idx] = cast(typeof(t))readInt(state);
-                update!(__traits(identifier, t),T)(app);
+                static if (hasMember!(typeof(t), "node")) update!(__traits(identifier, t),T)(app);
               }
             }
           }
@@ -213,6 +217,7 @@ unittest {
     int number = 1234;
     bool boolean = true;
     Bar bar;
+    mixin NodeDef!"div";
   }
   struct Bar2 {
     string str;
@@ -223,7 +228,8 @@ unittest {
     string str;
     int number;
     bool boolean;
-    Bar bar;
+    Bar2 bar;
+    mixin NodeDef!"div";
   }
   Foo foo;
   string state = foo.dumpState();

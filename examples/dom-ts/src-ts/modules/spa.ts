@@ -608,3 +608,50 @@ export let jsExports = {
         },
     },
 }
+
+
+if (process.env.NODE_ENV === 'development') {
+    let reloading = false
+    async function reload() {
+        const root = document.querySelector("#root");
+        // TODO: how do we handle outstanding setTimeout or other schedule functions?
+        // For now we assume the same callbacks will be available in the reloaded module
+        // but that may not be the case.
+        _.forEachRight(libwasm.objects, (obj: Element, i: number) => {
+            if (i <= 3) return;
+            if (libwasm.objects[i].remove)
+                libwasm.objects[i].remove();
+             delete libwasm.objects[i];
+        })
+        _.forEach(root?.children, (child: Element) => {
+            child.remove();
+        });
+        libwasm.exports.instance = null;
+        libwasm.exports = null;
+        await libwasm.init((window as any).libwasm.modules);
+    }
+    const ws = new WebSocket('ws://localhost:3001');
+    ws.onmessage = async function(event) {
+        if (event.data == 'full-reload') (window as any).location.reload();
+        if (event.data === 'reload') {
+            if (reloading) return;
+            reloading = true
+            if (!libwasm.instance.exports.dumpApp || !libwasm.instance.exports.loadApp)
+                return;
+            libwasm.instance.exports.dumpApp(0);
+            const heapi32u = new Uint32Array(libwasm.memory.buffer)
+            let len = 0
+            let offset = heapi32u[(len+4)/4];
+            len = heapi32u[(len/4)];
+            const utf8Decoder = new TextDecoder('utf-8');
+            var state = utf8Decoder.decode(new DataView(libwasm.memory.buffer,offset,len));
+            await reload();
+            
+            setTimeout(()=>{
+                encoder.string(0, state);
+                libwasm.instance.exports.loadApp(heapi32u[0], heapi32u[1]);
+                reloading = false
+            }, 20);
+        }
+    }
+}
