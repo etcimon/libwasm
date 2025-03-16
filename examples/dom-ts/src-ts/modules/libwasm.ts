@@ -11,7 +11,8 @@ const utf8Decoder = new TextDecoder('utf-8')
 const utf8Encoder = new TextEncoder()
 
 let objects: any = { 1: document, 2: window }
-
+var wasm_constants_decoded = new Map<number, string>()
+var heap_base_value: any
 let freelist: any[] = []
 
 const addObject = (value: any) => {
@@ -41,18 +42,24 @@ const MemoryIdentifiers = {
     f32: 8,
     f64: 9,
 }
-const setupMemory = (memory: any) => {
+
+const setupMemory = (memory: any, resetMemory: any) => {
+    resetMemory(memory, true);
     libwasm.memory = memory
     libwasm.buffer = memory.buffer
 }
 
+
 const libwasm: any = {
+    resetMemory: null,
     nativeFunctions: {},
     lastPtr: 2,
     lastPromisePtr: 65536,
     instance: null,
-    init: async (modules: any) => {
+    init: async (modules: any, cb: any = null) => {
         ;(window as any).libwasm = libwasm
+        ;(window as any).libwasm.modules = modules
+        
         if (!libwasm.exports) {
             let tmp: any = {}
             modules
@@ -67,11 +74,14 @@ const libwasm: any = {
                             ]))
                     )
                 )
+            libwasm.instance = null;
             libwasm.exports = tmp
+            wasm_constants_decoded = new Map<number, string>()
             libwasm.nativeFunctionMap = {}
             freelist = []
             libwasm.freelists = freelist
             libwasm.lastPromisePtr = 65536
+            libwasm.lastPtr = 2
 
             // for lodash
             ;(window.sifg = (ptr: number) =>
@@ -91,17 +101,16 @@ const libwasm: any = {
                 } else console.error(`Function ${fct_name} is not registered.`)
             }
         }
-        await instantiateStreaming(
-            fetch('dom.wasm'),
-            libwasm.exports
-        ).then((obj) => {
-            let instance = obj.instance
-            libwasm.instance = instance
-            libwasm.exports = instance.exports
-            setupMemory(instance.exports.memory)
-            ;(instance.exports as any)._start(instance.exports.__heap_base)
-            heap_base_value = (instance.exports as any).__heap_base.value
-        }).catch(alert)
+        const response = await fetch(`slideshow3dai.wasm?v=${Date.now()}`);
+        const buffer = await response.arrayBuffer();
+        const { instance } = await instantiate(buffer, libwasm.exports);
+
+        libwasm.instance = instance
+        libwasm.exports = instance.exports
+        setupMemory(instance.exports.memory, libwasm.resetMemory)
+        ;(instance.exports as any)._start(instance.exports.__heap_base)
+        heap_base_value = (instance.exports as any).__heap_base.value
+        if (cb) cb()
     },
     objects,
     addObject: addObject,
@@ -138,8 +147,6 @@ const encoders = {
         return ptr
     },
 }
-var wasm_constants_decoded = new Map<number, string>()
-var heap_base_value: any
 const decoders = {
     string: (len: number, offset: number, heapi32u: any = null) => {
         if (offset == null) {

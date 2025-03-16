@@ -12,8 +12,11 @@ var libwasm: any = spa
 var memory: any = {}
 let ops: any = {}
 
-const setupMemory = (cond: any) => {
-    var memory: any = {}
+const setupMemory = (cond: any, reset: boolean = false) => {    
+    if (reset) {
+        memory = {}
+        ops = {}
+    }
     for (let idx in cond) {
         switch (cond[idx]) {
             case 0:
@@ -123,6 +126,8 @@ const setupMemory = (cond: any) => {
         }
     }
 }
+
+libwasm.resetMemory = setupMemory;
 
 const Object_VarArgCall = (
     nodePtr: number,

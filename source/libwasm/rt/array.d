@@ -688,7 +688,7 @@ struct StringAppender(Allocator = ThreadMemAllocator)
 	auto app = StringAppender!(Allocator)(allocator);
 	write(app, t);
 	auto end = app.length;
-	return cast(string) app[0 .. end];
+	return cast(string) app[0 .. end].idup;
 }
 
 @trusted string text(T...)(T t)
@@ -696,7 +696,7 @@ struct StringAppender(Allocator = ThreadMemAllocator)
 	StringAppender!() app;
 	write(app, t);
 	auto end = app.length;
-	return cast(string) app[0 .. end];
+	return cast(string) app[0 .. end].idup;
 }
 
 char[] unsignedToTempString()(ulong value, return scope char[] buf, uint radix = 10) @safe

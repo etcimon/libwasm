@@ -19,6 +19,9 @@ export default defineConfig({
             ignored: ['!public/*.wasm', 'public/*-raw.wasm'],
         },
         hmr: false,
+        headers: {
+            'Cache-Control': 'no-store',
+        },
     },
     build: {
         rollupOptions: {
@@ -35,14 +38,21 @@ export default defineConfig({
             name: 'watch-wasm',
             configureServer(server) {
                 const wss = new WebSocketServer({ port: 3001 })
+                let building = false
 
                 function notifyClients() {
-                    wss.clients.forEach((client) => {
-                        if (client.readyState === 1) {
-                            // WebSocket.OPEN === 1
-                            client.send('reload')
-                        }
-                    })
+                    const notifyFct = () => {
+                        if (building) setTimeout(notifyFct, 200)
+                        else
+                            wss.clients.forEach((client) => {
+                                console.log('..Posting hot reload... ')
+                                if (client.readyState === 1) {
+                                    // WebSocket.OPEN === 1
+                                    client.send('reload')
+                                }
+                            })
+                    }
+                    if (building) setTimeout(notifyFct, 200)
                 }
                 function reloadClients() {
                     wss.clients.forEach((client) => {
@@ -57,13 +67,12 @@ export default defineConfig({
                 server.watcher.add('public/*.wasm')
                 server.watcher.add('src-d/*.d')
                 server.watcher.add('src-d-views/*')
-                let building = false
                 server.watcher.on('change', async (file) => {
                     if (file.endsWith('-raw.wasm')) return
 
                     if (file.endsWith('.wasm')) {
-                        console.log('Posting hot reload...')
                         const stat = await fs.stat(file)
+                        if (stat.size === 0) return
                         if (stat.mtimeMs !== lastModified) {
                             lastModified = stat.mtimeMs
                             notifyClients()
@@ -72,11 +81,26 @@ export default defineConfig({
                         file.endsWith('.d') ||
                         file.includes('src-d-views')
                     ) {
+                        if (building) {
+                            process.stdout.write('busy')
+                            return
+                        }
                         console.log('File changed: ', file)
-                        if (building) return
+                        process.stdout.write('Building...')
                         building = true
+                        let startTime = performance.now()
                         try {
-                            exec(
+                            function showDot() {
+                                setTimeout(() => {
+                                    if (building) {
+                                        process.stdout.write('.')
+                                        showDot()
+                                    }
+                                }, 1000)
+                            }
+
+                            showDot()
+                            await exec(
                                 'dub build --arch=wasm32-unknown-wasi --compiler=ldc2',
                                 (error, stdout, stderr) => {
                                     if (error) {
@@ -87,13 +111,17 @@ export default defineConfig({
                                     //if (stdout) console.log(`stdout: ${stdout}`)
                                     if (stderr)
                                         console.error(`stderr: ${stderr}`)
-                                    if (stdout && stdout.includes('Finished'))
-                                        building = false
+
+                                    console.log(
+                                        'Built in ',
+                                        (performance.now() - startTime) / 1000,
+                                        's'
+                                    )
+                                    building = false
                                 }
                             )
                         } catch (e) {
                             console.error(e)
-                        } finally {
                             building = false
                         }
                     } else if (file.includes('src-ts')) {

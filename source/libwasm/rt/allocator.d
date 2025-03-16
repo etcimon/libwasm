@@ -120,7 +120,7 @@ version (WebAssembly)
 
     nothrow:
     static:
-
+        @property uint heapBase() { return cast(uint) begin; }
         enum wasmPageSize = 64 * 1024;
         enum uint alignment = platformAlignment;
         @trusted void init(uint heap_base)

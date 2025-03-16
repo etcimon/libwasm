@@ -141,8 +141,9 @@ mixin template Spa(Application, Theme)
 
   version (hmr)
   {
-    pragma(msg, "libwasm with HMR");
+    //pragma(msg, "libwasm with HMR");
     import libwasm.hmr;
+    import libwasm.types : console;
 
     pragma(mangle, "dumpApp")
     extern (C) export string dumpApp() @system

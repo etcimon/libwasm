@@ -19,7 +19,7 @@
 // See https://github.com/WebAssembly/binaryen/blob/6371cf63687c3f638b599e086ca668c04a26cbbb/src/passes/Asyncify.cpp#L106-L113
 // for structure details.
 
-const EXPORTED_FROM_D = ['domEvent', 'jsCallback0', 'jsCallback']
+const EXPORTED_FROM_D = ['domEvent', 'jsCallback0', 'jsCallback', 'loadApp', 'dumpApp']
 
 // Start unwind buffers halfway through the stack space
 const DATA_ADDR = 524288;

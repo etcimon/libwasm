@@ -164,7 +164,6 @@ mixin template Slot(string type, Params...) {
   mixin("@eventemitter EventEmitter!" ~ Params.stringof ~ " "~type~";");
 }
 
-import std.traits : hasUDA;
 auto emit(T, U: EventEmitter!Params, Params...)(auto ref T t, auto ref U emitter, auto ref Params params)
 {
   //console.log("emit " ~ U.stringof);
