@@ -24,7 +24,7 @@ jobs:
         os: [windows-latest]
         arch: [x86_64]
         include:
-          - dc: ldc-latest
+          - dc: ldc-1.36.0
             os: macos-latest
             arch: x86_64
     steps:
