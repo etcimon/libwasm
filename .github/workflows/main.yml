@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dc: [ldc-latest]
+        dc: [ldc-1.36.0]
         os: [windows-latest]
         arch: [x86_64]
         include:
