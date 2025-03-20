@@ -13,6 +13,10 @@ import memutils.hashmap;
 import libwasm.rt.allocator;
 import libwasm.types;
 
+import core.memory : GC;
+import fast.cstring;
+alias BlkInfo = GC.BlkInfo;
+
 pragma(LDC_intrinsic, "llvm.maxnum.f#")
 T fmax(T)(in T vala, in T valb) if (isFloatingPoint!T);
 /++
@@ -194,20 +198,39 @@ version (WebAssembly)
     return cast(ubyte*) ret.ptr;
 }
 
-// implement closures with execution context or PoolStack.top
-// references will be held by a ManagedPool
-// maybe in some outer scope
-extern (C) export void* _d_allocmemory(size_t sz)
-{
-    import memutils.scoped;
-    if (!PoolStack.empty)
-        return PoolStack.top.alloc(sz).ptr;    
-    else
-        return FL_allocate(sz).ptr;
-    
-    
-}
+version(WebAssembly) {
 
+    // implement closures with execution context or PoolStack.top
+    // references will be held by a ManagedPool
+    // maybe in some outer scope
+    extern (C) export void* _d_allocmemory(size_t sz)
+    {
+        import memutils.scoped;
+        if (!PoolStack.empty)
+            return PoolStack.top.alloc(sz).ptr;    
+        else
+            return FL_allocate(sz).ptr;   
+    }
+
+    extern (C) void*    gc_malloc( size_t sz, uint ba = 0, const scope TypeInfo = null ) nothrow {
+        return _d_allocmemory(sz);
+    }
+    extern (C) void*    gc_calloc( size_t sz, uint ba = 0, const scope TypeInfo = null ) nothrow {
+        return _d_allocmemory(sz);
+    }
+    extern (C) BlkInfo  gc_qalloc( size_t sz, uint ba = 0, const scope TypeInfo = null ) nothrow {
+        auto ptr = _d_allocmemory(sz);
+        return BlkInfo(ptr, sz);
+    }
+    extern (C) void*    gc_realloc(return scope void* p, size_t sz, uint ba = 0, const scope TypeInfo = null ) {
+        import std.algorithm : min;
+        void* newp = _d_allocmemory(sz);
+        const cpsz = min(sz, strlen(cast(inout(char*))p));
+        newp[0 .. cpsz] = p[0 .. cpsz];
+        return newp;
+    }
+
+}
 struct ThreadMemAllocator
 {
 static:

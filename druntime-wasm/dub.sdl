@@ -1,0 +1,11 @@
+name "druntime-wasm"
+description "DRuntime and Standard Library for WebAssembly"
+version "1.36.0" # Requires exactly LDC 1.36.0
+
+# Builds only in arch=wasm32-unknown-wasi
+targetType "sourceLibrary"
+targetArch "wasm32-unknown-wasi"
+versions "CRuntime_DRUNTIME_WASM"
+
+sourcePaths "core" "rt" "ldc" "std"
+sourceFiles "object.d"

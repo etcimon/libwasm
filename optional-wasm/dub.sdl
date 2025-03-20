@@ -1,0 +1,16 @@
+name "optional-wasm"
+copyright "Copyright © 2018, Ali Akhtarzada"
+description "An optional/maybe type with safe dispatchingrange semantics"
+authors "Ali Akhtarzada"
+license "MIT"
+sourcePaths "source/"
+targetType "staticLibrary"
+
+configuration "normal" {
+    importPaths "../druntime-wasm/"
+    dflags "--fvisibility=hidden" "-fno-moduleinfo"
+}
+
+configuration "unittest" {
+    targetType "staticLibrary"
+}

@@ -1,0 +1,19 @@
+name "diet-wasm"
+description "Next generation Diet template compiler."
+authors "Sönke Ludwig"
+copyright "Copyright © 2015-2016 Sönke Ludwig"
+license "MIT"
+dependency "memutils-wasm" path="../memutils-wasm"
+dependency "fast-wasm" path="../fast-wasm"
+
+x:ddoxFilterArgs "--ex" "diet.internal."
+
+targetType "library"
+
+configuration "normal" {
+    dflags "-fvisibility=hidden" "-fno-moduleinfo" #"--vv" "--vtemplates" "--vcolumns" "--v-cg" "--verrors-context" #"--verrors-spec" #"-Oz" "-fvisibility=hidden" "-dip1000"
+}
+
+configuration "unittest" {
+    targetType "library"
+}

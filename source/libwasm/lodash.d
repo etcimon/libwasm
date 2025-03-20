@@ -5148,7 +5148,7 @@ public:
 
   /++ 
 
-    Splits string by separator.
+    Checks if string starts with the given target string.
 
     Params:
       - [target] (string): The string to search for.

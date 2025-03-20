@@ -69,7 +69,7 @@ struct DOMException {
     return Object_Getter__string(this.handle, "stack");
   }
 }
-struct Exception {
+struct JsException {
   nothrow:
   JsHandle handle;
   alias handle this;
