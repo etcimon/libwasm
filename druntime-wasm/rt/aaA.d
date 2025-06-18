@@ -8,15 +8,12 @@
  */
 module rt.aaA;
 
-// version (CRuntime_LIBWASM) {} else 
-/// This file has interactions with the GC removed in favor of a _d_allocmemory
-/// that relies on PoolStack from libwasm
-
 /// AA version for debuggers, bump whenever changing the layout
 extern (C) immutable int _aaVersion = 1;
-extern (C) void* _d_allocmemory(size_t sz) pure nothrow;
 
+import core.memory : GC;
 import core.internal.util.math : min, max;
+
 // grow threshold
 private enum GROW_NUM = 4;
 private enum GROW_DEN = 5;
@@ -69,10 +66,6 @@ private struct Impl
 private:
     this(scope const TypeInfo_AssociativeArray ti, size_t sz = INIT_NUM_BUCKETS) nothrow
     {
-        initialize(ti, sz);
-    }
-    void initialize(scope const TypeInfo_AssociativeArray ti, size_t sz = INIT_NUM_BUCKETS) nothrow
-    {        
         keysz = cast(uint) ti.key.tsize;
         valsz = cast(uint) ti.value.tsize;
         buckets = allocBuckets(sz);
@@ -89,14 +82,15 @@ private:
 
         entryTI = fakeEntryTI(this, ti.key, ti.value);
     }
+
     Bucket[] buckets;
     uint used;
     uint deleted;
     TypeInfo_Struct entryTI;
     uint firstUsed;
-    /*immutable*/uint keysz;
-    /*immutable*/uint valsz;
-    /*immutable*/uint valoff;
+    immutable uint keysz;
+    immutable uint valsz;
+    immutable uint valoff;
     Flags flags;
 
     // function that calculates hash of a key. Set on creation
@@ -178,7 +172,7 @@ private:
         firstUsed = 0;
         used -= deleted;
         deleted = 0;
-        //GC.free(obuckets.ptr); // safe to free b/c impossible to reference
+        GC.free(obuckets.ptr); // safe to free b/c impossible to reference
     }
 
     void clear() pure nothrow
@@ -219,8 +213,9 @@ private pure nothrow @nogc:
 
 Bucket[] allocBuckets(size_t dim) @trusted pure nothrow
 {
+    enum attr = GC.BlkAttr.NO_INTERIOR;
     immutable sz = dim * Bucket.sizeof;
-    return (cast(Bucket*) _d_allocmemory(sz))[0 .. dim];
+    return (cast(Bucket*) GC.calloc(sz, attr))[0 .. dim];
 }
 
 //==============================================================================
@@ -238,8 +233,8 @@ private void* allocEntry(scope const Impl* aa, scope const void* pkey)
         res = _d_newitemU(aa.entryTI);
     else
     {
-        //auto flags = (aa.flags & Impl.Flags.hasPointers) ? 0 : GC.BlkAttr.NO_SCAN;
-        res = _d_allocmemory(akeysz + aa.valsz);
+        auto flags = (aa.flags & Impl.Flags.hasPointers) ? 0 : GC.BlkAttr.NO_SCAN;
+        res = GC.malloc(akeysz + aa.valsz, flags);
     }
 
     memcpy(res, pkey, aa.keysz); // copy key
@@ -308,7 +303,7 @@ TypeInfo_Struct fakeEntryTI(ref Impl aa, const TypeInfo keyti, const TypeInfo va
 
     // save kti and vti after type info for struct
     enum sizeti = __traits(classInstanceSize, TypeInfo_Struct);
-    void* p = _d_allocmemory(sizeti + (2 + rtisize) * (void*).sizeof);
+    void* p = GC.malloc(sizeti + (2 + rtisize) * (void*).sizeof);
     import core.stdc.string : memcpy;
 
     memcpy(p, __traits(initSymbol, TypeInfo_Struct).ptr, sizeti);
@@ -509,7 +504,7 @@ pure nothrow @nogc unittest
 //==============================================================================
 // API Implementation
 //------------------------------------------------------------------------------
-export:
+
 /** Allocate associative array data.
  * Called for `new SomeAA` expression.
  * Params:
@@ -519,13 +514,7 @@ export:
  */
 extern (C) Impl* _aaNew(const TypeInfo_AssociativeArray ti)
 {
-    
-    auto init = ti.initializer;
-    void* p = _d_allocmemory(ti.tsize());
-    p[0 .. init.length] = init[];
-    (cast(Impl*) p).initialize(ti);
-    return cast(Impl*)p;
-
+    return new Impl(ti);
 }
 
 /// Determine number of entries in associative array.
@@ -575,7 +564,7 @@ extern (C) void* _aaGetX(scope AA* paa, const TypeInfo_AssociativeArray ti,
     AA aa = *paa;
     if (aa is null)
     {
-        aa = _aaNew(ti);
+        aa = new Impl(ti);
         *paa = aa;
     }
 
@@ -669,7 +658,7 @@ extern (C) bool _aaDelX(AA aa, scope const TypeInfo keyti, scope const void* pke
         ++aa.deleted;
         // `shrink` reallocates, and allocating from a finalizer leads to
         // InvalidMemoryError: https://issues.dlang.org/show_bug.cgi?id=21442
-        if (aa.length * SHRINK_DEN < aa.dim * SHRINK_NUM)
+        if (aa.length * SHRINK_DEN < aa.dim * SHRINK_NUM && !GC.inFinalizer())
             aa.shrink(keyti);
 
         return true;
@@ -800,11 +789,7 @@ extern (C) Impl* _d_assocarrayliteralTX(const TypeInfo_AssociativeArray ti, void
     if (!length)
         return null;
 
-    auto init = ti.initializer;
-    void* aap = _d_allocmemory(ti.tsize());
-    aap[0 .. init.length] = init[];
-    (cast(Impl*) aap).initialize(ti, nextpow2(INIT_DEN * length / INIT_NUM));
-    Impl* aa = cast(Impl*)aap;
+    auto aa = new Impl(ti, nextpow2(INIT_DEN * length / INIT_NUM));
 
     void* pkey = keys.ptr;
     void* pval = vals.ptr;

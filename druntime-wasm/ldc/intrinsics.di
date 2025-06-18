@@ -686,3 +686,21 @@ pragma(LDC_intrinsic, "llvm.wasm.memory.grow.i32")
 pragma(LDC_intrinsic, "llvm.wasm.memory.size.i32")
     int llvm_wasm_memory_size(int mem);
 } // version (WebAssembly)
+
+pragma(LDC_intrinsic, "llvm.wasm.throw")
+    void llvm_wasm_throw(int tag, ...);
+
+
+pragma(LDC_intrinsic, "llvm.wasm.catch.i32")
+    int llvm_wasm_catch();
+
+pragma(LDC_intrinsic, "llvm.wasm.catch.get.token.i32")
+    int llvm_wasm_catch_get_token(int token);
+
+pragma(LDC_intrinsic, "llvm.wasm.catch.get.data.i32")
+    int llvm_wasm_catch_get_data(int token, int index);
+
+
+pragma(LDC_intrinsic, "llvm.wasm.rethrow")
+    void llvm_wasm_rethrow();
+

@@ -1171,11 +1171,11 @@ template hasMemberWithInjectOf(string field, alias c)
     alias childrenNames = getChildren!ChildType;
     alias children = staticMap!(getSymbol, childrenNames);
     static foreach (c; children)
-    {
-      alias udas = getUDAs!(c, inject);
-      static foreach (uda; udas)
+    {{
+      alias injectUDAs = getUDAs!(c, inject);
+      static foreach (injectUDA; injectUDAs)
       {
-        static if (is(uda == inject!ref_name, string ref_name))
+        static if (is(injectUDA == inject!ref_name, string ref_name))
         {
           static if (ref_name == field)
           {
@@ -1183,7 +1183,7 @@ template hasMemberWithInjectOf(string field, alias c)
           }
         }
       }
-    }
+    }}
     return false;
   }();
 }
@@ -1268,9 +1268,6 @@ template updateChildren(alias member)
               .stringof), field));
         }
         else
-
-          
-
             .updateChildren!(member)(__traits(getMember, parent, c.stringof));
       }
     }
@@ -1282,7 +1279,7 @@ auto update(T)(ref T obj) if (hasMember!(T, "node"))
   struct Inner
   {
   nothrow:
-    void opDispatch(string name, V...)(auto ref V v) const @safe
+    void opDispatch(string name, V)(auto ref V v) const @safe
     {
       static if (!hasMember!(T, name) || !__traits(compiles, "obj.update!(obj." ~ name ~ ")(v);")) {
         // try to call on the node directly
@@ -1290,12 +1287,13 @@ auto update(T)(ref T obj) if (hasMember!(T, "node"))
           mixin("obj.node." ~ name ~ " = v;");
         else static if (__traits(compiles, "obj.node." ~ name ~ "(v);"))
           mixin("obj.node." ~ name ~ "(v);");
-        else static assert(false, "Cannot find " ~ name ~ " on " ~ typeof(T.node).stringof);
+        else pragma(msg, "Cannot find " ~ name ~ " on " ~ typeof(T.node).stringof);
       }
       else static if (!hasMember!(T, name))
         pragma(msg, "********* Error: " ~ T.stringof ~ " has no property named " ~ name);
-      else
+      else {
         mixin("obj.update!(obj." ~ name ~ ")(v);");
+      }
       // NOTE: static assert won't work in opDispatch, as the compiler will not output the string but just ignore the opDispatch call and error out saying missing field on Inner
       
     }
@@ -1344,16 +1342,16 @@ template update(alias field)
     alias name = domName!(field.stringof);
     static if (hasUDA!(field, prop))
     {
-      alias uda = getUDAs!(field, prop)[0];
-      static if (is(uda : prop!prop_value, alias prop_value))
+      alias propUDA = getUDAs!(field, prop)[0];
+      static if (is(propUDA : prop!prop_value, alias prop_value))
         parent.node.setPropertyTyped!prop_value(t);
       else
         parent.node.setPropertyTyped!name(t);
     }
     else static if (hasUDA!(field, attr))
     {
-      alias uda = getUDAs!(field, attr)[0];
-      static if (is(uda : attr!attr_value, alias attr_value))
+      alias attrUDA = getUDAs!(field, attr)[0];
+      static if (is(attrUDA : attr!attr_value, alias attr_value))
         parent.node.setAttributeTyped!attr_value(t);
       else
         parent.node.setAttributeTyped!name(t);
@@ -1368,10 +1366,10 @@ template update(alias field)
       }
       static if (hasUDA!(field, visible))
       {
-        alias udas = getUDAs!(field, visible);
-        static foreach (uda; udas)
+        alias visibleUDAs = getUDAs!(field, visible);
+        static foreach (visibleUDA; visibleUDAs)
         {
-          static if (is(uda : visible!elem, alias elem))
+          static if (is(visibleUDA : visible!elem, alias elem))
           {
             // callMember behind the scenes
             setVisible!(elem)(parent, __traits(getMember, parent, __traits(identifier, field)));
@@ -1392,8 +1390,8 @@ template update(alias field)
             {
               alias cleanName = domName!i;
               auto result = callMember!(i)(parent);
-              alias uda = getUDAs!(sym, prop)[0];
-              static if (is(uda : prop!prop_value, alias prop_value))
+              alias propUDAcallable = getUDAs!(sym, prop)[0];
+              static if (is(propUDAcallable : prop!prop_value, alias prop_value))
                 parent.node.node.setPropertyTyped!prop_value(result);
               else 
                 parent.node.node.setPropertyTyped!cleanName(result);
@@ -1403,8 +1401,8 @@ template update(alias field)
               alias cleanName = domName!i;
               auto result = callMember!(i)(parent);
               
-              alias uda = getUDAs!(sym, attr)[0];
-              static if (is(uda : attr!attr_value, alias attr_value))
+              alias attrUDAcallable = getUDAs!(sym, attr)[0];
+              static if (is(attrUDAcallable : attr!attr_value, alias attr_value))
                 parent.node.node.setAttributeTyped!attr_value(result);
               else 
                 parent.node.node.setAttributeTyped!cleanName(result);
@@ -1430,10 +1428,10 @@ template update(alias field)
                 auto result = callMember!(i)(parent);
                 static if (hasUDA!(sym, visible))
                 {
-                  alias udas = getUDAs!(sym, visible);
-                  static foreach (uda; udas)
+                  alias visibleUDAs = getUDAs!(sym, visible);
+                  static foreach (visibleUDA; visibleUDAs)
                   {
-                    static if (is(uda : visible!elem, alias elem))
+                    static if (is(visibleUDA : visible!elem, alias elem))
                     {
                       setVisible!(elem)(parent, result);
                     }
@@ -1458,7 +1456,7 @@ template update(alias field)
       updateDom(parent, __traits(getMember, parent, field.stringof));
   }
 
-  static void update(Parent, T)(scope auto ref Parent parent, T t)
+  static void update(Parent, T)(scope auto ref Parent parent, auto ref T t)
   {
     mixin("parent." ~ field.stringof ~ " = t;");
     if (!parent.node.mounted)

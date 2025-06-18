@@ -873,30 +873,48 @@ nothrow:
     alias FulfillCallback(P = void) = P delegate() nothrow;
     alias JoinedCallback(P = void) = extern (C) P delegate() nothrow;
     alias RejectCallback = extern (C) void delegate(U) nothrow;
+    
+    auto then(ResultType)(auto ref scope ResultType delegate() nothrow cb) return scope @trusted
+    {
+      enum TMangled = libwasmMangle!T;
+      enum ResultTypeMangled = libwasmMangle!ResultType;
+      enum funName = "promise_then_" ~ TMangled.length.stringof ~ TMangled ~ ResultTypeMangled;
+      mixin ExternPromiseCallback!(funName, JoinedType, BridgeType!ResultType);
+      mixin(
+        "return JsPromise!(ResultType)(" ~ funName ~ "(handle, cast(JoinedCallback!(BridgeType!ResultType))cb));");
+    }
+
+    auto error()(auto ref scope void delegate(U) nothrow cb) return scope @trusted
+    {
+      enum TMangled = libwasmMangle!U;
+      enum funName = "promise_error_" ~ TMangled.length.stringof ~ TMangled;
+      mixin ExternPromiseCallback!(funName, U);
+      mixin("return JsPromise!(void)(" ~ funName ~ "(handle, cast(RejectCallback)cb));");
+    }
+
   }
   else
   {
     alias FulfillCallback(P) = P delegate(T) nothrow;
     alias JoinedCallback(P) = extern (C) P delegate(JoinedType) nothrow;
     alias RejectCallback = extern (C) void delegate(U) nothrow;
-  }
+        auto then(ResultType)(auto ref scope ResultType delegate(T) nothrow cb) return scope @trusted
+    {
+      enum TMangled = libwasmMangle!T;
+      enum ResultTypeMangled = libwasmMangle!ResultType;
+      enum funName = "promise_then_" ~ TMangled.length.stringof ~ TMangled ~ ResultTypeMangled;
+      mixin ExternPromiseCallback!(funName, JoinedType, BridgeType!ResultType);
+      mixin(
+        "return JsPromise!(ResultType)(" ~ funName ~ "(handle, cast(JoinedCallback!(BridgeType!ResultType))cb));");
+    }
 
-  auto then(ResultType)(scope ResultType delegate(T) nothrow cb) return scope @trusted
-  {
-    enum TMangled = libwasmMangle!T;
-    enum ResultTypeMangled = libwasmMangle!ResultType;
-    enum funName = "promise_then_" ~ TMangled.length.stringof ~ TMangled ~ ResultTypeMangled;
-    mixin ExternPromiseCallback!(funName, JoinedType, BridgeType!ResultType);
-    mixin(
-      "return JsPromise!(ResultType)(" ~ funName ~ "(handle, cast(JoinedCallback!(BridgeType!ResultType))cb));");
-  }
-
-  auto error()(scope void delegate(U) nothrow cb) return scope @trusted
-  {
-    enum TMangled = libwasmMangle!U;
-    enum funName = "promise_error_" ~ TMangled.length.stringof ~ TMangled;
-    mixin ExternPromiseCallback!(funName, U);
-    mixin("return JsPromise!(void)(" ~ funName ~ "(handle, cast(RejectCallback)cb));");
+    auto error()(auto ref scope void delegate(U) nothrow cb) return scope @trusted
+    {
+      enum TMangled = libwasmMangle!U;
+      enum funName = "promise_error_" ~ TMangled.length.stringof ~ TMangled;
+      mixin ExternPromiseCallback!(funName, U);
+      mixin("return JsPromise!(void)(" ~ funName ~ "(handle, cast(RejectCallback)cb));");
+    }
   }
 
   // todo: .Finally(()=>

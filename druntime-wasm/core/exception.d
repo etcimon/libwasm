@@ -9,10 +9,6 @@
  */
 module core.exception;
 
-import core.internal.stdio;
-
-// version (CRuntime_LIBWASM) Everything was redirected to onAssertErrorMsg for Javascript handling
-
 // Compiler lowers final switch default case to this (which is a runtime error)
 void __switch_errorT()(string file = __FILE__, size_t line = __LINE__) @trusted
 {
@@ -28,12 +24,12 @@ void __switch_errorT()(string file = __FILE__, size_t line = __LINE__) @trusted
  */
 class RangeError : Error
 {
-    this( string file = __FILE__, size_t line = __LINE__, Throwable next = null ) @nogc pure @safe
+    this( string file = __FILE__, size_t line = __LINE__, Throwable next = null ) @nogc nothrow pure @safe
     {
         super( "Range violation", file, line, next );
     }
 
-    protected this( string msg, string file, size_t line, Throwable next = null ) @nogc pure @safe
+    protected this( string msg, string file, size_t line, Throwable next = null ) @nogc nothrow pure @safe
     {
         super( msg, file, line, next );
     }
@@ -72,7 +68,7 @@ class ArrayIndexError : RangeError
     private immutable char[100] msgBuf = '\0';
 
     this(size_t index, size_t length, string file = __FILE__,
-         size_t line = __LINE__, Throwable next = null) @nogc pure @safe
+         size_t line = __LINE__, Throwable next = null) @nogc nothrow pure @safe
     {
         this.index  = index;
         this.length = length;
@@ -130,7 +126,7 @@ class ArraySliceError : RangeError
     private immutable char[120] msgBuf = '\0';
 
     this(size_t lower, size_t upper, size_t length, string file = __FILE__,
-         size_t line = __LINE__, Throwable next = null) @nogc pure @safe
+         size_t line = __LINE__, Throwable next = null) @nogc nothrow pure @safe
     {
         this.lower  = lower;
         this.upper  = upper;
@@ -187,7 +183,7 @@ unittest
 }
 
 /// Mini `std.range.primitives: put` for constructor of ArraySliceError / ArrayIndexError
-private void rangeMsgPut(ref scope char[] r, scope const(char)[] e) @nogc pure @safe
+private void rangeMsgPut(ref char[] r, scope const(char)[] e) @nogc nothrow pure @safe
 {
     assert(r.length >= e.length); // don't throw ArraySliceError inside ArrayIndexError ctor
     r[0 .. e.length] = e[];
@@ -199,17 +195,17 @@ private void rangeMsgPut(ref scope char[] r, scope const(char)[] e) @nogc pure @
  */
 class AssertError : Error
 {
-    @safe pure @nogc this( string file, size_t line )
+    @safe pure nothrow @nogc this( string file, size_t line )
     {
         this(cast(Throwable)null, file, line);
     }
 
-    @safe pure @nogc this( Throwable next, string file = __FILE__, size_t line = __LINE__ )
+    @safe pure nothrow @nogc this( Throwable next, string file = __FILE__, size_t line = __LINE__ )
     {
         this( "Assertion failure", file, line, next);
     }
 
-    @safe pure @nogc this( string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null )
+    @safe pure nothrow @nogc this( string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null )
     {
         super( msg, file, line, next );
     }
@@ -274,12 +270,12 @@ class FinalizeError : Error
 {
     TypeInfo   info;
 
-    this( TypeInfo ci, Throwable next, string file = __FILE__, size_t line = __LINE__ ) @safe pure @nogc
+    this( TypeInfo ci, Throwable next, string file = __FILE__, size_t line = __LINE__ ) @safe pure nothrow @nogc
     {
         this(ci, file, line, next);
     }
 
-    this( TypeInfo ci, string file = __FILE__, size_t line = __LINE__, Throwable next = null ) @safe pure @nogc
+    this( TypeInfo ci, string file = __FILE__, size_t line = __LINE__, Throwable next = null ) @safe pure nothrow @nogc
     {
         super( "Finalization error", file, line, next );
         info = ci;
@@ -338,12 +334,12 @@ unittest
  */
 class OutOfMemoryError : Error
 {
-    this(string file = __FILE__, size_t line = __LINE__, Throwable next = null ) @safe pure @nogc
+    this(string file = __FILE__, size_t line = __LINE__, Throwable next = null ) @safe pure nothrow @nogc
     {
         this(true, file, line, next);
     }
 
-    this(bool trace, string file = __FILE__, size_t line = __LINE__, Throwable next = null ) @safe pure @nogc
+    this(bool trace, string file = __FILE__, size_t line = __LINE__, Throwable next = null ) @safe pure nothrow @nogc
     {
         super("Memory allocation failed", file, line, next);
         if (!trace)
@@ -393,7 +389,7 @@ unittest
  */
 class InvalidMemoryOperationError : Error
 {
-    this(string file = __FILE__, size_t line = __LINE__, Throwable next = null ) @safe pure @nogc
+    this(string file = __FILE__, size_t line = __LINE__, Throwable next = null ) @safe pure nothrow @nogc
     {
         super( "Invalid memory operation", file, line, next );
     }
@@ -436,7 +432,7 @@ unittest
 */
 class ForkError : Error
 {
-    this( string file = __FILE__, size_t line = __LINE__, Throwable next = null ) @nogc pure @safe
+    this( string file = __FILE__, size_t line = __LINE__, Throwable next = null ) @nogc nothrow pure @safe
     {
         super( "fork() failed", file, line, next );
     }
@@ -448,7 +444,7 @@ class ForkError : Error
  */
 class SwitchError : Error
 {
-    @safe pure @nogc this( string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null )
+    @safe pure nothrow @nogc this( string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null )
     {
         super( msg, file, line, next );
     }
@@ -481,7 +477,7 @@ class UnicodeException : Exception
 {
     size_t idx;
 
-    this( string msg, size_t idx, string file = __FILE__, size_t line = __LINE__, Throwable next = null ) @safe pure @nogc
+    this( string msg, size_t idx, string file = __FILE__, size_t line = __LINE__, Throwable next = null ) @safe pure nothrow @nogc
     {
         super( msg, file, line, next );
         this.idx = idx;
@@ -510,6 +506,41 @@ unittest
 }
 
 
+///////////////////////////////////////////////////////////////////////////////
+// Overrides
+///////////////////////////////////////////////////////////////////////////////
+
+
+// NOTE: One assert handler is used for all threads.  Thread-local
+//       behavior should occur within the handler itself.  This delegate
+//       is __gshared for now based on the assumption that it will only
+//       set by the main thread during program initialization.
+private __gshared AssertHandler _assertHandler = null;
+
+
+/**
+Gets/sets assert hander. null means the default handler is used.
+*/
+alias AssertHandler = void function(string file, size_t line, string msg) nothrow;
+
+/// ditto
+@property AssertHandler assertHandler() @trusted nothrow @nogc
+{
+    return _assertHandler;
+}
+
+/// ditto
+@property void assertHandler(AssertHandler handler) @trusted nothrow @nogc
+{
+    _assertHandler = handler;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Overridable Callbacks
+///////////////////////////////////////////////////////////////////////////////
+
+
 /**
  * A callback for assert errors in D.  The user-supplied assert handler will
  * be called if one has been supplied, otherwise an $(LREF AssertError) will be
@@ -519,9 +550,11 @@ unittest
  *  file = The name of the file that signaled this error.
  *  line = The line number on which this error occurred.
  */
-extern (C) void onAssertError( string file = __FILE__, size_t line = __LINE__ ) 
+extern (C) void onAssertError( string file = __FILE__, size_t line = __LINE__ ) nothrow
 {
-    onAssertErrorMsg( file, line, null);
+    if ( _assertHandler is null )
+        throw staticError!AssertError(file, line);
+    _assertHandler( file, line, null);
 }
 
 
@@ -534,13 +567,13 @@ extern (C) void onAssertError( string file = __FILE__, size_t line = __LINE__ )
  *  file = The name of the file that signaled this error.
  *  line = The line number on which this error occurred.
  *  msg  = An error message supplied by the user.
-//  */
-extern (C) void onAssertErrorMsg( string file, size_t line, string msg ) pure @nogc;
-// {
-//     if ( _assertHandler is null )
-//         throw staticError!AssertError(msg, file, line);
-//     _assertHandler( file, line, msg );
-// }
+ */
+extern (C) void onAssertErrorMsg( string file, size_t line, string msg ) nothrow
+{
+    if ( _assertHandler is null )
+        throw staticError!AssertError(msg, file, line);
+    _assertHandler( file, line, msg );
+}
 
 
 /**
@@ -553,7 +586,7 @@ extern (C) void onAssertErrorMsg( string file, size_t line, string msg ) pure @n
  *  line = The line number on which this error occurred.
  *  msg  = An error message supplied by the user.
  */
-extern (C) void onUnittestErrorMsg( string file, size_t line, string msg ) 
+extern (C) void onUnittestErrorMsg( string file, size_t line, string msg ) nothrow
 {
     onAssertErrorMsg( file, line, msg );
 }
@@ -573,10 +606,9 @@ extern (C) void onUnittestErrorMsg( string file, size_t line, string msg )
  * Throws:
  *  $(LREF RangeError).
  */
-extern (C) noreturn onRangeError( string file = __FILE__, size_t line = __LINE__ ) @trusted pure @nogc
+extern (C) noreturn onRangeError( string file = __FILE__, size_t line = __LINE__ ) @trusted pure nothrow @nogc
 {
-    onAssertErrorMsg(file, line, "Range Error");
-    assert(0);
+    throw staticError!RangeError(file, line, null);
 }
 
 /**
@@ -593,13 +625,9 @@ extern (C) noreturn onRangeError( string file = __FILE__, size_t line = __LINE__
  *  $(LREF ArraySliceError).
  */
 extern (C) noreturn onArraySliceError( size_t lower = 0, size_t upper = 0, size_t length = 0,
-                              string file = __FILE__, size_t line = __LINE__ ) @trusted pure @nogc
+                              string file = __FILE__, size_t line = __LINE__ ) @trusted pure nothrow @nogc
 {
-    char[256] buf;
-    auto msg = cast(string)"Slice out of bounds: array[%d .. %d] of length %d".format(buf.ptr[0 .. 256], lower, upper, length);
-    
-    onAssertErrorMsg(file, line, msg);
-    assert(0);
+    throw staticError!ArraySliceError(lower, upper, length, file, line, null);
 }
 
 /**
@@ -615,12 +643,9 @@ extern (C) noreturn onArraySliceError( size_t lower = 0, size_t upper = 0, size_
  *  $(LREF ArrayIndexError).
  */
 extern (C) noreturn onArrayIndexError( size_t index = 0, size_t length = 0,
-                              string file = __FILE__, size_t line = __LINE__ ) @trusted pure @nogc
+                              string file = __FILE__, size_t line = __LINE__ ) @trusted pure nothrow @nogc
 {
-    char[256] buf;
-    auto msg = cast(string)"index %d is out of bounds for array of length %d".format(buf.ptr[0 .. 256], index, length);
-    onAssertErrorMsg(file, line, msg);
-    assert(0);
+    throw staticError!ArrayIndexError(index, length, file, line, null);
 }
 
 /**
@@ -637,7 +662,9 @@ extern (C) noreturn onArrayIndexError( size_t index = 0, size_t length = 0,
  */
 extern (C) noreturn onFinalizeError( TypeInfo info, Throwable e, string file = __FILE__, size_t line = __LINE__ ) @trusted nothrow
 {
-    assert(0, "onFinalizeError");
+    // This error is thrown during a garbage collection, so no allocation must occur while
+    //  generating this object. So we use a preallocated instance
+    throw staticError!FinalizeError(info, e, file, line);
 }
 
 version (D_BetterC)
@@ -650,13 +677,13 @@ version (D_BetterC)
     // templates even for ordinary builds instead of providing them as an
     // extern(C) library.
 
-    noreturn onOutOfMemoryError()(void* pretend_sideffect = null) @nogc pure @trusted nothrow
+    noreturn onOutOfMemoryError()(void* pretend_sideffect = null) @nogc nothrow pure @trusted
     {
         assert(0, "Memory allocation failed");
     }
     alias onOutOfMemoryErrorNoGC = onOutOfMemoryError;
 
-    noreturn onInvalidMemoryOperationError()(void* pretend_sideffect = null) @nogc pure @trusted nothrow
+    noreturn onInvalidMemoryOperationError()(void* pretend_sideffect = null) @nogc nothrow pure @trusted
     {
         assert(0, "Invalid memory operation");
     }
@@ -670,17 +697,17 @@ else
      * Throws:
      *  $(LREF OutOfMemoryError).
      */
-    extern (C) noreturn onOutOfMemoryError(void* pretend_sideffect = null) @trusted pure @nogc nothrow /* dmd @@@BUG11461@@@ */
+    extern (C) noreturn onOutOfMemoryError(void* pretend_sideffect = null) @trusted pure nothrow @nogc /* dmd @@@BUG11461@@@ */
     {
         // NOTE: Since an out of memory condition exists, no allocation must occur
         //       while generating this object.
-        assert(0, "Memory allocation failed");
+        throw staticError!OutOfMemoryError();
     }
 
-    extern (C) noreturn onOutOfMemoryErrorNoGC() @trusted @nogc nothrow
+    extern (C) noreturn onOutOfMemoryErrorNoGC() @trusted nothrow @nogc
     {
         // suppress stacktrace until they are @nogc
-        assert(0, "Invalid memory operation");
+        throw staticError!OutOfMemoryError(false);
     }
 }
 
@@ -691,11 +718,11 @@ else
  * Throws:
  *  $(LREF InvalidMemoryOperationError).
  */
-extern (C) noreturn onInvalidMemoryOperationError(void* pretend_sideffect = null) @trusted pure @nogc nothrow /* dmd @@@BUG11461@@@ */
+extern (C) noreturn onInvalidMemoryOperationError(void* pretend_sideffect = null) @trusted pure nothrow @nogc /* dmd @@@BUG11461@@@ */
 {
     // The same restriction applies as for onOutOfMemoryError. The GC is in an
     // undefined state, thus no allocation must occur while generating this object.
-    assert(0, "onInvalidMemoryOperationError");
+    throw staticError!InvalidMemoryOperationError();
 }
 
 
@@ -709,10 +736,9 @@ extern (C) noreturn onInvalidMemoryOperationError(void* pretend_sideffect = null
  * Throws:
  *  $(LREF ConfigurationError).
  */
-extern (C) noreturn onForkError( string file = __FILE__, size_t line = __LINE__ ) @trusted pure @nogc
+extern (C) noreturn onForkError( string file = __FILE__, size_t line = __LINE__ ) @trusted pure nothrow @nogc
 {
-    onAssertErrorMsg(file, line, "onForkError");
-    assert(0);
+    throw staticError!ForkError( file, line, null );
 }
 
 /**
@@ -727,13 +753,9 @@ extern (C) noreturn onForkError( string file = __FILE__, size_t line = __LINE__ 
  * Throws:
  *  $(LREF UnicodeException).
  */
-extern (C) noreturn onUnicodeError( string msg, size_t idx, string file = __FILE__, size_t line = __LINE__ ) @trusted pure
+extern (C) noreturn onUnicodeError( string msg, size_t idx, string file = __FILE__, size_t line = __LINE__ ) @safe pure
 {
-    char[512] buf;
-    auto msg2 = cast(string)"onUnicodeError %s at idx %d".format(buf.ptr[0 .. 512], msg, idx);
-   
-    onAssertErrorMsg( file, line, msg2 );
-    assert(0);
+    throw new UnicodeException( msg, idx, file, line );
 }
 
 /***********************************
@@ -754,7 +776,7 @@ extern (C) void onHiddenFuncError(Object o);
  */
 
 extern (C)
-{ 
+{
     /* One of these three is called upon an assert() fail.
      */
     void _d_assertp(immutable(char)* file, uint line)
@@ -861,7 +883,7 @@ package T staticError(T, Args...)(auto ref Args args)
 
         return cast(T) store.ptr;
     }
-    auto res = (cast(T function() @trusted pure @nogc) &get)();
+    auto res = (cast(T function() @trusted pure nothrow @nogc) &get)();
     import core.lifetime : emplace;
     emplace(res, args);
     return res;

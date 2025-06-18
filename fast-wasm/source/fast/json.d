@@ -29,6 +29,7 @@ module fast.json;
 //import core.stdc.string;
 import std.range;
 import std.traits;
+import std.variant;
 import memutils.ct : isTuple;
 
 import fast.buffer;
@@ -258,7 +259,62 @@ public:
 		}
 		return readNull();
 	}
-
+	/*******************************************************************************
+	 * 
+	 * Reads a variant off the JSON text.
+	 *
+	 * Params:
+	 *   allowNull = Allow `null` as a valid option for the variant.
+	 *
+	 * Returns:
+	 *   A GC managed variant.
+	 *
+	 **************************************/
+	Variant read(T)() if (is(T == Variant))
+	{
+		try 
+		{
+			final switch (peek)
+			{
+				case DataType.string:
+					return Variant(read!string);
+				case DataType.number:
+					return Variant(read!double);
+				case DataType.object:					
+					assert(0, "Error reading Variant in JSON.read(), got Object");
+				case DataType.array:
+					return Variant(read!(T[]));
+				case DataType.boolean:
+					return Variant(read!bool);
+				case DataType.null_:
+					return Variant(readNull());
+			}
+		} catch(Throwable) { assert(0, "Error reading Variant in JSON.read()"); }
+	}
+		/*******************************************************************************
+	 * 
+	 * Reads a variant assoc.arr. off the JSON text.
+	 *
+	 * Params:
+	 *   allowNull = Allow `null` as a valid option for the variant.
+	 *
+	 * Returns:
+	 *   A GC managed variant.
+	 *
+	Variant[U] read(T, U)() if (is(T == Variant[U]))
+	{
+		
+		if (!allowNull || peek == DataType.object)
+		{
+			import std.exception : assumeWontThrow;
+			Variant[string] ret;
+			.byKeyImpl!skipAllInter((ref const(char[]) key) nothrow @trusted { assumeWontThrow(ret[cast(string)key] = read!Variant); return cast(int)0; });
+			return ret;
+		}
+		
+		return Variant[string].init;
+	}
+	 **************************************/
 	/*******************************************************************************
 	 * 
 	 * Reads an enumeration off the JSON text.
@@ -773,11 +829,25 @@ public:
 	 *   A newly filled associative array.
 	 *
 	 **************************************/
-	T read(T)() if (is(KeyType!T == string))
+	Variant[string] read(T)() if (is(T == Variant[string]))
 	{
-		T aa;
-		foreach (key; byKey)
-			aa[m_isString ? cast(immutable) key: key.idup] = read!(ValueType!T)();
+		Variant[string] aa;
+
+		// Iterate over the JSON object keys and populate the associative array
+		byKeyImpl((ref const(char[]) key) nothrow @trusted {
+			try
+			{
+				// Convert the key to a string and read the corresponding value
+				auto keyStr = m_isString ? cast(immutable) key : key.idup;
+				aa[keyStr] = read!Variant();
+			}
+			catch (Throwable)
+			{
+				// Handle any errors gracefully
+			}
+			return cast(int)0;
+		});
+
 		return aa;
 	}
 
@@ -965,8 +1035,19 @@ public:
 	T read(T)() if (isDynamicArray!T && !isSomeString!T)
 	{
 		Appender!T app;
-		foreach (i; this)
-			app.put(read!(typeof(T.init[0])));
+		foreach (i; this) {
+			static if (is(typeof(T.init[0]) == Variant[string]))
+			{
+				// Special handling for Variant[string]
+				auto value = read!(Variant[string]);
+				app.put(cast(typeof(T.init[0])) value);
+			}
+			else
+			{
+				// General case
+				app.put(read!(typeof(T.init[0])));
+			}
+		}
 		return app.data;
 	}
 

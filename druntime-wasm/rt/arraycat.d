@@ -13,6 +13,7 @@ module rt.arraycat;
 private
 {
     import core.stdc.string;
+    import core.internal.util.array;
     debug(PRINTF) import core.stdc.stdio;
 }
 
@@ -23,28 +24,21 @@ version (LDC)
     void _d_array_slice_copy(void* dst, size_t dstlen, void* src, size_t srclen, size_t elemsz)
     {
         import ldc.intrinsics : llvm_memcpy;
-        if (dstlen != 0) assert(dst, "Error in _d_array_slice_copy");
-        if (dstlen != 0) assert(src, "Error in _d_array_slice_copy");
-        if (dstlen != srclen)
-            assert(0, "Error in _d_array_slice_copy");
-        else if (dst+dstlen*elemsz <= src || src+srclen*elemsz <= dst) {
-            llvm_memcpy!size_t(dst, src, dstlen * elemsz, 0);
-        } else assert(0, "Error in _d_array_slice_copy");
+
+        enforceRawArraysConformable("copy", elemsz, src[0..srclen], dst[0..dstlen]);
+        llvm_memcpy!size_t(dst, src, dstlen * elemsz, 0);
     }
 }
 else
 {
     void[] _d_arraycopy(size_t size, void[] from, void[] to)
     {
-        if (dstlen != 0) assert(dst,"Error in _d_arraycopy");
-        if (dstlen != 0) assert(src,"Error in _d_arraycopy");
-        if (dstlen != srclen)
-            assert(0, "Error in _d_arraycopy");
-        else if (dst+dstlen*elemsz <= src || src+srclen*elemsz <= dst) {            
-            memcpy(to.ptr, from.ptr, to.length * size);
-        } else {
-            assert(0,"Error in _d_arraycopy");
-        }
+        debug(PRINTF) printf("f = %p,%d, t = %p,%d, size = %d\n",
+                     from.ptr, from.length, to.ptr, to.length, size);
+
+        enforceRawArraysConformable("copy", size, from, to);
+        memcpy(to.ptr, from.ptr, to.length * size);
         return to;
     }
 }
+
