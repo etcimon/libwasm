@@ -9,6 +9,7 @@ import std.traits : isPointer, isAggregateType;
 import memutils.vector;
 import memutils.scoped;
 import optional;
+import std.complex;
 
 // Match setup in compile
 
@@ -188,7 +189,7 @@ class URLRouter
     ~this()
     {
 
-        console.error("Destroying router");
+        //console.error("Destroying router");
 
     }
 
@@ -491,61 +492,70 @@ void registerRoutes(T, Ts...)(return auto ref T t, return auto ref Ts ts) @trust
     import std.meta : AliasSeq;
     import std.traits : hasUDA, isCallable, getUDAs, PointerTarget;
     import libwasm.dom : compile;
-
-    static foreach (sym; T.tupleof)
+    //console.log("Registering routes for ");
+    //console.log(t.stringof);
+    //console.log(T.tupleof.stringof);
+    static foreach (i; __traits(allMembers, T))
     {
         {
-            static if (isPointer!(typeof(sym)))
-                alias ChildType = PointerTarget!(typeof(sym));
-            else
-                alias ChildType = typeof(sym);
+            import std.traits : isSomeFunction;
+            alias sym = AliasSeq!(__traits(getMember, T, i))[0];
+            enum isPublic = __traits(compiles, __traits(getProtection, sym)) &&  __traits(getProtection, sym) == "public";
+            
+            static if (isPublic && isSomeFunction!sym && !__traits(isTemplate, sym) && isCallable!(sym) && (hasUDA!(sym, entering) || hasUDA!(sym, leaving)))
+            {
+                static if (isPointer!(typeof(sym)))
+                    alias ChildType = PointerTarget!(typeof(sym));
+                else
+                    alias ChildType = typeof(sym);
 
-            enum i = sym.stringof; // TODO: can this be fieldName = __traits(identifier, sym) instead of i = sym.stringof ??
-            enum isImmutable = is(typeof(sym) : immutable(T), T);
-            enum isPublic = __traits(getProtection, sym) == "public";
-            static if (hasUDA!(sym, entering))
-            {
-                alias udas = getUDAs!(sym, entering);
-                static foreach (uda; udas)
+                //enum i = sym.stringof; // TODO: can this be fieldName = __traits(identifier, sym) instead of i = sym.stringof ??
+                enum isImmutable = is(typeof(sym) : immutable(T), T);
+                static if (hasUDA!(sym, entering))
                 {
-                    static if (is(uda : entering!path, string path))
-                    {
+                    alias enteringUDAs = getUDAs!(sym, entering);
+                    pragma(msg, i);
+                    static foreach (enteringUDA; enteringUDAs)
+                    {{
+                        //console.log("Found entering UDA for ");
+                        //console.log(i);
+                        static if (is(enteringUDA : entering!path, string path))
+                        {
+                            // callMember behind the scenes
+                            g_router.register!path(cast(Optional!(Promise!void) delegate(
+                                    ref RouterEvent ev) nothrow @safe)&__traits(getMember, t, i), Direction
+                                    .Entering);
+                        }
+                    }}
+                }
+                else static if (hasUDA!(sym, leaving))
+                {
+                    alias leavingUDAs = getUDAs!(sym, leaving);
+                    static foreach (leavingUDA; leavingUDAs)
+                    {{
+                        static if (is(leavingUDA : leaving!path, string path))
+                        {
+                            // callMember behind the scenes
+                            g_router.register!path(cast(Optional!(Promise!void) delegate(
+                                    ref RouterEvent ev) nothrow @safe)&__traits(getMember, t, i), Direction
+                                    .Leaving);
+                        }
+                    }}
+                }
+                /*
+            else static if (hasUDA!(sym, always)) {
+                alias udas = getUDAs!(field, always);
+                static foreach (uda; udas) {
+                    static if (is(uda : always!path, string path)) {
                         // callMember behind the scenes
-                        g_router.register!path(cast(Optional!(Promise!void) delegate(
-                                ref RouterEvent ev) nothrow @safe)&__traits(getMember, t, i), Direction
-                                .Entering);
+                        g_router.register!path(__traits(getMember, t, sym), Direction.Always);
                     }
                 }
+            }*/
             }
-            else static if (hasUDA!(sym, leaving))
-            {
-                alias udas = getUDAs!(sym, leaving);
-                static foreach (uda; udas)
-                {
-                    static if (is(uda : leaving!path, string path))
-                    {
-                        // callMember behind the scenes
-                        g_router.register!path(cast(Optional!(Promise!void) delegate(
-                                ref RouterEvent ev) nothrow @safe)&__traits(getMember, t, i), Direction
-                                .Leaving);
-                    }
-                }
-            }
-            /*
-        else static if (hasUDA!(sym, always)) {
-            alias udas = getUDAs!(field, always);
-            static foreach (uda; udas) {
-                static if (is(uda : always!path, string path)) {
-                    // callMember behind the scenes
-                    g_router.register!path(__traits(getMember, t, sym), Direction.Always);
-                }
-            }
-        }*/
-            else static if (isPublic && isAggregateType!ChildType && hasUDA!(sym, child) && !isCallable!(
-                    typeof(sym)))
+            else static if (isPublic && !isCallable!(sym) && hasUDA!(sym, child))
             {                
                 import libwasm.spa;
-
                 alias Params = getUDAs!(sym, Parameters);
                 static if (Params.length > 0)
                 {
@@ -554,13 +564,18 @@ void registerRoutes(T, Ts...)(return auto ref T t, return auto ref Ts ts) @trust
                 }
                 else
                     alias params = AliasSeq!();
+                    
+                static if (isPointer!(typeof(sym)))
+                    alias ChildType = PointerTarget!(typeof(sym));
+                else
+                    alias ChildType = typeof(sym);
                 static if (isAggregateType!(ChildType))
                 { // recurse through the child members
 
                     static if (isPointer!(typeof(sym)))
-                    registerRoutes(*__traits(getMember, t, i), AliasSeq!(params, t, ts));
+                        registerRoutes(*__traits(getMember, t, i), AliasSeq!(params, t, ts));
                     else
-                    registerRoutes(__traits(getMember, t, i), AliasSeq!(params, t, ts));
+                        registerRoutes(__traits(getMember, t, i), AliasSeq!(params, t, ts));
                 }
                 
             }
