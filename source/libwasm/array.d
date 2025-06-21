@@ -47,20 +47,19 @@ template join(string delimiter, elems...)
 
 mixin template ArrayItemEvents(T)
 {
-  static foreach (path; extractEventPaths!(T))
-  {
+  static foreach (path; extractEventPaths!(T)){
     
-    mixin("alias U = typeof(T." ~ join!(".", path.expand) ~ ");");
-    //pragma(msg, U.stringof);
-    static if (is(U : EventEmitter!Params, alias Params))
+    mixin("alias U" ~ join!("_", path.expand) ~" = typeof(T." ~ join!(".", path.expand) ~ ");");
+    //mixin("pragma(msg, U" ~ join!("_", path.expand) ~ ");");
+      //pragma(msg, Params` ~ join!("_", path.expand) ~ `);
+    mixin(`static if (is(U` ~ join!("_", path.expand) ~ ` : EventEmitter!Params` ~ join!("_", path.expand) ~ `, Params` ~ join!("_", path.expand) ~ `...))
     {
-      //pragma(msg, Params);
-      mixin Slot!(join!("_", path.expand), Params);
-      //pragma(msg, "void __" ~ join!("_", path.expand) ~ "(size_t addr, Params params) { " ~ join!("_", path.expand) ~ ".emitIdx(this.getIndexInArray(addr), params);}");
+      mixin Slot!(join!("_", path.expand), Params` ~ join!("_", path.expand) ~ `);
+      pragma(msg, "void __" ~ join!("_", path.expand) ~ "(size_t addr, Params` ~ join!("_", path.expand) ~ ` params) { " ~ join!("_", path.expand) ~ ".emitIdx(this.getIndexInArray(addr), params);}");
 
-      mixin("void __" ~ join!("_", path.expand) ~ "(size_t addr, Params params) { " ~ join!("_", path.expand) ~ ".emitIdx(this.getIndexInArray(addr), params);}");
+      mixin("void __" ~ join!("_", path.expand) ~ "(size_t addr, Params` ~ join!("_", path.expand) ~ ` params) { " ~ join!("_", path.expand) ~ ".emitIdx(this.getIndexInArray(addr), params);}");
     } else pragma(msg, "******* Error: No eventemitter found for " ~ T.stringof ~ " at " ~ join!("_", path.expand));
-    
+    `);
   }
 }
 
@@ -204,6 +203,7 @@ struct List(T, string tag)
 {
   mixin NodeDef!tag;
   @child HTMLArray!(T) items;
+  
   void put(T* t)
   {
     items.put(t);

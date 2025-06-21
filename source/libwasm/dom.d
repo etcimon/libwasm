@@ -373,9 +373,10 @@ auto renderBefore(T, Ts...)(Handle parent, return auto ref T t, Handle sibling, 
     static if (hasMember!(T, "node"))
     {
       parent.insertBefore(t.node.node, sibling);
+      if (!t.node.mounted)
+        t.propagateOnMount();
       t.node.mounted = true;
     }
-    t.propagateOnMount();
   }
 }
 
@@ -396,10 +397,11 @@ auto render(T, Ts...)(Handle parent, return auto ref T t, return auto ref Ts ts)
       if (!t.getNamedNode().mounted)
       {
         parent.appendChild(t.getNamedNode.node);
+        if (!t.node.mounted)
+          t.propagateOnMount();
         t.getNamedNode().mounted = true;
       }
     }
-    t.propagateOnMount();
   }
 }
 

@@ -161,7 +161,7 @@ struct EventEmitter(Params...) {
 }
 
 mixin template Slot(string type, Params...) {
-  mixin("@eventemitter EventEmitter!" ~ Params.stringof ~ " "~type~";");
+  mixin("@eventemitter EventEmitter!Params "~type~";");
 }
 
 auto emit(T, U: EventEmitter!Params, Params...)(auto ref T t, auto ref U emitter, auto ref Params params)

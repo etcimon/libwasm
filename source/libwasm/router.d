@@ -490,7 +490,7 @@ class URLRouter
 void registerRoutes(T, Ts...)(return auto ref T t, return auto ref Ts ts) @trusted
 {
     import std.meta : AliasSeq;
-    import std.traits : hasUDA, isCallable, getUDAs, PointerTarget;
+    import std.traits : hasUDA, isCallable, getUDAs, PointerTarget, FieldNameTuple;
     import libwasm.dom : compile;
     //console.log("Registering routes for ");
     //console.log(t.stringof);
@@ -499,7 +499,14 @@ void registerRoutes(T, Ts...)(return auto ref T t, return auto ref Ts ts) @trust
     {
         {
             import std.traits : isSomeFunction;
-            alias sym = AliasSeq!(__traits(getMember, T, i))[0];
+            static if (AliasSeq!(__traits(getOverloads, T, i)).length > 0)
+            {
+                alias sym = AliasSeq!(__traits(getOverloads, T, i))[0];
+            }
+            else
+            {
+                alias sym = AliasSeq!(__traits(getMember, T, i))[0];
+            }
             enum isPublic = __traits(compiles, __traits(getProtection, sym)) &&  __traits(getProtection, sym) == "public";
             
             static if (isPublic && isSomeFunction!sym && !__traits(isTemplate, sym) && isCallable!(sym) && (hasUDA!(sym, entering) || hasUDA!(sym, leaving)))
@@ -514,7 +521,6 @@ void registerRoutes(T, Ts...)(return auto ref T t, return auto ref Ts ts) @trust
                 static if (hasUDA!(sym, entering))
                 {
                     alias enteringUDAs = getUDAs!(sym, entering);
-                    pragma(msg, i);
                     static foreach (enteringUDA; enteringUDAs)
                     {{
                         //console.log("Found entering UDA for ");
@@ -553,7 +559,15 @@ void registerRoutes(T, Ts...)(return auto ref T t, return auto ref Ts ts) @trust
                 }
             }*/
             }
-            else static if (isPublic && !isCallable!(sym) && hasUDA!(sym, child))
+        }
+    }
+    static foreach (i; FieldNameTuple!T)
+    {
+        {
+            alias sym = AliasSeq!(__traits(getMember, T, i))[0];
+            enum isPublic = __traits(compiles, __traits(getProtection, sym)) &&  __traits(getProtection, sym) == "public";
+            
+            static if (isPublic && !isCallable!(sym) && hasUDA!(sym, child))
             {                
                 import libwasm.spa;
                 alias Params = getUDAs!(sym, Parameters);
