@@ -397,8 +397,11 @@ auto render(T, Ts...)(Handle parent, return auto ref T t, return auto ref Ts ts)
       if (!t.getNamedNode().mounted)
       {
         parent.appendChild(t.getNamedNode.node);
-        if (!t.node.mounted)
-          t.propagateOnMount();
+        
+        alias emptyTs = AliasSeq!();
+        static if (is(Ts == emptyTs))
+          if (!t.node.mounted)
+            t.propagateOnMount();
         t.getNamedNode().mounted = true;
       }
     }
@@ -412,7 +415,7 @@ auto propagateOnMount(T)(auto ref T t)
   static foreach (c; getChildren!T)
     __traits(getMember, t, c).propagateOnMount();
   static if (hasMember!(T, "onMount") && isFunction!(T.onMount))
-    t.onMount();
+    if (t.getNamedNode().mounted) t.onMount();
 }
 
 auto propagateOnUnmount(T)(auto ref T t)

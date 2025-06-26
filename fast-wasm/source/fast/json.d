@@ -54,10 +54,10 @@ nothrow:
  *   A `Json` struct.
  *
  **************************************/
-auto parseJSON(ALLOC, uint vl = trustedSource, T:
+auto parseJSON(ALLOC, uint vl = validateAll, T:
 	const(char)[])(T text) nothrow
 {
-	return Json!(ALLOC, vl, false)(text);
+	return Json!(ALLOC, vl, true)(text);
 }
 
 /*******************************************************************************
