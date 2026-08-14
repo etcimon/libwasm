@@ -9,7 +9,7 @@ import std.traits : isPointer, isAggregateType;
 import memutils.vector;
 import memutils.scoped;
 import optional;
-import std.complex;
+// std.complex is not in druntime-wasm (LDC 1.36 Phobos subset); unused here.
 
 // Match setup in compile
 

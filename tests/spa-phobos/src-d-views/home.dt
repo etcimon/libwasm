@@ -1,0 +1,6 @@
+doctype html
+html
+	head
+		title Phobos wasm SPA
+	body
+		p Phobos + wasm-eh probe

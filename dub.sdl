@@ -14,10 +14,45 @@ dflags "-dip1000"
 toolchainRequirements ldc=">=1.36.0"
 versions "CRuntime_LIBWASM"
 buildRequirements "allowWarnings" # required for ldc 1.16
-sourcePaths "source" 
+sourcePaths "source"
+# Default: LDC 1.43 + carried runtime-v1.43.0 (wasm EH + exception-using Phobos).
+# Pin 1.36 and carry 1.42 stay as named configs.
 configuration "library" {
+    dependency "druntime-wasm" path="./runtime-v1.43.0"
+    subConfiguration "memutils-wasm" "ldc-master"
+    subConfiguration "fast-wasm" "ldc-master"
+    subConfiguration "optional-wasm" "ldc-master"
+    dflags "-fvisibility=hidden" "-fno-moduleinfo" "-mattr=+exception-handling" "--wasm-enable-eh" "-link-internally" "-defaultlib=" "--foptimize-nothrow=false"
+    lflags "-allow-undefined" "--export-table" "--export=domEvent" "--export=allocString" "--export=dumpApp" "--export=loadApp" "-export=__heap_base"
+}
+
+# LDC 1.36.0 + vendored pin druntime-wasm (pre-EH abort-on-throw)
+configuration "ldc-1.36" {
     dependency "druntime-wasm" path="./druntime-wasm"
+    subConfiguration "memutils-wasm" "ldc-1.36"
+    subConfiguration "fast-wasm" "ldc-1.36"
+    subConfiguration "optional-wasm" "ldc-1.36"
     dflags "-fvisibility=hidden" "-fno-moduleinfo" "-mattr=+exception-handling"
+    lflags "-allow-undefined" "--export-table" "--export=domEvent" "--export=allocString" "--export=dumpApp" "--export=loadApp" "-export=__heap_base"
+}
+
+# LDC 1.42.0 + carried runtime-v1.42.0 (tools/runtime-adapt --carry --ldc-tag v1.42.0)
+configuration "ldc-1.42" {
+    dependency "druntime-wasm" path="./runtime-v1.42.0"
+    subConfiguration "memutils-wasm" "ldc-1.42"
+    subConfiguration "fast-wasm" "ldc-1.42"
+    subConfiguration "optional-wasm" "ldc-1.42"
+    dflags "-fvisibility=hidden" "-fno-moduleinfo" "-mattr=+exception-handling" "--wasm-enable-eh"
+    lflags "-allow-undefined" "--export-table" "--export=domEvent" "--export=allocString" "--export=dumpApp" "--export=loadApp" "-export=__heap_base"
+}
+
+# Alias of library: LDC master / 1.43 (riscv-compilers/ldc2) + runtime-v1.43.0
+configuration "ldc-master" {
+    dependency "druntime-wasm" path="./runtime-v1.43.0"
+    subConfiguration "memutils-wasm" "ldc-master"
+    subConfiguration "fast-wasm" "ldc-master"
+    subConfiguration "optional-wasm" "ldc-master"
+    dflags "-fvisibility=hidden" "-fno-moduleinfo" "-mattr=+exception-handling" "--wasm-enable-eh" "-link-internally" "-defaultlib=" "--foptimize-nothrow=false"
     lflags "-allow-undefined" "--export-table" "--export=domEvent" "--export=allocString" "--export=dumpApp" "--export=loadApp" "-export=__heap_base"
 }
 

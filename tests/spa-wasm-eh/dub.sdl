@@ -1,0 +1,31 @@
+name "spa-wasm-eh"
+description "Slideshow-shaped libwasm SPA that exercises D try/catch for wasm-eh"
+authors "Etienne Cimon"
+copyright "Copyright © 2026, Etienne Cimon"
+license "MIT"
+
+dependency "memutils-wasm" path="../../memutils-wasm"
+dependency "fast-wasm" path="../../fast-wasm"
+dependency "diet-wasm" path="../../diet-wasm"
+
+dflags "--wasm-enable-eh" "-mattr=+exception-handling" "-fvisibility=hidden" "-fno-moduleinfo" "-link-internally" "-defaultlib=" "--foptimize-nothrow=false"
+lflags "-strip-all" "--export=spa_eh_probe"
+versions "hmr"
+
+targetPath "public"
+targetName "spa-wasm-eh-raw"
+targetType "executable"
+
+sourcePaths "src-d"
+stringImportPaths "src-d-views"
+buildRequirements "allowWarnings"
+
+configuration "ldc-master" {
+    dependency "libwasm" path="../.."
+    subConfiguration "libwasm" "ldc-master"
+    subConfiguration "memutils-wasm" "ldc-master"
+    subConfiguration "fast-wasm" "ldc-master"
+    dflags "-disable-linker-strip-dead"
+    // Binaryen 132 Flatten.cpp UNREACHABLE on try_table + --asyncify.
+    // EH is validated on the raw module; asyncify is a later cell.
+}

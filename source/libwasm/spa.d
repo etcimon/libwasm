@@ -1,6 +1,10 @@
 module libwasm.spa;
 
-static assert(__VERSION__ == 2106, "This library is only supported on exactly LDC 1.36.0 due to a custom druntime.");
+// 2106 = LDC 1.36.0 + druntime-wasm.
+// 2112 = LDC 1.42.0 + runtime-v1.42.0 carry.
+// 2113 = LDC 1.43 / master (DMD 2.113) + runtime-v1.43.0 carry.
+static assert(__VERSION__ == 2106 || __VERSION__ == 2112 || __VERSION__ == 2113,
+    "libwasm supports LDC 1.36.0, 1.42.0, or 1.43.0/master (wasm-eh cell).");
 
 version (LDC) import ldc.attributes;
 public import libwasm.types;

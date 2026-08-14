@@ -7,7 +7,19 @@ target "staticLibrary"
 versions "CryptoSafe"
 
 configuration "secure" {
+    importPaths "../runtime-v1.43.0"
+}
+
+configuration "ldc-1.36" {
     importPaths "../druntime-wasm"
+}
+
+configuration "ldc-1.42" {
+    importPaths "../runtime-v1.42.0"
+}
+
+configuration "ldc-master" {
+    importPaths "../runtime-v1.43.0"
 }
 
 configuration "unittest" {

@@ -11,3 +11,12 @@ package-lock.json
 *.lib
 *.exe
 *.pdb
+tmp/
+tools/runtime-adapt/.dub/
+tools/runtime-adapt/bin/
+/runtime-v*/
+!/runtime-v1.43.0/
+!/runtime-v1.43.0/**
+/runtime-CONSECUTIVE.md
+tests/**/public/*.wasm
+tests/**/public/*.ll

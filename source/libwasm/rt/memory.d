@@ -33,6 +33,116 @@ version (WebAssembly)
     return WasmAllocator.allocate(num).ptr;
   }
 
+  /// LDC `new C()`: alloc only (`DtoNewClass` writes the initializer).
+  extern (C) export Object _d_allocclass(const ClassInfo ci)
+  {
+    auto n = ci.initializer.length;
+    if (!n)
+      n = (void*).sizeof;
+    return cast(Object) wasm_malloc(n);
+  }
+
+  extern (C) export Object _d_newclass(const ClassInfo ci)
+  {
+    auto init = ci.initializer;
+    auto o = _d_allocclass(ci);
+    if (init.length)
+      (cast(void*) o)[0 .. init.length] = init[];
+    return o;
+  }
+
+  /// Frontend C ABI for `new T[]`. Stock rt/lifetime is not on the
+  /// 1.43 sourcePaths graph; these keep Phobos arrays on WasmAllocator.
+  extern (C) export void[] _d_newarrayU(const TypeInfo ti, size_t length)
+  {
+    if (ti is null || length == 0)
+      return null;
+    auto next = ti.next;
+    auto sz = next is null ? (void*).sizeof : next.tsize;
+    if (!sz)
+      return null;
+    auto p = wasm_malloc(sz * length);
+    return p[0 .. length];
+  }
+
+  extern (C) export void[] _d_newarrayT(const TypeInfo ti, size_t length)
+  {
+    auto r = _d_newarrayU(ti, length);
+    if (r.ptr !is null && ti !is null && ti.next !is null)
+      memset(r.ptr, 0, ti.next.tsize * length);
+    return r;
+  }
+
+  extern (C) export byte[] _d_arrayappendcTX(const TypeInfo ti, return ref byte[] px, size_t n)
+  {
+    auto sz = (ti is null || ti.next is null) ? 1 : ti.next.tsize;
+    auto newlen = px.length + n;
+    auto p = cast(byte*) wasm_malloc(sz * newlen);
+    if (px.length && px.ptr !is null)
+      memcpy(p, px.ptr, sz * px.length);
+    px = p[0 .. newlen];
+    return px;
+  }
+
+  extern (C) export void[] _d_arrayappendcd(ref byte[] x, dchar c)
+  {
+    char[4] buf = void;
+    size_t n;
+    if (c < 0x80)
+    {
+      buf[0] = cast(char) c;
+      n = 1;
+    }
+    else if (c < 0x800)
+    {
+      buf[0] = cast(char)(0xC0 | (c >> 6));
+      buf[1] = cast(char)(0x80 | (c & 0x3F));
+      n = 2;
+    }
+    else if (c < 0x10000)
+    {
+      buf[0] = cast(char)(0xE0 | (c >> 12));
+      buf[1] = cast(char)(0x80 | ((c >> 6) & 0x3F));
+      buf[2] = cast(char)(0x80 | (c & 0x3F));
+      n = 3;
+    }
+    else
+    {
+      buf[0] = cast(char)(0xF0 | (c >> 18));
+      buf[1] = cast(char)(0x80 | ((c >> 12) & 0x3F));
+      buf[2] = cast(char)(0x80 | ((c >> 6) & 0x3F));
+      buf[3] = cast(char)(0x80 | (c & 0x3F));
+      n = 4;
+    }
+    auto old = x.length;
+    _d_arrayappendcTX(typeid(char[]), x, n);
+    x[old .. old + n] = cast(byte[]) buf[0 .. n];
+    return x;
+  }
+
+  extern (C) export void _d_array_slice_copy(void* dst, size_t dstlen, void* src, size_t srclen, size_t elemsz)
+  {
+    memcpy(dst, src, dstlen * elemsz);
+  }
+
+  extern (C) export void* malloc(size_t n)
+  {
+    return wasm_malloc(n);
+  }
+
+  extern (C) export void free(void*)
+  {
+  }
+
+  extern (C) export void* memchr(const void* s, int c, size_t n)
+  {
+    auto p = cast(const(ubyte)*) s;
+    foreach (i; 0 .. n)
+      if (p[i] == cast(ubyte) c)
+        return cast(void*)(p + i);
+    return null;
+  }
+
   extern (C) export void wasm_free(void* ptr, size_t size)
   {
     // this doesn't free. Try to un-grow?

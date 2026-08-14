@@ -18,6 +18,7 @@ public import libwasm.types;
 
 public import libwasm.rt.allocator;
 public import libwasm.rt.array;
+public import libwasm.rt.eh;
 public import libwasm.rt.memory;
 public import libwasm.rt.stubs;
 

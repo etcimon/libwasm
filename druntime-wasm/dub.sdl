@@ -1,6 +1,6 @@
 name "druntime-wasm"
-description "DRuntime and Standard Library for WebAssembly"
-version "1.36.0" # Requires exactly LDC 1.36.0
+description "DRuntime and Standard Library for WebAssembly (1.36 FILE-CMP pin). Default EH-capable tree is ../runtime-v1.43.0."
+version "1.36.0" # Pin for LDC 1.36.0; libwasm default config uses runtime-v1.43.0
 
 # Builds only in arch=wasm32-unknown-wasi
 targetType "sourceLibrary"

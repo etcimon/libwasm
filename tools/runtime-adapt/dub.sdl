@@ -1,0 +1,28 @@
+name "runtime-adapt"
+description "Host tool: parse LDC druntime/phobos (libdparse / serve-d parser) and generate a CRuntime_LIBWASM tree"
+authors "Etienne Cimon"
+copyright "Copyright © 2026, Etienne Cimon"
+license "MIT"
+targetType "executable"
+targetName "runtime-adapt"
+targetPath "bin"
+dependency "libdparse" version="~>0.24.0"
+# Host Windows/POSIX executable — never part of the wasm32 libwasm graph.
+# serve-d loads this folder as a normal dub package (source/ + this recipe).
+toolchainRequirements ldc=">=1.36.0"
+sourcePaths "source"
+importPaths "source"
+
+configuration "application" {
+    targetType "executable"
+    sourcePaths "source"
+    importPaths "source"
+    mainSourceFile "source/app.d"
+}
+
+configuration "unittest" {
+    targetType "executable"
+    sourcePaths "source" "tests"
+    importPaths "source" "tests"
+    mainSourceFile "source/app.d"
+}

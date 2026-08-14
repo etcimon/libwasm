@@ -12,7 +12,25 @@ importPaths "source"
 
 configuration "normal" {
 	targetType "library"
+	importPaths "../runtime-v1.43.0" "../memutils-wasm/source"
+	dflags "-fvisibility=hidden" "-fno-moduleinfo"
+}
+
+configuration "ldc-1.36" {
+	targetType "library"
 	importPaths "../druntime-wasm" "../memutils-wasm/source"
+	dflags "-fvisibility=hidden" "-fno-moduleinfo"
+}
+
+configuration "ldc-1.42" {
+	targetType "library"
+	importPaths "../runtime-v1.42.0" "../memutils-wasm/source"
+	dflags "-fvisibility=hidden" "-fno-moduleinfo"
+}
+
+configuration "ldc-master" {
+	targetType "library"
+	importPaths "../runtime-v1.43.0" "../memutils-wasm/source"
 	dflags "-fvisibility=hidden" "-fno-moduleinfo"
 }
 
