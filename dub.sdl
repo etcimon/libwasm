@@ -1,4 +1,5 @@
 name "libwasm"
+version "0.11.0"
 description "A framework for writing webassembly single page applications"
 authors "Sebastiaan Koppe" "Etienne Cimon"
 copyright "Copyright © 2018-2023, Sebastiaan Koppe, Etienne Cimon"
