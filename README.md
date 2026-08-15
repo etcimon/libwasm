@@ -138,7 +138,7 @@ This project uses a custom `wasm`-capable druntime and parts of phobos for CTFE,
 
 ## Hot module reloading
 
-The spa framework which libwasm is based on has basic support for hot module reloading. Style changes are reloaded correctly as well as basic attributes (`@prop`, `@attr`, `@visible`, etc.) Anything more complex (like lists/arrays) will just revert to their init state.
+The spa framework which libwasm is based on has basic support for hot module reloading. Style changes are reloaded correctly as well as basic attributes (`@prop`, `@attr`, `@visible`, etc.). `List` / `HTMLArray` items serialize as `:l:N:[{item}…]` in `dumpApp`/`loadApp` (`hmr.d`). After reload, `_start` re-seeds `construct()` lists and `loadApp` shrinks/puts so the dumped count wins.
 
 ### Enabling hmr for new projects
 

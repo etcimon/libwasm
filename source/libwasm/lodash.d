@@ -189,7 +189,7 @@ struct Command {
       //}
     }
     else static if (is(T : JsHandle)) {
-      params[idx].handle = number.handle;
+      params[idx].handle = str.handle;
       param_types[idx] = VarType.handle;
     } else static assert(false, "Unsupported type given to function (setString)");
     param_count++;
@@ -699,30 +699,20 @@ public:
   /++
     Initialize the Lodash chaining with VarType
   +/
-  this(T)(auto ref T val, VarType init_type, int size_estimate) 
+  this(T)(auto ref T val, VarType init_type, int size_estimate) @trusted
   {
-    // init with a string
     m_initType = init_type;
     m_size_est = size_estimate;
-
-    switch (init_type) {
-      case VarType.string_:
-      case VarType.eval:
-        static if (isImplicitlyConvertible!(T, string))
-          m_initVal.str = val;        
-        break;
-      case VarType.handle:
-        static if (isImplicitlyConvertible!(T,JsHandle))
-          m_initVal.handle = val.handle;
-        else m_initVal.handle = val;
-        break;
-
-       case VarType.number:       
-        static if (isNumeric!T)
-          m_initVal.number = cast(long)val;
-        break;
-      default: assert(false, "Not implemented");
-    }
+    // Assign by T. A runtime switch over init_type still compiles every
+    // case, so `Lodash(string)` used to assign a string into Handle.
+    static if (isImplicitlyConvertible!(T, string))
+      m_initVal.str = val;
+    else static if (isImplicitlyConvertible!(T, JsHandle))
+      m_initVal.handle = val.handle;
+    else static if (isNumeric!T)
+      m_initVal.number = cast(long) val;
+    else
+      m_initVal.handle = cast(Handle) val;
   }
 
   auto ref initialize(T)(auto ref T val, VarType init_type = VarType.handle, int size_estimate = 128)

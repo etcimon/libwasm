@@ -83,14 +83,35 @@ EventType toEventType(Node)(string listener) {
       case "dblclick":
         return EventType.mouse;
       case "focus":
+      case "focusin":
+      case "focusout":
         return EventType.focus;
       case "blur":
         return EventType.event;
       case "mouseup":
       case "mousedown":
       case "mousemove":
+      case "contextmenu":
         return EventType.mouse;
+      case "drag":
+      case "dragstart":
+      case "dragend":
+      case "drop":
+      case "dragover":
+      case "dragenter":
+      case "dragleave":
+        return EventType.drag;
+      case "copy":
+      case "cut":
+      case "paste":
+        return EventType.clipboard;
+      case "wheel":
+        return EventType.wheel;
       default:
+        if (listener.length >= 7 && listener[0 .. 7] == "pointer")
+          return EventType.pointer;
+        if (listener.length >= 5 && listener[0 .. 5] == "touch")
+          return EventType.touch;
         return EventType.custom;
     }
 }
@@ -136,15 +157,15 @@ auto addEventListenerTyped(string listenerType, string name, T)(Handle node, aut
 
 struct EventEmitter(Params...) {
   nothrow:
-  static if (Params.length == 0) {    
+  static if (Params.length == 0) {
     Vector!(void delegate() nothrow @safe) cbs;
     void add(void delegate() nothrow @safe del) {
-      cbs = del;
+      cbs ~= del;
     }
-    
+
     Vector!(void delegate(size_t) nothrow @safe) addrs;
     void add(void delegate(size_t) nothrow @safe del) {
-      addrs = del;
+      addrs ~= del;
     }
   }
   else {

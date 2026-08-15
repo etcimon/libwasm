@@ -159,6 +159,26 @@ static:
     }
 }
 
+/// Higher is more specific. Static chars >> `:param` >> `*`.
+private int patternSpecificity(string pattern)
+{
+    int s;
+    for (size_t i = 0; i < pattern.length; i++)
+    {
+        if (pattern[i] == '*')
+            s += 1;
+        else if (pattern[i] == ':')
+        {
+            s += 10;
+            while (i + 1 < pattern.length && pattern[i + 1] != '/')
+                i++;
+        }
+        else if (pattern[i] != '/')
+            s += 100;
+    }
+    return s;
+}
+
 class URLRouter
 {
 @safe nothrow:
@@ -261,6 +281,41 @@ class URLRouter
             newPath = _newPath;
         }
 
+        /// Kit: one page @entering per path. Static segments beat :params
+        /// so `/:slug` does not steal `/admin`.
+        void keepBestEntering(string url)
+        {
+            Route best;
+            int bestScore = int.min;
+            foreach (r; entering_candidates[])
+            {
+                if (!r.matches(url))
+                    continue;
+                auto s = patternSpecificity(r.pattern[]);
+                if (s > bestScore)
+                {
+                    bestScore = s;
+                    best = r;
+                }
+            }
+            entering_candidates.clear();
+            if (best !is null)
+                entering_candidates ~= best;
+        }
+
+        /// Drop a left route so a later visit can @entering again
+        /// (back/forward and callNative to a previously shown page).
+        void dropActive(Route r)
+        {
+            Array!Route kept;
+            foreach (route; m_activeRoutes[])
+            {
+                if (route !is r)
+                    kept ~= route;
+            }
+            m_activeRoutes = kept;
+        }
+
         void iterate()() @trusted
         {
             bool still_busy;
@@ -287,7 +342,7 @@ class URLRouter
                     Optional!(Promise!void) promise;
                     if (r.leaving_cb) promise = r.leaving_cb(ev);
                     r.active_url.clear();
-                    // remove from activeRoutes
+                    dropActive(r);
                     if (!promise.empty)
                     {
                         promise.front.then(&iterate);
@@ -310,48 +365,42 @@ class URLRouter
                         break;
                     }
                 }
-                if (!found)
+                // Re-fire @entering even when the route is still active so
+                // kit setVisible + applyKitParams run on back/forward and
+                // on /users/:id param changes.
+                if (r.matches(newPath[], ev.parameters))
                 {
-                    //console.log("We cannot find this active route");
-                    //console.log(newPath[]);
-                    if (r.matches(newPath[], ev.parameters))
-                    {
-                        //console.log(newPath[]);
-                        ev.newURL = newPath[];
-                        ev.prevURL = m_currentURL[];
-                        //console.log(newPath[]);
-
-                        Optional!(Promise!void) promise;
-                        if (r.entering_cb) promise = r.entering_cb(ev);
-                        r.active_url[] = cast(char[]) newPath[];
-                        //console.log("Added to active url");
-                        //console.log(newPath[]);
+                    ev.newURL = newPath[];
+                    ev.prevURL = m_currentURL[];
+                    Optional!(Promise!void) promise;
+                    if (r.entering_cb) promise = r.entering_cb(ev);
+                    r.active_url[] = cast(char[]) newPath[];
+                    if (!found)
                         m_activeRoutes ~= r;
-                        if (!promise.empty)
-                        {
-                            //console.log("Promise was not empty");
-                            promise.front.then(&iterate);
-                            still_busy = true;
-                        }
+                    if (!promise.empty)
+                    {
+                        promise.front.then(&iterate);
+                        still_busy = true;
                     }
-                } else {
-                    
-                    //console.log("We found this active route");
                 }
             }
             else
             {
                     //console.log("Both entering and leaving candidates were empty");
                 m_busy = false;
+                m_currentURL = Array!char(newPath[]);
 
                 import libwasm.bindings.Window;
                 import libwasm.bindings.History;
-                import libwasm.dom : window;
+                import libwasm.dom : window, document;
 
-                //console.log("Pushing state: ");
-                //console.log(m_title[]);
-                //console.log(newPath[]);
-                if (m_is_setup)
+                // Do not pushState when the browser already has this path
+                // (popstate / callNative after history.pushState).
+                string here;
+                auto loc = document().location();
+                if (!loc.empty)
+                    here = loc.front.pathname();
+                if (m_is_setup && here != newPath[])
                     window().history().pushState(null, m_title[], Optional!string(newPath[]));
 
                 // we finished iteration
@@ -449,6 +498,7 @@ class URLRouter
         //console.log("Setup Iterator");
         //console.log(m_routes.length);
         setupIterator(Array!Route(m_activeRoutes[]), Array!Route(m_routes[]), Array!char(new_url));
+        keepBestEntering(new_url);
         //console.log("Iterate");
         iterate();
 
@@ -587,7 +637,13 @@ void registerRoutes(T, Ts...)(return auto ref T t, return auto ref Ts ts) @trust
                 { // recurse through the child members
 
                     static if (isPointer!(typeof(sym)))
-                        registerRoutes(*__traits(getMember, t, i), AliasSeq!(params, t, ts));
+                    {
+                        if (__traits(getMember, t, i) !is null)
+                        {
+                            static if (!is(ChildType == T))
+                                registerRoutes(*__traits(getMember, t, i), AliasSeq!(params, t, ts));
+                        }
+                    }
                     else
                         registerRoutes(__traits(getMember, t, i), AliasSeq!(params, t, ts));
                 }

@@ -3,7 +3,7 @@ version(unittest) version = hmr;
 version(hmr):
 
 import libwasm.rt.array;
-import libwasm.rt.allocator;
+import libwasm.rt.allocator : ThreadMemAllocator;
 import libwasm.node;
 import libwasm.event;
 import libwasm.array;
@@ -27,11 +27,41 @@ string dumpState(T)(ref T app) @system {
       } else static if (is(typeof(t) : NamedNode!(name, tag), string name, string tag)) {
         //pragma(msg, "NamedNode2");
       } else static if (is(typeof(t) : List!(Item, tag), Item, string tag)) {
-        //pragma(msg, "List");
+        if (!first)
+          sink.write(",");
+        sink.write(__traits(identifier, t), ":l:");
+        sink.write(app.tupleof[idx].items.length);
+        sink.write(":[");
+        foreach (i; 0 .. app.tupleof[idx].items.length) {
+          if (i)
+            sink.write(",");
+          sink.write("{");
+          auto p = app.tupleof[idx].items[i];
+          if (p !is null)
+            recurse(*p, sink);
+          sink.write("}");
+        }
+        sink.write("]");
+        first = false;
       } else static if (is(typeof(t) == ManagedPool)) {
         //pragma(msg, "ManagedPool");
       } else static if (is(typeof(t) : HTMLArray!(Item), Item)) {
-        //pragma(msg, "HTMLArray");
+        if (!first)
+          sink.write(",");
+        sink.write(__traits(identifier, t), ":l:");
+        sink.write(app.tupleof[idx].length);
+        sink.write(":[");
+        foreach (i; 0 .. app.tupleof[idx].length) {
+          if (i)
+            sink.write(",");
+          sink.write("{");
+          auto p = app.tupleof[idx][i];
+          if (p !is null)
+            recurse(*p, sink);
+          sink.write("}");
+        }
+        sink.write("]");
+        first = false;
       } else static if (isBoolean!(typeof(t))) {
         if (!first)
           sink.write(",");
@@ -143,6 +173,8 @@ void skipField(ref string state) nothrow {
     readInt(state);
   else if (c == 'a')
     skipObject(state);
+  else if (c == 'l')
+    skipList(state);
   else if (c == '}')
     return;
   else {
@@ -151,6 +183,23 @@ void skipField(ref string state) nothrow {
   }
 
   //console.log(state);
+}
+
+void skipList(ref string state) nothrow {
+  int n = readInt(state);
+  if (state.length && state[0] == ':')
+    state = state[1 .. $];
+  if (state.length && state[0] == '[')
+    state = state[1 .. $];
+  foreach (i; 0 .. n) {
+    if (i && state.length && state[0] == ',')
+      state = state[1 .. $];
+    if (state.length && state[0] == '{')
+      state = state[1 .. $];
+    skipObject(state);
+  }
+  if (state.length && state[0] == ']')
+    state = state[1 .. $];
 }
 
 void skipObject(ref string state) nothrow {
@@ -180,6 +229,15 @@ private void update(string field, T)(ref T t) nothrow {
   import libwasm.dom;
   alias member = __traits(getMember, t, field);
   libwasm.dom.update!(member)(t);
+}
+
+Item* allocHmrItem(Item)() @trusted {
+  auto raw = ThreadMemAllocator.allocate(Item.sizeof);
+  if (raw.ptr is null || raw.length < Item.sizeof)
+    return null;
+  auto p = cast(Item*) raw.ptr;
+  *p = Item.init;
+  return p;
 }
 
 void loadState(T)(ref T app, string state) @system {
@@ -216,11 +274,71 @@ import std.traits : hasUDA;
             } else static if (is(typeof(t) : NamedNode!(name, tag), string name, string tag)) {
               //pragma(msg, "NamedNode2");
             } else static if (is(typeof(t) : List!(Item, tag), Item, string tag)) {
-              //pragma(msg, "List");
+              if (state[0] != 'l')
+                skipField(state);
+              else {
+                state = state[2 .. $];
+                int n = readInt(state);
+                if (state.length && state[0] == ':')
+                  state = state[1 .. $];
+                if (state.length && state[0] == '[')
+                  state = state[1 .. $];
+                size_t have = app.tupleof[idx].items.length;
+                foreach (i; 0 .. n) {
+                  if (i && state.length && state[0] == ',')
+                    state = state[1 .. $];
+                  if (state.length && state[0] == '{')
+                    state = state[1 .. $];
+                  if (i < have && app.tupleof[idx].items[i] !is null)
+                    readObject(*app.tupleof[idx].items[i], state);
+                  else {
+                    auto p = allocHmrItem!Item();
+                    if (p !is null) {
+                      readObject(*p, state);
+                      app.tupleof[idx].put(p);
+                    } else
+                      skipObject(state);
+                  }
+                }
+                if (cast(size_t) n < have)
+                  app.tupleof[idx].shrinkTo(cast(size_t) n);
+                if (state.length && state[0] == ']')
+                  state = state[1 .. $];
+              }
             } else static if (is(typeof(t) == ManagedPool)) {
               //pragma(msg, "ManagedPool");
             } else static if (is(typeof(t) : HTMLArray!(Item), Item)) {
-              //pragma(msg, "HTMLArray");
+              if (state[0] != 'l')
+                skipField(state);
+              else {
+                state = state[2 .. $];
+                int n = readInt(state);
+                if (state.length && state[0] == ':')
+                  state = state[1 .. $];
+                if (state.length && state[0] == '[')
+                  state = state[1 .. $];
+                size_t have = app.tupleof[idx].length;
+                foreach (i; 0 .. n) {
+                  if (i && state.length && state[0] == ',')
+                    state = state[1 .. $];
+                  if (state.length && state[0] == '{')
+                    state = state[1 .. $];
+                  if (i < have && app.tupleof[idx][i] !is null)
+                    readObject(*app.tupleof[idx][i], state);
+                  else {
+                    auto p = allocHmrItem!Item();
+                    if (p !is null) {
+                      readObject(*p, state);
+                      app.tupleof[idx].put(p);
+                    } else
+                      skipObject(state);
+                  }
+                }
+                if (cast(size_t) n < have)
+                  app.tupleof[idx].shrinkTo(cast(size_t) n);
+                if (state.length && state[0] == ']')
+                  state = state[1 .. $];
+              }
             } else static if (isBoolean!(typeof(t))) {
               //console.log("Got bool");
               if (state[0] != 'b')
@@ -277,6 +395,9 @@ import std.traits : hasUDA;
           //console.log("Skipping unhandled aggregate");
           state = state[3 .. $];
           skipObject(state);
+        } else if (state[0] == 'l') {
+          state = state[2 .. $];
+          skipList(state);
         }
         else {
           //console.log("No closing tag on " ~ state);
@@ -327,4 +448,48 @@ unittest {
   foo2.bar.str.should == "My Nested String";
   foo2.bar.number.should == 5678;
   foo2.bar.boolean.should == false;
+}
+
+unittest {
+  import unit_threaded;
+  struct Row {
+    string name = "def";
+    int n = 0;
+  }
+  struct Holder {
+    HTMLArray!Row items;
+  }
+  Holder a;
+  auto r1 = allocHmrItem!Row();
+  r1.name = "one";
+  r1.n = 1;
+  a.items.put(r1);
+  auto r2 = allocHmrItem!Row();
+  r2.name = "two";
+  r2.n = 2;
+  a.items.put(r2);
+  string state = a.dumpState();
+  import std.algorithm : canFind;
+  canFind(state, "items:l:2:[").should == true;
+  canFind(state, "name:s:3:one").should == true;
+  canFind(state, "name:s:3:two").should == true;
+  Holder b;
+  b.loadState(state);
+  b.items.length.should == 2;
+  b.items[0].name.should == "one";
+  b.items[0].n.should == 1;
+  b.items[1].name.should == "two";
+  b.items[1].n.should == 2;
+  // grow + shrink
+  auto r3 = allocHmrItem!Row();
+  r3.name = "tri";
+  r3.n = 3;
+  a.items.put(r3);
+  b.loadState(a.dumpState());
+  b.items.length.should == 3;
+  b.items[2].name.should == "tri";
+  a.items.shrinkTo(1);
+  b.loadState(a.dumpState());
+  b.items.length.should == 1;
+  b.items[0].name.should == "one";
 }

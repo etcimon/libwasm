@@ -2,7 +2,7 @@ module libwasm.dom;
 
 import libwasm.types;
 import memutils.ct;
-import std.traits : hasMember, isAggregateType;
+import std.traits : hasMember, isAggregateType, FieldNameTuple;
 import std.traits : TemplateArgsOf, staticMap, isPointer, PointerTarget, getUDAs, EnumMembers, isInstanceOf, isBasicType, isIntegral;
 import std.traits : getSymbolsByUDA, getUDAs;
 import std.meta : Filter, AliasSeq, ApplyLeft, ApplyRight;
@@ -120,6 +120,28 @@ version (unittest)
       uint idx = cast(uint) unittest_dom_nodes.data.length;
       unittest_dom_nodes.put(new UnittestDomNode(type, idx + 1));
       return idx + 1;
+    }
+
+    Handle createCustomElement(string type)
+    {
+      NodeType n = NodeType.div;
+      foreach (m; EnumMembers!NodeType)
+      {
+        if (m.stringof == type)
+        {
+          n = m;
+          break;
+        }
+      }
+      uint idx = cast(uint) unittest_dom_nodes.data.length;
+      unittest_dom_nodes.put(new UnittestDomNode(n, idx + 1));
+      if (type.length)
+        unittest_dom_nodes.data[idx].setAttribute("data-tag", type);
+      return idx + 1;
+    }
+
+    void applyObjectSpread(Handle node, Handle bag)
+    {
     }
 
     void addClass(Handle node, string className)
@@ -304,6 +326,7 @@ else
     void getPropertyDouble(Handle nodePtr, string prop);
     void setSelectionRange(Handle node, uint start, uint end);
     void addCss(string css);
+    void applyObjectSpread(Handle node, Handle bag);
   }
 }
 
@@ -413,7 +436,18 @@ import std.traits : isFunction;
 auto propagateOnMount(T)(auto ref T t)
 {
   static foreach (c; getChildren!T)
-    __traits(getMember, t, c).propagateOnMount();
+  {
+    static if (isPointer!(typeof(__traits(getMember, t, c))))
+    {
+      static if (!is(PointerTarget!(typeof(__traits(getMember, t, c))) == T))
+      {
+        if (__traits(getMember, t, c) !is null)
+          (*__traits(getMember, t, c)).propagateOnMount();
+      }
+    }
+    else
+      __traits(getMember, t, c).propagateOnMount();
+  }
   static if (hasMember!(T, "onMount") && isFunction!(T.onMount))
     if (t.getNamedNode().mounted) t.onMount();
 }
@@ -421,7 +455,18 @@ auto propagateOnMount(T)(auto ref T t)
 auto propagateOnUnmount(T)(auto ref T t)
 {
   static foreach (c; getChildren!T)
-    __traits(getMember, t, c).propagateOnMount();
+  {
+    static if (isPointer!(typeof(__traits(getMember, t, c))))
+    {
+      static if (!is(PointerTarget!(typeof(__traits(getMember, t, c))) == T))
+      {
+        if (__traits(getMember, t, c) !is null)
+          (*__traits(getMember, t, c)).propagateOnUnmount();
+      }
+    }
+    else
+      __traits(getMember, t, c).propagateOnUnmount();
+  }
   static if (hasMember!(T, "onUnmount") && isFunction!(T.onUnmount))
     t.onUnmount();
 }
@@ -679,8 +724,10 @@ auto compile(T, Ts...)(return auto ref T t, return auto ref Ts ts) @trusted
         else
         {
           static if (isPublic)
-          { // reference to a parent member   
+          { // reference to a parent member
+            // @child graphs are compiled, not copied from a same-named parent.
 
+            static if (!hasUDA!(sym, child))
             setParamFromParent!(i, i)(t, ts);
             alias udas = getUDAs!(sym, inject);
             static foreach (uda; udas)
@@ -715,12 +762,17 @@ auto compile(T, Ts...)(return auto ref T t, return auto ref Ts ts) @trusted
                   alias params = AliasSeq!();
                 static if (isAggregateType!(ChildType))
                 { // recurse through the child members
-                  static if (isPointer!(typeof(sym))) {                    
-                    //static assert(!is(typeof(*__traits(getMember, t, i)) == void), "Cannot compile void type " ~ typeof(t).stringof ~ "." ~ typeof(sym).stringof ~ " " ~ i ~ " (possibly a redundant identifier?)");
-                    compile(*__traits(getMember, t, i), AliasSeq!(params, t, ts));
+                  static if (isPointer!(typeof(sym))) {
+                    // Same-type T* (svelte:self) must not instantiate
+                    // compile!(T) at all — CSS getStyleSets and return-type
+                    // inference recurse. Null and other T* still compile.
+                    if (__traits(getMember, t, i) !is null)
+                    {
+                      static if (!is(ChildType == T))
+                        compile(*__traits(getMember, t, i), AliasSeq!(params, t, ts));
+                    }
                   }
                   else {
-                    //static assert(!is(typeof(__traits(getMember, t, i)) == void), "Cannot compile void type "  ~ typeof(t).stringof ~ "." ~ typeof(sym).stringof ~ " " ~ i ~ " (possibly a redundant identifier?)");
                     compile(__traits(getMember, t, i), AliasSeq!(params, t, ts));
                   }
                 }
@@ -801,6 +853,8 @@ auto callMember(string fun, T)(return auto ref T t)
 auto renderIntoNode(T, Ts...)(Handle parent, return auto ref T t, return auto ref Ts ts)
     if (isPointer!T)
 {
+  if (t is null)
+    return;
   return renderIntoNode(parent, *t, ts);
 }
 
@@ -827,6 +881,30 @@ ref auto getNamedNode(T)(return auto ref T t) if (!isPointer!T)
     static assert(children.length == 1);
     return __traits(getMember, t, __traits(identifier, children[0])).getNamedNode();
   }
+}
+
+/// True when `name` is a real field of T (not alias this / opDispatch).
+enum hasTupleField(T, string name) = staticIndexOf!(name, FieldNameTuple!T) != -1;
+
+/// JS Handle without UFCS `.handle` on HTML* wrappers.
+/// HTMLFormElement.opDispatch(string) swallows missing names and is not a
+/// template, so `form.addEventListenerTyped!(...)` fails on <form>.
+Handle nodeHandle(T)(auto ref T t)
+{
+  static if (is(T == Handle))
+    return t;
+  else static if (is(T == JsHandle))
+    return t.handle;
+  else static if (isPointer!T)
+    return nodeHandle(*t);
+  else static if (hasTupleField!(T, "node"))
+    return nodeHandle(__traits(getMember, t, "node"));
+  else static if (hasTupleField!(T, "_parent"))
+    return nodeHandle(__traits(getMember, t, "_parent"));
+  else static if (hasTupleField!(T, "handle"))
+    return nodeHandle(__traits(getMember, t, "handle"));
+  else
+    static assert(false, "nodeHandle: no handle on " ~ T.stringof);
 }
 
 template createNestedChildRenderFuncs(string memberName)
@@ -925,7 +1003,8 @@ template renderNestedChild(string field)
     auto node = createNode(parent, t);
     static if (hasMember!(T, "node"))
     {
-      t.getNamedNode().node.handle.handle = node;
+      alias El = typeof(t.getNamedNode().node);
+      t.getNamedNode().node = El(node);
     }
     alias StyleSet = getStyleSet!T;
     static foreach (sym; T.tupleof)
@@ -955,6 +1034,10 @@ template renderNestedChild(string field)
               else static if (is(typeof(sym) : NamedNode!(name, tag)*, string name, string tag))
               {
                 renderNestedChild!(i)(node, t, ts);
+              }
+              else static if (isPointer!(typeof(sym)) && is(PointerTarget!(typeof(sym)) == T))
+              {
+                // svelte:self T* — do not instantiate renderIntoNode!(T*)
               }
               else
               {
@@ -998,17 +1081,17 @@ template renderNestedChild(string field)
               auto result = callMember!(i)(t);
               if (result == true)
               {
-                t.getNamedNode.applyStyles!(T, styles);
+                applyStyles!(T, styles)(nodeHandle(t));
               }
             }
             else static if (is(typeof(sym) == bool))
             {
               if (__traits(getMember, t, i) == true)
-                t.getNamedNode.applyStyles!(T, styles);
+                applyStyles!(T, styles)(nodeHandle(t));
             }
             else static if (hasUDA!(sym, child))
             {
-              getNamedNode(__traits(getMember, t, i)).applyStyles!(T, styles);
+              applyStyles!(T, styles)(nodeHandle(__traits(getMember, t, i)));
             }
           }
         }
@@ -1029,17 +1112,17 @@ template renderNestedChild(string field)
             auto result = callMember!(i)(t);
             alias uda = getUDAs!(sym, prop)[0];
             static if (is(uda : prop!prop_value, alias prop_value))
-              t.getNamedNode.setPropertyTyped!prop_value(result);
+              setPropertyTyped!prop_value(nodeHandle(t), result);
             else
-              t.getNamedNode.setPropertyTyped!name(result);
+              setPropertyTyped!name(nodeHandle(t), result);
           }
           else static if (hasUDA!(sym, callback))
           {
             alias uda = getUDAs!(sym, callback)[0];
             static if (is(uda : callback!cb_value, alias cb_value))
-              t.getNamedNode.addEventListenerTyped!(cb_value,i)(t);
+              addEventListenerTyped!(cb_value,i)(nodeHandle(t), t);
             else
-              t.getNamedNode.addEventListenerTyped!(i, i)(t);
+              addEventListenerTyped!(i, i)(nodeHandle(t), t);
 
           }
           else static if (hasUDA!(sym, attr))
@@ -1047,9 +1130,9 @@ template renderNestedChild(string field)
               auto result = callMember!(i)(t);
               alias uda = getUDAs!(sym, attr)[0];
               static if (is(uda : attr!attr_value, alias attr_value))
-                t.getNamedNode.setAttributeTyped!attr_value(result);
+                setAttributeTyped!attr_value(nodeHandle(t), result);
               else
-                t.getNamedNode.setAttributeTyped!name(result);
+                setAttributeTyped!name(nodeHandle(t), result);
               
           }
           else static if (hasUDA!(sym, style))
@@ -1058,7 +1141,7 @@ template renderNestedChild(string field)
             static foreach (style; getStyles!(sym))
             {
               __gshared static string className = GetCssClassName!(T, style);
-              t.getNamedNode.changeClass(className, result);
+              changeClass(nodeHandle(t), className, result);
             }
           }
           else static if (hasUDA!(sym, connect))
@@ -1116,7 +1199,7 @@ template renderNestedChild(string field)
             }
             else static if (hasUDA!(Target, child))
             {
-              __traits(getMember, t, __traits(identifier, Target)).getNamedNode.addClass(
+              addClass(nodeHandle(__traits(getMember, t, __traits(identifier, Target))),
                 styleTable[idx]);
             }
             else
@@ -1349,17 +1432,17 @@ template update(alias field)
     {
       alias propUDA = getUDAs!(field, prop)[0];
       static if (is(propUDA : prop!prop_value, alias prop_value))
-        parent.node.setPropertyTyped!prop_value(t);
+        setPropertyTyped!prop_value(nodeHandle(parent), t);
       else
-        parent.node.setPropertyTyped!name(t);
+        setPropertyTyped!name(nodeHandle(parent), t);
     }
     else static if (hasUDA!(field, attr))
     {
       alias attrUDA = getUDAs!(field, attr)[0];
       static if (is(attrUDA : attr!attr_value, alias attr_value))
-        parent.node.setAttributeTyped!attr_value(t);
+        setAttributeTyped!attr_value(nodeHandle(parent), t);
       else
-        parent.node.setAttributeTyped!name(t);
+        setAttributeTyped!name(nodeHandle(parent), t);
     }
     static if (is(T == bool))
     {
@@ -1367,7 +1450,7 @@ template update(alias field)
       static foreach (style; styles)
       {
         __gshared static string className = GetCssClassName!(Parent, style);
-        parent.getNamedNode.changeClass(className, t);
+        changeClass(nodeHandle(parent), className, t);
       }
       static if (hasUDA!(field, visible))
       {
@@ -1397,9 +1480,9 @@ template update(alias field)
               auto result = callMember!(i)(parent);
               alias propUDAcallable = getUDAs!(sym, prop)[0];
               static if (is(propUDAcallable : prop!prop_value, alias prop_value))
-                parent.node.node.setPropertyTyped!prop_value(result);
+                setPropertyTyped!prop_value(nodeHandle(parent), result);
               else 
-                parent.node.node.setPropertyTyped!cleanName(result);
+                setPropertyTyped!cleanName(nodeHandle(parent), result);
             }
             else static if (hasUDA!(sym, attr))
             {
@@ -1408,9 +1491,9 @@ template update(alias field)
               
               alias attrUDAcallable = getUDAs!(sym, attr)[0];
               static if (is(attrUDAcallable : attr!attr_value, alias attr_value))
-                parent.node.node.setAttributeTyped!attr_value(result);
+                setAttributeTyped!attr_value(nodeHandle(parent), result);
               else 
-                parent.node.node.setAttributeTyped!cleanName(result);
+                setAttributeTyped!cleanName(nodeHandle(parent), result);
             }
             else static if (hasUDA!(sym, style))
             {
@@ -1418,7 +1501,7 @@ template update(alias field)
               static foreach (style; getStyles!(sym))
               {
                 __gshared static string className = GetCssClassName!(Parent, style);
-                parent.node.node.changeClass(className, result);
+                changeClass(nodeHandle(parent), className, result);
               }
             }
             else
@@ -1509,11 +1592,35 @@ auto setAttributeTyped(string name, T)(Handle node, auto ref T t)
   }
 }
 
+enum isReadonlyDomProp(string name) =
+    name == "dataset" || name == "clientWidth" || name == "clientHeight"
+    || name == "offsetWidth" || name == "offsetHeight"
+    || name == "scrollWidth" || name == "scrollHeight"
+    || name == "naturalWidth" || name == "naturalHeight"
+    || name == "videoWidth" || name == "videoHeight"
+    || name == "paused" || name == "ended" || name == "seeking"
+    || name == "readyState" || name == "duration" || name == "files";
+
 auto setPropertyTyped(string name, T)(Handle node, auto ref T t)
 {
   import std.traits : isPointer, isNumeric;
 
-  static if (isPointer!T)
+  static if (name == "dataset")
+  {
+    // HTMLElement.dataset is a getter-only DOMStringMap.
+    static if (isPointer!T)
+    {
+      if (t !is null)
+        setPropertyTyped!name(node, *t);
+    }
+    else static if (is(T : string))
+      node.setAttribute("data-index", t);
+  }
+  else static if (isReadonlyDomProp!name)
+  {
+    // bind:clientWidth / paused / … — getter-only; do not assign
+  }
+  else static if (isPointer!T)
   {
     if (t !is null)
       node.setPropertyTyped!name(*t);
@@ -1541,12 +1648,24 @@ auto applyStyles(T, styles...)(Handle node)
   }
 }
 
+Handle createElement(string tag)
+{
+  return createCustomElement(tag);
+}
+
 Handle createNode(T)(Handle parent, ref T t)
 {
   import libwasm.bindings.HTMLElement : HTMLUnknownElement;
   enum hasNode = hasMember!(T, "node");
   static if (hasNode && is(typeof(t.node) : NamedNode!(name, tag), string name, string tag))
   {
+    // Dynamic <svelte:element this={tag}>: printer stores the runtime
+    // name on data_tag in construct(), before render creates the handle.
+    static if (hasMember!(T, "data_tag") && is(typeof(t.data_tag) : string))
+    {
+      if (t.data_tag.length)
+        return createElement(t.data_tag);
+    }
     static if (name == tag && __traits(compiles, mixin("NodeType." ~ tag)))
     {
       mixin("NodeType n = NodeType." ~ tag ~ ";");

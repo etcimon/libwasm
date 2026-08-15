@@ -438,6 +438,11 @@ Vector!char format(string fmt, ARGS...)(ARGS args) @trusted
 struct Eval
 {
   string eval_str;
+  /// Lodash `if (predicate)` / `if (iteratee)` — true when a JS snippet is present.
+  bool opCast(T : bool)() const
+  {
+    return eval_str.length > 0;
+  }
 }
 
 // used for lodash

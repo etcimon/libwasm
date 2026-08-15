@@ -150,7 +150,9 @@ template getStyleSets(T)
   }
   else static if (isPointer!T)
   {
-    alias getStyleSets = .getStyleSets!(PointerTarget!T);
+    // Do not unwrap T* (svelte:self). Following PointerTarget!T
+    // re-enters T and the alias becomes recursive.
+    alias getStyleSets = AliasSeq!();
   }
   else static if (isCallable!T)
   {
@@ -183,7 +185,7 @@ template getStyleSetsExtends(T)
 {
   static if (isPointer!T)
   {
-    alias getStyleSetsExtends = .getStyleSetsExtends!(PointerTarget!T);
+    alias getStyleSetsExtends = AliasSeq!();
   }
   else static if (isCallable!T)
   {
