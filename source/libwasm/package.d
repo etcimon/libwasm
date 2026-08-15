@@ -15,6 +15,7 @@ public import libwasm.router;
 public import libwasm.spa;
 public import libwasm.sumtype;
 public import libwasm.types;
+public import libwasm.bridge;
 
 public import libwasm.rt.allocator;
 public import libwasm.rt.array;
