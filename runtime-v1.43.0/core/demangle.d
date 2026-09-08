@@ -2992,7 +2992,14 @@ private shared CXX_DEMANGLER __cxa_demangle;
 CXX_DEMANGLER getCXXDemangler() nothrow @trusted
 {
     import core.atomic : atomicLoad, atomicStore;
-    if (__cxa_demangle is null)
+    // G6LC_G6B: wasm has no dlfcn, and LDC sets `Posix` on wasm32-unknown-wasi,
+    // so the Posix branch below would import core.sys.posix.dlfcn — absent from
+    // this carried runtime. There is no C++ demangler to find in the guest, so
+    // the lookup is skipped and the pure-D fallback further down is used.
+    version (CRuntime_LIBWASM)
+    {
+    }
+    else if (__cxa_demangle is null)
     version (Posix)
     {
         import core.sys.posix.dlfcn : dlsym;

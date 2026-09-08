@@ -41,6 +41,12 @@ char[] parse_int(long num) nothrow @trusted
   return formattedWrite!"%d"(buf.ptr, num);
 }
 
+// G6LC_G6B: `getRoot` is declared by libwasm.g6b_kernel instead, so that the
+// BIOS cell's imports stay exactly the set the kernel host implements.
+version (G6LC_G6B)
+{
+}
+else
 extern (C)
 {
   Handle getRoot();
@@ -135,8 +141,22 @@ mixin template Spa(Application, Theme)
       application.main();
     }
     application.compile();
-    setupRouter();
-    application.registerRoutes();
+    // G6LC_G6B: the BIOS cell has no client-side router. Its routes are kernel
+    // HTTP endpoints under /bios/, registered through register_endpoint, and the
+    // DOM is built statically then filled from JSON. Asserting the static-DOM
+    // contract here makes an unsupported D router callback a compile error
+    // rather than a cell that instantiates and then does nothing.
+    version (G6LC_G6B)
+    {
+      static assert(__traits(hasMember, Application, "g6bStaticDom") && Application.g6bStaticDom,
+        "G6B currently requires explicit static DOM mode; D router callbacks are unsupported");
+      static assert(__traits(hasMember, Application, "ready"), "G6B static DOM requires ready()");
+    }
+    else
+    {
+      setupRouter();
+      application.registerRoutes();
+    }
     libwasm.dom.render(root, application);
     static if (__traits(hasMember, Application, "ready"))
     {

@@ -1,4 +1,9 @@
-name "druntime-wasm"
+# G6LC_G6B: disambiguated from ./druntime-wasm (the 1.36 pin), which also
+# declares `name "druntime-wasm"`. DUB keys packages by name, so two different
+# paths sharing one name make every configuration unresolvable:
+#   Unresolvable dependencies to package druntime-wasm
+# The carried trees are genuinely different packages, so they get distinct names.
+name "druntime-wasm-143"
 description "Carried CRuntime_LIBWASM tree for LDC 1.43.0 (runtime-adapt --carry; wasm EH + Phobos)"
 version "1.43.0"
 targetType "sourceLibrary"
@@ -6,5 +11,13 @@ targetArch "wasm32-unknown-wasi"
 versions "CRuntime_LIBWASM"
 importPaths "."
 sourcePaths "core" "ldc" "std"
-sourceFiles "object.d"
-excludedSourceFiles "core/stdc/stdatomic.d" "core/stdcpp/*" "std/logger/*" "std/experimental/*" "std/windows/*" "std/net/*" "std/datetime/systime.d" "std/datetime/timezone.d" "std/datetime/package.d" "std/datetime/stopwatch.d"
+# G6LC_G6B: `rt/invariant_.d` is compiled in, and nine more std modules are
+# excluded than upstream excludes. They are not "unused" — they do not compile
+# for wasm32-unknown-wasi against this carried runtime. `std/package.d` is the
+# load-bearing one: it publicly imports std.concurrency, which has no wasm
+# implementation here, so leaving it in fails the build with
+#   Expected 'std\concurrency.d' ... in one of the following import paths
+# The rest (checkedint, encoding, getopt, path, random, signals, zip, zlib) pull
+# in host-only facilities the BIOS cell never calls.
+sourceFiles "object.d" "rt/invariant_.d"
+excludedSourceFiles "std/checkedint.d" "std/encoding.d" "std/getopt.d" "std/package.d" "std/path.d" "std/random.d" "std/signals.d" "std/zip.d" "std/zlib.d" "core/stdc/stdatomic.d" "core/stdcpp/*" "std/logger/*" "std/experimental/*" "std/windows/*" "std/net/*" "std/datetime/systime.d" "std/datetime/timezone.d" "std/datetime/package.d" "std/datetime/stopwatch.d"

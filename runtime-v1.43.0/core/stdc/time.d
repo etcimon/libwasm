@@ -15,7 +15,13 @@
 
 module core.stdc.time;
 
-version (Posix)
+// G6LC_G6B: CRuntime_LIBWASM must be selected before Posix. LDC sets `Posix`
+// on the wasm32-unknown-wasi triple, but this carried runtime deliberately has
+// no core/sys/posix/stdc/time.d, so falling into the Posix branch is a missing
+// import rather than a working build.
+version (CRuntime_LIBWASM)
+    public import core.sys.wasi.time;
+else version (Posix)
     public import core.sys.posix.stdc.time;
 else version (Windows)
     public import core.sys.windows.stdc.time;

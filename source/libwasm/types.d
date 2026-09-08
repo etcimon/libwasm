@@ -174,6 +174,16 @@ else
   }
 }
 
+// G6LC_G6B: the g6lc_bios kernel host implements a bounded, explicitly
+// enumerated import ABI (architecture/LIBWASM-ABI.md) rather than the full
+// libwasm surface, so the BIOS build substitutes `libwasm.g6b_kernel` for the
+// default extern(C) block below. Declaring imports the host does not provide
+// would make the guest cell fail to instantiate.
+version (G6LC_G6B)
+{
+  public import libwasm.g6b_kernel;
+}
+else
 extern (C)
 {
 @safe:

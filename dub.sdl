@@ -19,7 +19,7 @@ sourcePaths "source"
 # Default: LDC 1.43 + carried runtime-v1.43.0 (wasm EH + exception-using Phobos).
 # Pin 1.36 and carry 1.42 stay as named configs.
 configuration "library" {
-    dependency "druntime-wasm" path="./runtime-v1.43.0"
+    dependency "druntime-wasm-143" path="./runtime-v1.43.0"
     subConfiguration "memutils-wasm" "ldc-master"
     subConfiguration "fast-wasm" "ldc-master"
     subConfiguration "optional-wasm" "ldc-master"
@@ -37,24 +37,44 @@ configuration "ldc-1.36" {
     lflags "-allow-undefined" "--export-table" "--export=domEvent" "--export=allocString" "--export=dumpApp" "--export=loadApp" "-export=__heap_base"
 }
 
-# LDC 1.42.0 + carried runtime-v1.42.0 (tools/runtime-adapt --carry --ldc-tag v1.42.0)
-configuration "ldc-1.42" {
-    dependency "druntime-wasm" path="./runtime-v1.42.0"
-    subConfiguration "memutils-wasm" "ldc-1.42"
-    subConfiguration "fast-wasm" "ldc-1.42"
-    subConfiguration "optional-wasm" "ldc-1.42"
-    dflags "-fvisibility=hidden" "-fno-moduleinfo" "-mattr=+exception-handling" "--wasm-enable-eh"
-    lflags "-allow-undefined" "--export-table" "--export=domEvent" "--export=allocString" "--export=dumpApp" "--export=loadApp" "-export=__heap_base"
-}
+# G6LC_G6B: the "ldc-1.42" configuration is removed on this branch, not merely
+# unused. It declared `dependency ... path="./runtime-v1.42.0"`, but that
+# directory is not present in v0.11.1, and DUB resolves dependencies across
+# *every* configuration — so the dangling path made even `--config=g6lc-bios`
+# fail with "Failed to load path based dependency druntime-wasm". The BIOS cell
+# is pinned to LDC 1.43 (browser-ui/toolchains/ldc.lock.json), so there is
+# nothing here to keep working.
 
 # Alias of library: LDC master / 1.43 (riscv-compilers/ldc2) + runtime-v1.43.0
 configuration "ldc-master" {
-    dependency "druntime-wasm" path="./runtime-v1.43.0"
+    dependency "druntime-wasm-143" path="./runtime-v1.43.0"
     subConfiguration "memutils-wasm" "ldc-master"
     subConfiguration "fast-wasm" "ldc-master"
     subConfiguration "optional-wasm" "ldc-master"
     dflags "-fvisibility=hidden" "-fno-moduleinfo" "-mattr=+exception-handling" "--wasm-enable-eh" "-link-internally" "-defaultlib=" "--foptimize-nothrow=false"
     lflags "-allow-undefined" "--export-table" "--export=domEvent" "--export=allocString" "--export=dumpApp" "--export=loadApp" "-export=__heap_base"
+}
+
+# G6LC_G6B: the g6lc_bios BIOS browser cell. Same LDC 1.43 + runtime-v1.43.0
+# toolchain as ldc-master, and deliberately a SEPARATE configuration rather than
+# a mutation of it, so this fork stays rebasable onto upstream.
+#
+# Two differences, both forced by the kernel host rather than preference:
+#   versions "G6LC_G6B"  substitutes libwasm.g6b_kernel for the default
+#                        extern(C) import block, so the cell imports exactly the
+#                        set architecture/LIBWASM-ABI.md documents. Declaring an
+#                        import the host does not provide fails instantiation.
+#   --export=_start      the BIOS host calls _start; it never dispatches
+#                        domEvent, so exporting that instead would leave the
+#                        cell with no reachable entry point.
+configuration "g6lc-bios" {
+    dependency "druntime-wasm-143" path="./runtime-v1.43.0"
+    subConfiguration "memutils-wasm" "ldc-master"
+    subConfiguration "fast-wasm" "ldc-master"
+    subConfiguration "optional-wasm" "ldc-master"
+    versions "G6LC_G6B"
+    dflags "-fvisibility=hidden" "-fno-moduleinfo" "-mattr=+exception-handling" "--wasm-enable-eh" "-link-internally" "-defaultlib=" "--foptimize-nothrow=false"
+    lflags "-allow-undefined" "--export-table" "--export=_start" "--export=allocString" "--export=dumpApp" "--export=loadApp" "-export=__heap_base"
 }
 
 configuration "unittest" {

@@ -296,7 +296,12 @@ version (unittest)
 }
 else
 {
-  private extern (C)
+  // G6LC_G6B: public rather than module-private. The g6lc_bios BIOS browser
+  // generates D that constructs the setup tree imperatively and therefore calls
+  // these DOM imports from its own module, qualified as `dom.createElement`
+  // etc. Upstream only needs them inside `libwasm.dom`, so they were private;
+  // widening the visibility does not change the wasm import ABI.
+  public extern (C)
   {
     Handle createElement(NodeType type);
     Handle createCustomElement(string type);
