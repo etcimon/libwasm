@@ -41,8 +41,10 @@ extern (C)
     uint libwasm_add__string(string value);
 
     // B61 object lifetime. `struct JsHandle` frees on destruct and copies by
-    // reference, so the host table is refcounted; handles 1 (staging DOM root)
-    // and 2 (BoardSpec scope) are roots and are never freed.
+    // reference, so the host table is refcounted; handles 1 (Spa mount) and
+    // 2 (first createElement, until getRoot matches svelte-engine) are DOM
+    // roots and are never freed. window/document are interned via
+    // libwasm_global — not BoardSpec, not a kernel type table.
     uint libwasm_add__object();
     void libwasm_removeObject(uint handle);
     uint libwasm_copyObjectRef(uint handle);
@@ -126,10 +128,19 @@ public void g6b_register(string path, string method) @trusted
                       cast(uint) method.ptr, cast(uint) method.length);
 }
 
-extern (C) uint getRoot()
+/// Cell-owned click (B87). listener=0 is the BIOS tab/refresh protocol:
+/// the host preventDefaults and runs fetch/select; it is not wasm function 0.
+public void g6b_listen(string id, string type) @trusted
 {
-    return 1;
+    add_event_listener(cast(uint) id.ptr, cast(uint) id.length,
+                       cast(uint) type.ptr, cast(uint) type.length,
+                       0, 0);
 }
+
+// svelte-engine spa.ts: `addObject(document.querySelector('#root'))`.
+// Host import (env.getRoot). B91d cell imports this; BrowserSession::get_root
+// querySelectors `#libwasm-root` / `#root`.
+extern (C) uint getRoot();
 
 extern (C)
 {

@@ -9,6 +9,7 @@ public import libwasm.hmr;
 public import libwasm.intrinsics;
 public import libwasm.lodash;
 public import libwasm.moment;
+public import libwasm.pglite;
 public import libwasm.node;
 public import libwasm.promise;
 public import libwasm.router;
